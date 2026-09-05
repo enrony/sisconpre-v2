@@ -1,0 +1,17 @@
+INSERT INTO `tipos_documentos` (`id`, `nombre`, `grupos_trabajos_user_id`, `estatus`, `created_at`, `updated_at`, `sigla`, `country_id`) VALUES
+	(1, 'Cedula ciudadania', NULL, 1, '2023-09-19 05:08:49', '2023-09-19 05:08:49', 'CC', 'COL'),
+	(2, 'Cedula de extranjeria', NULL, 1, '2023-09-19 05:08:49', '2023-09-19 05:08:49', 'CE', 'COL'),
+	(3, 'Pasaporte', NULL, 1, '2023-09-19 05:08:49', '2023-09-19 05:08:49', 'P', 'COL'),
+	(4, 'Permiso por protección temporal', NULL, 1, '2023-09-19 05:08:49', '2023-09-19 05:08:49', 'PPT', 'COL'),
+	(5, 'Permiso Especial de Permanencia', NULL, 1, '2023-09-19 05:08:49', '2023-09-19 05:08:49', 'PEP', 'COL'),
+	(6, 'Cedula ciudadania', NULL, 1, '2023-09-19 05:08:49', '2023-09-19 05:08:49', 'C', 'ARG'),
+	(7, 'Cedula de extranjeria', NULL, 1, '2023-09-19 05:08:49', '2023-09-19 05:08:49', 'CE', 'ARG'),
+	(8, 'Pasaporte', NULL, 1, '2023-09-19 05:08:49', '2023-09-19 05:08:49', 'P', 'ARG'),
+	(9, 'Permiso por protección temporal', NULL, 1, '2023-09-19 05:08:49', '2023-10-02 00:00:50', 'PPT', 'ARG'),
+	(10, 'Permiso Especial de Permanencia', NULL, 1, '2023-09-19 05:08:49', '2023-09-19 05:08:49', 'PEP', 'ARG'),
+	(11, 'Cedula de identidad', 1, 1, '2023-09-21 05:43:00', '2023-09-21 06:09:00', 'CI', 'VEN'),
+	(12, 'Otro8', 1, 1, '2023-09-21 05:45:05', '2023-09-21 05:45:05', 'COL', 'COL'),
+	(13, 'Tarjeta de identidad', 1, 1, '2023-09-21 06:02:42', '2023-09-21 06:09:20', 'TI', 'VEN'),
+	(14, 'Pasaporte', 1, 1, '2023-09-21 06:10:19', '2023-09-21 06:10:19', 'PP', 'VEN'),
+	(15, 'Cedula de extranjería', 1, 1, '2023-09-21 06:10:50', '2023-09-21 06:10:50', 'CE', 'VEN'),
+	(16, 'Tarjeta de identidad', 1, 1, '2023-09-21 06:12:12', '2023-09-21 06:12:12', 'TI', 'ARG');

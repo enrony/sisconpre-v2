@@ -143,9 +143,10 @@ repo tiene ~13 migraciones posteriores — se incorporan al portar). Conviven `s
 - [x] Tablas excluidas: `users`/`password_resets`/`sessions`/`failed_jobs`/`personal_access_tokens` (starter kit), `teams`/`team_user` (Jetstream vestigial), spatie (ya publicadas).
 - [x] Verificación estructural ref vs new: **las 53 tablas de negocio coinciden columna a columna**. Únicas diferencias: `users` (columnas de Jetstream teams/photo quitadas, `two_factor_confirmed_at` añadida por el starter kit) y 5 columnas `double(10,2)` → `double` (stats de países + `configuration_items.valor_numerico` — revisar si conviene `decimal` en Fase 3).
 - [x] `DECIMAL` de montos/tasas verificados fieles (`decimal(15,2)`, `decimal(16,3)`, `decimal(4,2)`).
+- [x] **Seeder de maestros** `LegacyCatalogSeeder` + fixtures `database/seeders/data/*.sql` (18 tablas: `countries` 239, `cities` 4095, `departments` 1417, `banks` 146, `country_holidays` 132, frecuencias/tipos/monedas/acciones/estatus…). `actions` sin las filas de prueba 13/14. Idempotente (borra y recarga). `migrate:fresh --seed` en verde, 0 huérfanos de FK.
+- [ ] `menu_items` (navegación) — se genera en Fase 3 §11 junto con el RBAC.
 - [ ] `php artisan schema:dump --prune` → baseline (tras validar import de datos y ajustes de Fase 3).
-- [ ] Seeders de maestros idempotentes (`actions` 12 reales, `countries`, `country_holidays`, `frecuencias`, `tipo_prestamos`, `payment_methods`/`forms`, `banks`, `tipos_documentos`, `monedas`, `menu_items`).
-- [ ] Script de **import de datos** desde `prestamos_db.sql` (excluir `actions` 13/14 y perfiles de prueba; regenerar spatie desde el RBAC propio; descartar `teams`).
+- [ ] Script de **import de datos de tenant** desde `prestamos_db.sql` (clientes, préstamos, cuotas, informes de pago, grupos de trabajo; regenerar spatie desde el RBAC propio; descartar `teams`).
 
 ### Fase 3 — Dominio (modelos + servicios) · 3–5 días
 
