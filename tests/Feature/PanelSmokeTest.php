@@ -80,6 +80,36 @@ class PanelSmokeTest extends TestCase
             ->assertJsonStructure(['PaymentReportsMovementsEstatu']);
     }
 
+    /** Cambio de estado de un informe de pago (Pendiente -> En revisión). */
+    public function test_cambio_de_estado_informe(): void
+    {
+        $pr = DB::table('payment_reports')
+            ->where(fn ($q) => $q->whereNull('payment_reports_movements_estatus_id')->orWhere('payment_reports_movements_estatus_id', 1))
+            ->orderByDesc('id')
+            ->first();
+        $this->assertNotNull($pr);
+
+        $movsAntes = DB::table('payment_reports_movements')->where('payment_report_id', $pr->id)->count();
+
+        $res = $this->actingAs($this->super())->postJson('/payment_report/change_estatus_report', [
+            'data' => json_encode([
+                'id' => $pr->id,
+                'estatus_actual' => 1,
+                'estatus_selected' => 4, // En revisión
+                'motivo' => 'QA feature test',
+                'support_image' => [],
+            ]),
+        ]);
+
+        $res->assertOk()->assertJson(['success' => true]);
+        $this->assertSame(4, (int) DB::table('payment_reports')->where('id', $pr->id)->value('payment_reports_movements_estatus_id'));
+        $this->assertSame($movsAntes + 1, DB::table('payment_reports_movements')->where('payment_report_id', $pr->id)->count());
+
+        // revertir
+        DB::table('payment_reports')->where('id', $pr->id)->update(['payment_reports_movements_estatus_id' => null]);
+        DB::table('payment_reports_movements')->where('payment_report_id', $pr->id)->where('motivo', 'QA feature test')->delete();
+    }
+
     /** Las pantallas de maestros (CRUD genérico) resuelven. */
     public function test_maestros_resuelven(): void
     {

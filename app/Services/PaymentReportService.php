@@ -194,7 +194,8 @@ class PaymentReportService
                     if (count($this->prestamosIdNotProccess) > 0) {
                         $idsReportados = $this->PaymentReport->selected_payment_reports->whereIn('prestamos_dia_id', $this->prestamosIdNotProccess)->pluck('id')->toArray();
 
-                        SelectedPaymentReport::whereIn('id', $idsReportados)->update(['error_process', true]);
+                        // Legado: estaba como update(['error_process', true]) — columna sin valor.
+                        SelectedPaymentReport::whereIn('id', $idsReportados)->update(['error_process' => true]);
                     }
                 }
             }

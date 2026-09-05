@@ -19,9 +19,13 @@ export interface InformePagoRow {
     };
 }
 
-interface EstadoMovimiento {
+export interface EstadoMovimiento {
     id: number;
     description: string;
+    action_description: string;
+    finish_estatus: boolean | number;
+    motivo: boolean | number;
+    soporte: boolean | number;
 }
 
 interface ClienteOption {
@@ -121,6 +125,37 @@ export const usePaymentReportStore = defineStore('paymentReport', {
 
         resetFiltro(): void {
             this.filtro = emptyFiltro();
+        },
+
+        /**
+         * Cambia el estado de un informe de pago (movimiento).
+         * El backend espera un campo `data` con el JSON (multipart, por el
+         * soporte). Devuelve { success, message }.
+         */
+        async changeState(payload: {
+            id: number;
+            estatusActual: number;
+            estatusSelected: number;
+            motivo: string | null;
+        }): Promise<{ success: boolean; message: string }> {
+            const form = new FormData();
+            form.append(
+                'data',
+                JSON.stringify({
+                    id: payload.id,
+                    estatus_actual: payload.estatusActual,
+                    estatus_selected: payload.estatusSelected,
+                    motivo: payload.motivo,
+                    support_image: [],
+                }),
+            );
+
+            const { data } = await http.post(
+                '/payment_report/change_estatus_report',
+                form,
+            );
+
+            return data;
         },
     },
 });

@@ -1,5 +1,8 @@
 <script setup lang="ts">
 import { storeToRefs } from 'pinia';
+import { ref } from 'vue';
+import ChangeStateModal from '@/components/paymentReport/ChangeStateModal.vue';
+import { can } from '@/lib/can';
 import { formatNumber } from '@/lib/format';
 import {
     type InformePagoRow,
@@ -8,6 +11,16 @@ import {
 
 const store = usePaymentReportStore();
 const { lista, loading } = storeToRefs(store);
+
+const stateModalOpen = ref(false);
+const stateRow = ref<InformePagoRow | null>(null);
+
+const puedeGestionar = can('payment_report.gestionar-informe-de-pago');
+
+function abrirCambioEstado(row: InformePagoRow) {
+    stateRow.value = row;
+    stateModalOpen.value = true;
+}
 
 function clienteNombre(row: InformePagoRow): string {
     const c =
@@ -93,20 +106,23 @@ function onPage(page: number) {
                         >
                         <template #dropdown>
                             <el-dropdown-menu>
-                                <el-dropdown-item disabled
-                                    >Ver detalle (#{{
-                                        row.id
-                                    }})</el-dropdown-item
+                                <el-dropdown-item disabled>
+                                    Ver detalle (#{{ row.id }})
+                                </el-dropdown-item>
+                                <el-dropdown-item
+                                    :disabled="!puedeGestionar"
+                                    @click="abrirCambioEstado(row)"
                                 >
-                                <el-dropdown-item disabled
-                                    >Cambiar estado</el-dropdown-item
-                                >
+                                    Cambiar estado
+                                </el-dropdown-item>
                             </el-dropdown-menu>
                         </template>
                     </el-dropdown>
                 </template>
             </el-table-column>
         </el-table>
+
+        <ChangeStateModal v-model:open="stateModalOpen" :row="stateRow" />
 
         <div v-if="lista" class="mt-4 flex justify-end">
             <el-pagination
