@@ -185,9 +185,12 @@ repo tiene ~13 migraciones posteriores — se incorporan al portar). Conviven `s
 
 Orden por criticidad de negocio:
 
-1. [ ] **Préstamos** — 🟡 **listado hecho** (`pages/Prestamos.vue` + `components/prestamos/{PrestamosTable,PrestamosFilters}.vue` + `stores/prestamos.ts`): tabla con datos reales, filtros (clientes remoto, rangos de fecha, estado), orden y paginación contra `POST /prestamos/records`; `el-tag` de estado desde `p_estatus.type_tag`; botones/acciones gateados por `can()`. **Verificado en navegador.**
-   Pendiente: asistente de alta (`form.vue` + `Pasos/*` + `ShoppingCart` + `MasterCustomers` + lógica de `generaListPays`/festivos del store — el trozo grande), fila expandible (cuotas + `LegendStates`), acciones Novedades/Pausar. "Informar un pago" va con Informes de pago.
-   - [ ] `TipoPrestamo`, `Frecuencias` (maestros de préstamos)
+1. [ ] **Préstamos** — 🟡 **listado + asistente de alta hechos**
+    - **Listado** (`pages/Prestamos.vue` + `components/prestamos/{PrestamosTable,PrestamosFilters}.vue` + `stores/prestamos.ts`): tabla con datos reales, filtros (clientes remoto, rangos de fecha, estado), orden y paginación contra `POST /prestamos/records`; `el-tag` de estado desde `p_estatus.type_tag`. **Verificado en navegador.**
+    - **Asistente de alta** (`components/prestamos/{PrestamoFormModal,CuotasGrid}.vue` + `lib/prestamoSchedule.ts`): `el-dialog` de 2 pasos (cliente → parámetros). `lib/prestamoSchedule.ts` = port fiel de `generaListPays`/`calculateLastDate`/`applySurchage` de moment+lodash a dayjs (rondeo por tramos, cuota final ajustada, recargo por mora). Store: `fetchTables`/`seleccionarCliente`/`generar`/`aplicarRecargo`/`submitPrestamo`. **Verificado en navegador** (modal → cliente + ficha → paso 2 → país → Generar produce calendario) y **backend probado**: `PUT /prestamos` crea `Prestamos` + N `prestamos_dias` con `grupos_trabajos_user_id` resuelto.
+    - [ ] **Fase 7**: tests unitarios de `lib/prestamoSchedule.ts` (correctitud numérica vs. el sistema legado).
+    - [ ] Pendiente Préstamos: fila expandible de cuotas (`LegendStates`), cambio de fecha de cuota (`changeDate`), acciones Novedades/Pausar, alta rápida de cliente desde el wizard (`MasterCustomers`). "Informar un pago" va con Informes de pago.
+    - [ ] `TipoPrestamo`, `Frecuencias` (maestros de préstamos)
 2. [ ] **Informes de pago** (`PaymentReport`, movimientos, soportes, métodos, formas de pago)
 3. [ ] **Clientes** (`Clientes`, tipos de documento, grupos de trabajo del cliente)
 4. [ ] **Maestros** (`Bank`, `BankAccountType`, `Cities`, `Departments`, `Festivos`, `Franquicias`, `gruposTrabajo`, `TipoDocumentos`, `typePaymentRecord`, `PaymentForm`, `PaymentMethod`)

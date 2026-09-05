@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Head } from '@inertiajs/vue3';
 import { onMounted } from 'vue';
+import PrestamoFormModal from '@/components/prestamos/PrestamoFormModal.vue';
 import PrestamosFilters from '@/components/prestamos/PrestamosFilters.vue';
 import PrestamosTable from '@/components/prestamos/PrestamosTable.vue';
 import Heading from '@/components/Heading.vue';
@@ -40,7 +41,7 @@ onMounted(() => {
                 <el-button
                     v-if="can('prestamos.registrar')"
                     type="primary"
-                    disabled
+                    @click="store.abrirModal()"
                 >
                     Registrar nuevo préstamo
                 </el-button>
@@ -53,5 +54,7 @@ onMounted(() => {
             </div>
             <PrestamosTable />
         </div>
+
+        <PrestamoFormModal />
     </div>
 </template>
