@@ -148,13 +148,15 @@ repo tiene ~13 migraciones posteriores — se incorporan al portar). Conviven `s
 - [ ] `php artisan schema:dump --prune` → baseline (tras validar import de datos y ajustes de Fase 3).
 - [ ] Script de **import de datos de tenant** desde `prestamos_db.sql` (clientes, préstamos, cuotas, informes de pago, grupos de trabajo; regenerar spatie desde el RBAC propio; descartar `teams`).
 
-### Fase 3 — Dominio (modelos + servicios) · 3–5 días
+### Fase 3 — Dominio (modelos + servicios) · 3–5 días — **🟡 EN CURSO**
 
-- [ ] Portar ~46 modelos: `casts()` como método, `HasFactory`, relaciones, `$fillable`. Quitar `HasTeams`.
-- [ ] Portar `app/Actions` (revisar `Actions/Jetstream/*` → equivalentes o descartar), `app/Services/PaymentReportService`, `app/Policies`, `app/Events`, `app/Listeners`, `app/Mail`, `app/Middleware`.
-- [ ] Capa de arranque: `app/Http/Kernel.php` + `app/Console/Kernel.php` → `bootstrap/app.php` + `routes/console.php`. Scheduler + `ScheduledTaskLog`.
-- [ ] Providers → `bootstrap/providers.php`. CORS nativo (`config/cors.php`); quitar `fideloper/proxy` y `fruitcake/laravel-cors`.
-- [ ] **RBAC (§11):** enum `App\Auth\Permission`, seeder de permisos/roles, script de migración `modules_actions_profiles` → spatie, `Gate::before` super-admin, `HandleInertiaRequests` comparte `permissions`.
+- [x] **Modelos portados** (45): copiados del legado + `pint`. `User` fusionado con el starter kit (spatie `HasRoles` + relaciones `profiles`/`ownedUserCountry`/`ownedGruposTrabajoUser`; sin Jetstream ni Sanctum). Borrados `Team`/`Membership`/`State` (muertos). Arreglos: `ModulesRelation` declaraba `class Modules` (colisión); `Prestamos::datoCliente/country` eran `static` con `Self::belongsTo` (roto en PHP 8.3) → método de instancia + orden de args corregido; scopes `static` → instancia. Copiados `app/Http/Traits/{generalsTrait,permissionsTrait}`. Todos cargan y las relaciones clave resuelven.
+- [ ] Revisar smells legado en Fase 4: `PaymentReport::scopeMovimientos()` sin `$query`, `$appends` con accessors que tocan relaciones, `$array_estatus` como propiedad.
+- [x] **Servicios y soporte portados**: `app/Services/PaymentReportService.php` (285 líneas, motor de informes de pago); comandos `holiday:cron`, `prestamos:aplicar-recargos`, `prestamos:notificar-recargos`; `app/Events/EnviarCorreo` + `app/Listeners/EnviaCorreoUsuario` (auto-discovery OK) + `app/Mail/RecargoMail`. Todos pasados por `pint`.
+- [x] **Scheduler** portado a `routes/console.php` (`schedule:list` correcto). `ScheduledTaskLog` ya como modelo.
+- [x] **Descartado del legado**: `app/Actions/Jetstream/*` (sin Jetstream); `app/Actions/Fortify/*` (el starter kit ya trae los suyos); `app/Http/Middleware/*` (los 8 eran default de Laravel, ahora en el framework); `app/Policies/*` (22 eran stubs vacíos — la autorización real va por `permission:` de spatie en §11/Fase 4); `AppServiceProvider`/`AuthServiceProvider`/`EventServiceProvider` del legado (vacíos o solo mapeaban `TeamPolicy`); `app/View/Components/GuestLayout` (era Blade, ahora Inertia).
+- [ ] `bootstrap/providers.php` / CORS: sin cambios necesarios (el starter kit L13 ya trae CORS nativo; `fideloper/proxy` y `fruitcake/laravel-cors` no existían que porten).
+- [ ] **RBAC (§11):** enum `App\Auth\Permission`, seeder de permisos/roles, script de migración `modules_actions_profiles` → spatie, `Gate::before` super-admin, `HandleInertiaRequests` comparte `permissions`. *(Pendiente — siguiente sub-paso de Fase 3.)*
 
 ### Fase 4 — Rutas y controladores · 3–5 días
 
