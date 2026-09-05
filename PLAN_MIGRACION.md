@@ -202,8 +202,10 @@ Por cada SFC: migrar a Vue 3 (filtros fuera, `.sync` → `v-model:arg`, bus de e
 
 ### Fase 7 — Cálculos financieros + tests · 3–5 días _(en paralelo a Fase 6)_
 
-- [ ] Tests (Pest): `PaymentReportService`, cálculo de cuotas, frecuencias, días hábiles con festivos, recargos/mora, precisión `DECIMAL`.
-- [ ] Feature tests: crear préstamo, registrar pago, informe de pago con soporte, cambio de estado.
+- [x] **Runner de tests JS**: `vp test` (vitest 4), script `npm test`. `resources/js/lib/__tests__/`.
+- [x] **`lib/prestamoSchedule.test.ts`** (9 casos): `calcLastDate` (incl. recorte de mes corto); reparto exacto (10 cuotas iguales); redondeo por tramos + ajuste de la última cuota (7 cuotas → 6×42800 + 43200 = 300000); exclusión de domingos; exclusión de festivos; cuota sugerida (desmarca las que exceden el total); `applySurcharge` (N días hábiles saltando domingos) + caso desactivado. Valores esperados trazados a mano desde `generaListPays` del legado.
+- [ ] Tests (Pest): `PaymentReportService`, precisión `DECIMAL`, flujo de informe de pago.
+- [ ] Feature tests: crear préstamo (backend), registrar pago, informe de pago con soporte, cambio de estado.
 - [ ] Comparación de salidas nuevo vs sistema viejo con un set de casos reales documentado.
 
 ### Fase 8 — Integraciones · 2–3 días
