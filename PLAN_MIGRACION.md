@@ -1,0 +1,443 @@
+# Plan de trabajo — Migración `prestamos_16` → `sisconpre-v2` (`prestamos_gilen`)
+
+> **Origen:** `C:\Docker\prestamos_16` — repo `github.com/enrony/sisconpre.git` (`issue02`, tag `pre-migracion-l13`), Laravel 8 + Jetstream/Inertia/Vue 2 + webpack.
+> **Destino:** `C:\Users\enron\Herd\prestamos_gilen` — repo nuevo `github.com/enrony/sisconpre-v2`, Laravel 13, entorno local Laravel Herd.
+> **Producción:** VPS Ferozo de GILEN SOFT (CentOS 7 + LiteSpeed, sin Docker), mismo servidor que `crm.gilensoft.com`.
+> **Fecha del plan:** 2026-09-05 · rev. 2 (tras validar repo, dump y servidor).
+
+---
+
+## 1. Resumen ejecutivo
+
+Se reconstruye el proyecto sobre un esqueleto limpio de **Laravel 13 + PHP 8.3 + Vite + Vue 3 + Inertia 3**,
+**alineado al stack de casa** que ya usa `crm_gilen` (Fortify + starter kit Vue, sin Jetstream; Wayfinder en vez
+de Ziggy; Pest + Pint + Larastan). Se **portan pantalla por pantalla** los ~25 módulos de frontend de Vue 2 a
+Vue 3, **manteniendo `element-plus`** como librería de componentes de las pantallas de negocio (decisión de
+velocidad; convergencia futura a reka-ui queda como trabajo posterior).
+
+El RBAC propio (`modules`/`profiles`) se **consolida en `spatie/laravel-permission`** y se añade autorización
+real en el servidor (hoy no existe). Los datos vienen del **dump `prestamos_db.sql`**; el esquema se rehace
+limpio y se importan los datos.
+
+Despliegue **nativo** en el VPS Ferozo replicando el runbook real de `crm_gilen/docs/despliegue.md`
+(`git pull` + `composer83 --no-scripts` + `migrate --force`, **`public/build/` versionado** porque el server
+no tiene Node usable).
+
+Esfuerzo estimado: **6–10 semanas** con 1 desarrollador, dominado por la Fase 6 (migración de pantallas).
+
+---
+
+## 2. Decisiones tomadas
+
+| Tema            | Decisión                                                                               | Implicación                                                                                                                                                               |
+| --------------- | -------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Repositorio     | **Repo nuevo `enrony/sisconpre-v2`** (creado, vacío, validado ✅)                      | `sisconpre` se archiva como referencia; se migran los datos, no el historial git                                                                                          |
+| Framework / PHP | **Laravel 13 + PHP 8.3**                                                               | PHP 8.3 = `lsphp83` del servidor Ferozo y de `crm_gilen`. No 8.4 (no disponible en el server)                                                                             |
+| Auth / Starter  | **Fortify + starter kit Vue de Laravel 13 (sin Jetstream)**                            | Alineado con `crm_gilen`. Jetstream Teams en préstamos está vestigial (0 usos); se descartan `teams`/`team_user`. 2FA vía Fortify; API tokens vía Sanctum solo si se usan |
+| Frontend        | **Portar** cada SFC Vue 2 → Vue 3 manteniendo **`element-plus`**                       | Migración mecánica por módulo; menor riesgo funcional. Coexiste con reka-ui del shell (aceptado; convergencia futura)                                                     |
+| Build / assets  | **Vite**; `public/build/` **se commitea**                                              | El server no puede correr `npm run build` (Node 16). Node es dependencia **solo local**                                                                                   |
+| Rutas tipadas   | **Laravel Wayfinder** (no Ziggy)                                                       | Igual que `crm_gilen`                                                                                                                                                     |
+| Base de datos   | Esquema **nuevo y limpio** + **import de datos** desde `prestamos_db.sql`              | El server corre **MySQL 5.7.44** (el CRM ya valida Laravel 13 sobre 5.7). Convertir `utf8mb3` → `utf8mb4`                                                                 |
+| RBAC            | **Consolidar `modules`/`profiles` en `spatie/laravel-permission`** + autorización real | Ver §11                                                                                                                                                                   |
+| Despliegue      | **Nativo en VPS Ferozo** (LiteSpeed + `lsphp83`), **sin Docker**                       | Replica `crm_gilen/docs/despliegue.md`. Ver §12                                                                                                                           |
+
+---
+
+## 3. Stack objetivo (versiones concretas)
+
+| Componente    | Versión / elección                                     | Nota                                                              |
+| ------------- | ------------------------------------------------------ | ----------------------------------------------------------------- |
+| Laravel       | `laravel/framework ^13.17`                             | igual que `crm_gilen`                                             |
+| PHP           | **8.3**                                                | `/usr/local/lsws/lsphp83/bin/php` en el server; Herd 8.3 en local |
+| Entorno local | Laravel Herd                                           | `prestamos_gilen.test`                                            |
+| Auth          | `laravel/fortify`                                      | 2FA, reset, registro. **Sin Jetstream**                           |
+| Starter kit   | Starter kit **Vue** de Laravel 13 (Inertia 3)          | shell, layout, páginas de auth                                    |
+| Rutas en JS   | `laravel/wayfinder` + `@laravel/vite-plugin-wayfinder` | reemplaza `ziggy`                                                 |
+| Inertia       | `inertiajs/inertia-laravel ^3` + `@inertiajs/vue3 ^3`  |                                                                   |
+| Node          | **24 LTS** — **solo entorno local**                    | el server no ejecuta Node                                         |
+| Bundler       | Vite (`laravel-vite-plugin`) + `@vitejs/plugin-vue`    |                                                                   |
+| JS framework  | Vue `^3.5`                                             |                                                                   |
+| Estado        | Pinia (ya presente, se mantiene)                       |                                                                   |
+| UI negocio    | `element-plus`                                         | pantallas portadas                                                |
+| UI shell      | Tailwind 4 + reka-ui (del starter kit)                 | auth, layout                                                      |
+| Permisos      | `spatie/laravel-permission ^6`                         | ver §11                                                           |
+| API auth      | `laravel/sanctum ^4`                                   | solo si el módulo API sigue vivo                                  |
+| Fechas        | `dayjs` (reemplaza `moment`)                           |                                                                   |
+| Tests         | **Pest** (`pestphp/pest`, `phpunit ^12`)               |                                                                   |
+| Calidad       | `laravel/pint`, `larastan/larastan`                    | igual que `crm_gilen`                                             |
+| DB (server)   | MySQL **5.7.44**                                       | evitar CTE / window functions / functional indexes en SQL crudo   |
+
+---
+
+## 4. Estrategia de repositorio
+
+**Repo nuevo, independiente: `github.com/enrony/sisconpre-v2`** (creado y vacío — validado con `git ls-remote`).
+
+1. En `sisconpre` (legado): **✅ HECHO (2026-09-05)** — commit `967c8c5` en `issue02` + tag `pre-migracion-l13`, ambos pusheados. Tras el cutover: archivar el repo (Settings → Archive).
+2. En `prestamos_gilen`: `git init`, `git remote add origin https://github.com/enrony/sisconpre-v2.git`, primer commit con el scaffold de Laravel 13. `public/build/` **fuera de `.gitignore`** (se versiona).
+3. Clonar `sisconpre` en carpeta hermana (`C:\Users\enron\Herd\_ref\sisconpre`) para portar lógica lado a lado; usar la rama `issue02`.
+4. Repo **privado** → para el server: PAT classic con scopes `repo` + `workflow`, guardado con `git config credential.helper store` (igual que `crm_gilen`).
+
+**No se hace:** merge del código nuevo dentro de `sisconpre`, ni rama `v2` sobre ese repo.
+
+---
+
+## 5. Estrategia de base de datos
+
+Fuente de datos: **`C:\Users\enron\Downloads\respaldo_db.sql\prestamos_db.sql`** (9.7 MB, MySQL 8.0.30, HeidiSQL).
+Contenido: **57 tablas**, charset **`utf8mb3`**, estado **~mayo 2025** (última migración aplicada `2025_05_23`; el
+repo tiene ~13 migraciones posteriores — se incorporan al portar). Conviven `spatie` (`roles`, `permissions`,
+`model_has_*`) y el RBAC propio.
+
+1. **Esquema nuevo y limpio** en el proyecto Laravel 13:
+    - Portar las ~73 migraciones del repo `issue02`, actualizadas a la API de L13 (clases anónimas, `Blueprint`).
+    - Consolidar en un **baseline** con `php artisan schema:dump` una vez validado contra copia local.
+    - **`utf8mb4`** (`utf8mb4_unicode_ci`) en todo el esquema nuevo. Cuidar el límite de 767 bytes en índices
+      sobre `varchar` largos en MySQL 5.7 (`innodb_large_prefix` está ON por defecto en 5.7.7+).
+    - Columnas monetarias y de tasa en **`DECIMAL`** (verificar que ninguna quede `float`/`double`).
+    - `timezone` por país (`countries.timezone` ya existe).
+2. **Import de datos** desde el dump:
+    - Script de carga: mapear tabla por tabla del dump al esquema nuevo (nombres iguales salvo ajustes).
+    - **Excluir basura**: filas de prueba en `actions` (`13 Prueba`, `14 Pruba 2`) y perfiles/pruebas de test.
+    - Regenerar `roles`/`permissions`/`model_has_roles` desde el RBAC propio (§11), **no** copiar las tablas spatie tal cual.
+    - **Descartar** `teams`, `team_user` (Jetstream vestigial).
+3. **Datos maestros** por seeder idempotente (para entornos nuevos): `actions` (12 reales), `countries`,
+   `country_holidays`, `frecuencias`, `tipo_prestamos`, `payment_methods`/`payment_forms`,
+   `banks`/`bank_account_types`, `tipos_documentos`, `monedas`, `menu_items` (§11).
+4. **Cutover**: exportar dump fresco de la BD viva → cargar en la BD del subdominio nuevo en Ferozo →
+   `migrate --force` de deltas → smoke test. Backup completo antes. Rollback = repuntar document root al viejo.
+
+---
+
+## 6. Fases
+
+### Fase 0 — Arranque · 0.5–1 día
+
+- [x] Repo `sisconpre-v2` creado y validado.
+- [x] Dump recibido y analizado.
+- [x] Servidor identificado (VPS Ferozo, ver §12).
+- [x] Commit + tag en `sisconpre`.
+- [x] Subdominio de producción: **`prestamos.gilensoft.com`**, document root `prestamos_app/public`.
+- [x] Panel Ferozo: BD **`gilen_prestamos`** + usuario creados. Carpeta `~/public_html/prestamos_app` creada (vacía).
+- [ ] Panel Ferozo: **SSL Let's Encrypt + redirección https** para el subdominio (pendiente).
+- [ ] PAT de GitHub (classic, `repo`+`workflow`) para el clone en el server (pendiente).
+- [ ] Inventario funcional: marcar cada módulo/pantalla como _portar / rehacer / descartar_ (ver §8).
+
+### Fase 1 — Scaffold base · 1–2 días — **✅ COMPLETADA (local); falta push**
+
+- [x] Sitio Herd `prestamos_gilen.test` **aislado a PHP 8.3.33** (`herd isolate 8.3`).
+- [x] Scaffold desde el branch `main` de `laravel/vue-starter-kit` (el tag estable era Laravel 12) → **Laravel 13.30.1**, Inertia 3, Fortify (registro/reset/verificación email/2FA/passkeys), Wayfinder, Tailwind 4, reka-ui, Vite (vite-plus). Trae Pint + PHPUnit + Larastan del starter kit.
+- [x] `composer require spatie/laravel-permission` (v8) — `config/permission.php` + migración publicadas y ejecutadas.
+- [x] `npm i element-plus @element-plus/icons-vue pinia dayjs`.
+- [x] **Node 24.20.0** instalado vía nvm (`vite-plus` exige ≥22.18/24). `.nvmrc` = `24`.
+- [x] `.env` local → MySQL 8 `prestamos_gilen` (root, sin clave); `APP_KEY` generado; `migrate` OK.
+- [x] `.gitignore`: `/public/build` **des-ignorado** (+ `/.claude`, sqlite) — mirror de `crm_gilen`. `.env.production.example` creado (Ferozo).
+- [x] `npm run build` OK → `public/build/` versionado.
+- [x] Commit local `957fd15` (340 archivos) en rama `main`, remoto `origin` = `https://github.com/enrony/sisconpre-v2.git`.
+- [ ] **`git push -u origin main`** — bloqueado por el clasificador de seguridad de la sesión; lo ejecuta el usuario.
+- [ ] Pendiente menor: `sanctum` y `pestphp/pest` se añaden cuando se necesiten (API en Fase 4 / tests en Fase 7).
+
+### Fase 2 — Base de datos · 2–3 días
+
+- [ ] Portar migraciones a L13; `utf8mb4`; `DECIMAL` en montos/tasas; índices FK / país / franquicia / grupo.
+- [ ] `schema:dump` → baseline. Seeders de maestros idempotentes.
+- [ ] Script de **import de datos** desde `prestamos_db.sql` (con exclusión de basura).
+- [ ] Ejecutar contra copia local de MySQL y validar recuentos por tabla.
+
+### Fase 3 — Dominio (modelos + servicios) · 3–5 días
+
+- [ ] Portar ~46 modelos: `casts()` como método, `HasFactory`, relaciones, `$fillable`. Quitar `HasTeams`.
+- [ ] Portar `app/Actions` (revisar `Actions/Jetstream/*` → equivalentes o descartar), `app/Services/PaymentReportService`, `app/Policies`, `app/Events`, `app/Listeners`, `app/Mail`, `app/Middleware`.
+- [ ] Capa de arranque: `app/Http/Kernel.php` + `app/Console/Kernel.php` → `bootstrap/app.php` + `routes/console.php`. Scheduler + `ScheduledTaskLog`.
+- [ ] Providers → `bootstrap/providers.php`. CORS nativo (`config/cors.php`); quitar `fideloper/proxy` y `fruitcake/laravel-cors`.
+- [ ] **RBAC (§11):** enum `App\Auth\Permission`, seeder de permisos/roles, script de migración `modules_actions_profiles` → spatie, `Gate::before` super-admin, `HandleInertiaRequests` comparte `permissions`.
+
+### Fase 4 — Rutas y controladores · 3–5 días
+
+- [ ] Portar los ~24 archivos de rutas; consolidar carga en `routes/web.php` + includes.
+- [ ] Portar ~40 controladores: validación a FormRequests con `authorize()` **real**, respuestas `Inertia::render`.
+- [ ] Añadir `->middleware('permission:<recurso>.<habilidad>')` por ruta (spatie middleware registrado en `bootstrap/app.php`).
+- [ ] Wayfinder: generar acciones tipadas; reemplazar usos de `route()` / `ziggy` en el front.
+- [ ] Sanctum 4 solo si `routes/api.php` sigue en uso.
+
+### Fase 5 — Shell de frontend · 2–4 días
+
+- [ ] `vite.config.ts` con `laravel-vite-plugin` + `@vitejs/plugin-vue` + plugin de Wayfinder.
+- [ ] `resources/js/app.ts`: `createInertiaApp` + `createApp` + `createPinia` + `ElementPlus` + iconos.
+- [ ] Layout principal (sidebar dinámico desde `menu_items` filtrado por `can()`), páginas de auth del starter kit.
+- [ ] Helper `can()` / directiva `v-can` a partir de los permisos compartidos por Inertia.
+- [ ] Config de `element-plus` (locale es, tema, tamaño por defecto). Tailwind 4 del starter kit.
+
+### Fase 6 — Migración de pantallas por módulo · 2–4 semanas _(el grueso)_
+
+Orden por criticidad de negocio:
+
+1. [ ] **Préstamos** (`Prestamos`, `Prestamos/Pasos`, `TipoPrestamo`, `Frecuencias`)
+2. [ ] **Informes de pago** (`PaymentReport`, movimientos, soportes, métodos, formas de pago)
+3. [ ] **Clientes** (`Clientes`, tipos de documento, grupos de trabajo del cliente)
+4. [ ] **Maestros** (`Bank`, `BankAccountType`, `Cities`, `Departments`, `Festivos`, `Franquicias`, `gruposTrabajo`, `TipoDocumentos`, `typePaymentRecord`, `PaymentForm`, `PaymentMethod`)
+5. [ ] **Admin / RBAC** (`Modules` → editor de `menu_items`, `Action`, `Profiles` → roles)
+6. [ ] **Perfil de usuario + 2FA** (páginas de Fortify del starter kit; **sin Teams**)
+
+Por cada SFC: migrar a Vue 3 (filtros fuera, `.sync` → `v-model:arg`, bus de eventos, `v-model`), ajustar
+`el-*` a `element-plus` (props/slots/nombres), revisar store Pinia, probar contra datos reales importados.
+
+### Fase 7 — Cálculos financieros + tests · 3–5 días _(en paralelo a Fase 6)_
+
+- [ ] Tests (Pest): `PaymentReportService`, cálculo de cuotas, frecuencias, días hábiles con festivos, recargos/mora, precisión `DECIMAL`.
+- [ ] Feature tests: crear préstamo, registrar pago, informe de pago con soporte, cambio de estado.
+- [ ] Comparación de salidas nuevo vs sistema viejo con un set de casos reales documentado.
+
+### Fase 8 — Integraciones · 2–3 días
+
+- [ ] Storage S3; revisar si el parche histórico de `FilesystemAdapter::putFileAs` sigue haciendo falta en Flysystem 3.
+- [ ] Doble mailer (`MAIL_` / `MAIL_2`) → dos mailers nombrados en `config/mail.php`.
+- [ ] Broadcasting: evaluar si Pusher sigue en uso; si sí, `laravel-echo` vía Vite; si no, quitar.
+- [ ] Cache/colas: **`database` o `redis`** según lo que ofrezca la cuenta Ferozo (el server tiene `redis` en `lsphp83`). Colas: `queue:work` como proceso o cron.
+- [ ] Tareas programadas (`ScheduledTaskLog`) + entrada de cron con ruta `lsphp83` explícita.
+
+### Fase 9 — QA y hardening · 3–5 días
+
+- [ ] Regresión completa por checklist de módulos.
+- [ ] Seguridad: subida de archivos por magic bytes, CSRF, **autorización por permiso en cada ruta**, aislamiento por país/franquicia/grupo de trabajo (query scoping), hashing de contraseñas.
+- [ ] `pint` + `larastan` en verde. `.env.production.example` sin secretos.
+
+### Fase 10 — Despliegue y cutover en Ferozo · 2–3 días
+
+- [ ] Preparación única en el server (§12): clone, `composer83 install --no-dev --no-scripts`, `package:discover`, `.env`, `key:generate`, `migrate --force`, mover a `public_html/<app>_app`, `.htaccess` de protección, `storage:link`, `config/route/view:cache`, document root, cron.
+- [ ] Import de datos de producción (dump fresco de la BD viva).
+- [ ] Smoke test: login, préstamos, informe de pago, permisos. `config('app.debug') === false`. `.env` → 403.
+- [ ] Cambio de document root / DNS al nuevo. **Rollback** = repuntar al viejo (BD intacta).
+- [ ] Archivar repo `sisconpre`.
+
+---
+
+## 7. Mapa de equivalencias de paquetes
+
+| Actual                                          | Nuevo                                                    |
+| ----------------------------------------------- | -------------------------------------------------------- |
+| `laravel/framework ^8`                          | `^13.17`                                                 |
+| `laravel/jetstream ^1.3`                        | **eliminado** → `laravel/fortify` + starter kit Vue      |
+| `laravel/sanctum ^2.6`                          | `^4` (solo si hay API)                                   |
+| `inertiajs/inertia-laravel ^0.2`                | `^3`                                                     |
+| `tightenco/ziggy`                               | **eliminado** → `laravel/wayfinder`                      |
+| `spatie/laravel-permission ^5.11`               | `^6`                                                     |
+| `fideloper/proxy`                               | eliminado (`TrustProxies` en el core)                    |
+| `fruitcake/laravel-cors`                        | eliminado (CORS nativo)                                  |
+| `facade/ignition`                               | `spatie/laravel-ignition`                                |
+| `doctrine/dbal`                                 | innecesario (cambio de columnas nativo)                  |
+| `nunomaduro/collision ^5`                       | `^8`                                                     |
+| `phpunit/phpunit ^9`                            | **Pest** (`phpunit ^12`)                                 |
+| —                                               | `laravel/pint`, `larastan/larastan` _(nuevos, calidad)_  |
+| `laravel-mix ^5` + webpack                      | `vite` + `laravel-vite-plugin`                           |
+| `vue ^2.5`                                      | `vue ^3.5`                                               |
+| `@inertiajs/inertia` + `@inertiajs/inertia-vue` | `@inertiajs/vue3 ^3`                                     |
+| `element-ui`                                    | `element-plus` _(se mantiene como librería de negocio)_  |
+| `@vue/composition-api`                          | nativo                                                   |
+| `portal-vue`                                    | `<Teleport>` nativo                                      |
+| `vue-js-modal`                                  | `el-dialog`                                              |
+| `toastr` + `vue-toastr-2`                       | `element-plus` (`ElNotification`) o `vue-toastification` |
+| `moment`                                        | `dayjs`                                                  |
+| `alpinejs ^2`                                   | `^3` (o eliminar si Inertia cubre el caso)               |
+| `tailwindcss ^1` + `@tailwindcss/ui`            | `^4` (del starter kit)                                   |
+
+---
+
+## 8. Inventario de dominio a portar
+
+**Controladores:** ~40 · **Modelos:** ~46 · **Archivos de rutas:** ~24 · **Migraciones:** ~73 · **Carpetas de pantallas Vue:** ~25 · **Servicios:** `PaymentReportService` · **Tablas en BD:** 57
+
+Agrupación funcional:
+
+- **Préstamos:** `Prestamos`, `PrestamosDias`, `PrestamosEstatu`, `PrestamosTarifa`, `TipoPrestamo`, `TipoFrecuenciaPrestamo`, `Frecuencias`
+- **Informes de pago:** `PaymentReport`, `PaymentReportsMovement`, `PaymentReportsMovementsEstatu`, `PaymentReportsSupportMovement`, `SelectedPaymentReport`, `SupportPaymentReport`, `paymentReportsMethod`, `supportPaymentReportsMethod`, `PaymentForm`, `PaymentMethod`, `TypePaymentRecord`, `TypesMovement`, `SummaryCustomerMovement`, `CustomerMovementHistory`
+- **Clientes:** `Clientes`, `ClientesGruposTrabajosUsers`, `tiposDocumentos`
+- **Organización / geografía:** `Franquicia`, `GruposTrabajo`, `GruposTrabajoUser`, `UserCountry`, `Country`, `CountryHoliday`, `Department`, `City`, `State`, `Moneda`
+- **Bancos:** `Bank`, `BankAccountType`
+- **RBAC / Admin:** `Action`, `Modules`, `ModulesActions`, `ModulesRelation`, `ModulesActionsProfiles`, `Profiles`, `ProfilesUsers` → **consolidar en spatie + `menu_items`** (§11)
+- **Config:** `ConfigurationItem`
+- **Usuario:** `User` (perfil + 2FA vía Fortify). **Descartar:** `Team`, `Membership`, `team_user`
+
+---
+
+## 9. Riesgos y mitigaciones
+
+| Riesgo                                                                             | Mitigación                                                                                                                          |
+| ---------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| `element-ui` → `element-plus` no es 1:1 (riesgo de cronograma #1)                  | Portar por módulo con prueba visual contra datos reales; holgura en Fase 6                                                          |
+| **No hay autorización real en el servidor hoy** (solo menú dinámico)               | Consolidar en spatie (§11) + `permission:` en cada ruta + `authorize()` real + Policies (Fase 3/4)                                  |
+| Dos sistemas de UI en una misma app (reka-ui en el shell, element-plus en negocio) | Aceptado. Aislar el shell del área de negocio; convergencia futura módulo a módulo                                                  |
+| Cálculos financieros sin tests hoy                                                 | Fijar con tests (Fase 7) **antes** de refactorizar; comparación nuevo vs viejo                                                      |
+| MySQL 5.7 en el server (por debajo del mínimo documentado de L13)                  | `crm_gilen` ya corre L13 sobre 5.7. Evitar CTE / window functions / functional indexes en SQL crudo; revisar `PaymentReportService` |
+| `proc_open` deshabilitado en el server                                             | `composer install --no-scripts` + `php83 artisan package:discover` manual (ya documentado en el runbook del CRM)                    |
+| Dump es de ~mayo 2025, no del estado actual                                        | Portar las migraciones del repo hasta la última; en el cutover, dump fresco de la BD viva                                           |
+| `public/build/` versionado se desincroniza del código                              | Disciplina de release: compilar en local y commitear `public/build/` en el **mismo** commit que el cambio de front                  |
+| Deriva entre código viejo y nuevo durante la migración                             | Congelar features en `sisconpre`; solo fixes críticos, replicados a mano                                                            |
+
+---
+
+## 10. Prerrequisitos / pendientes tuyos
+
+1. ~~Repo nuevo~~ → **✅ `sisconpre-v2` creado y validado.**
+2. ~~Dump de BD~~ → **✅ recibido** (`...\Downloads\respaldo_db.sql\prestamos_db.sql`).
+3. ~~Versión de CentOS / Docker o bare-metal~~ → **✅ VPS Ferozo, CentOS 7 + LiteSpeed, sin Docker, `lsphp83` (PHP 8.3), MySQL 5.7.** Despliegue nativo (§12).
+4. ~~RBAC~~ → **✅ consolidar en spatie** (§11).
+5. ~~Auth scaffold~~ → **✅ Fortify + starter kit Vue, sin Jetstream.**
+6. ~~UI frontend~~ → **✅ portar a element-plus.**
+7. ~~Nombre del subdominio~~ → **✅ `prestamos.gilensoft.com`**, document root **✅ `prestamos_app/public`**.
+8. ~~BD MySQL~~ → **✅ `gilen_prestamos`** (usuario `gilen_prestamos`). **Pendiente:** anotar la clave para el `.env`.
+9. **Pendiente:** SSL **Let's Encrypt + "Redirección https"** para el subdominio (aún sin certificado).
+10. **Pendiente:** PAT de GitHub (classic, scopes `repo` + `workflow`) para el clone en el servidor.
+11. **Pendiente:** carpeta `~/public_html/prestamos_app` creada (vacía) — se llena al clonar en la Fase 1.
+12. **A confirmar durante la Fase 8:** ¿el módulo de broadcasting (Pusher) y el de API tokens siguen en uso, o se retiran?
+
+---
+
+## 11. Consolidación de RBAC en `spatie/laravel-permission`
+
+### Qué hay hoy
+
+7 tablas propias: `modules`, `modules_relations`, `actions`, `modules_actions`, `profiles`,
+`modules_actions_profiles`, `users_profiles`.
+
+```
+User ──< users_profiles >── Profile ──< modules_actions_profiles >── (Module × Action)
+Module ──< modules_relations >── Module        (árbol del menú lateral)
+```
+
+**Hallazgo de la auditoría:** _no hay control de acceso real en el servidor._ Los `FormRequest::authorize()`
+devuelven `true`, no hay middleware `can:`/`permission:`, no hay `Gate`, y no hay `HandleInertiaRequests`
+compartiendo permisos. Las tablas `modules`/`profiles` hoy **solo pintan el menú dinámico** y ocultan botones
+en Vue. `isSuperUsuario()` solo amplía consultas (ver todos los grupos), no bloquea. La migración es también
+la oportunidad de **añadir autorización de verdad por primera vez**.
+
+### Separar dos cosas que el sistema propio mezcla
+
+| Concern                                                    | Hoy                                                        | En el proyecto nuevo                                                                                                                        |
+| ---------------------------------------------------------- | ---------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Autorización**                                           | `profiles` + `modules_actions_profiles` + `users_profiles` | **spatie**: `roles` + `permissions` + `role_has_permissions` + `model_has_roles`                                                            |
+| **Navegación** (árbol, icono, orden, ruta, `visible_menu`) | `modules` + `modules_relations`                            | tabla `menu_items` (`parent_id`, `label`, `icon`, `route`, `order`, `permission`) — sin semántica de permiso, solo `permission` como filtro |
+
+### `actions` reales (del dump) → habilidades
+
+`01 Acceso Total`, `02 Registrar`, `03 Editar`, `04 Duplicar`, `05 Eliminar`, `06 Imprimir`, `07 Exportar`,
+`08 Importar`, `09 Anular`, `10 Eliminar masivo`, `11 Listar`, `12 Gestionar informe de pago`.
+**Excluir** `13 Prueba` y `14 Pruba 2`.
+
+### Convención de nombres de permiso
+
+`"<recurso>.<habilidad>"` en kebab-case: `<recurso>` desde `modules.clave`; `<habilidad>` desde el slug del
+nombre de la acción → `prestamos.registrar`, `prestamos.editar`, `prestamos.eliminar`, `prestamos.listar`,
+`informes-pago.gestionar`, `informes-pago.anular`, `clientes.registrar`, … `01 Acceso Total` sobre un módulo
+=> conceder todas las habilidades de ese módulo. Generar un **enum `App\Auth\Permission`** con el catálogo.
+
+### Mapa de migración de datos (script único, Fase 3)
+
+| Origen                                   | Destino spatie                                                                                   |
+| ---------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| cada `profiles` (sin las de prueba)      | `roles` (guard `web`), `name` = nombre del perfil                                                |
+| cada `users_profiles`                    | `model_has_roles` (`assignRole`)                                                                 |
+| cada `modules_actions` (Module × Action) | `permissions` con nombre `"<recurso>.<habilidad>"`                                               |
+| cada `modules_actions_profiles`          | `role_has_permissions` (`$role->givePermissionTo(...)`)                                          |
+| `profiles.su = true`                     | `assignRole('super-admin')` + `Gate::before(fn($u) => $u->hasRole('super-admin') ? true : null)` |
+| `profiles.admin = true`                  | rol `admin` con su set de permisos                                                               |
+| `modules` + `modules_relations`          | filas en `menu_items`                                                                            |
+
+### Enforcement (usando lo que trae Laravel)
+
+- **Rutas:** `->middleware('permission:prestamos.registrar')`.
+- **Controladores / FormRequests:** `authorize()` real (`$this->user()->can('prestamos.editar')`) o **Policies** por modelo respaldadas por permisos.
+- **Frontend:** `HandleInertiaRequests` comparte `auth.user.roles` y `auth.user.permissions`; helper `can()` / directiva `v-can`. El botón se oculta **y** la ruta bloquea.
+- **Menú:** se arma en el servidor desde `menu_items` filtrando por `can(item.permission)`.
+
+### Scoping de datos (no es RBAC)
+
+El aislamiento por **grupo de trabajo / franquicia / país** (`grupos_trabajos_user_id`, 50 usos en
+controladores; `obtenerGrupoTrabajo()`) se mantiene como **capa de filtrado de consultas** (global scope /
+`when()` + un scope reutilizable), **no** como permisos spatie. Roles y permisos son **globales**.
+
+### Tablas a eliminar tras la migración
+
+`modules_actions_profiles`, `users_profiles`, `profiles`, `modules_actions`, `actions`, `modules`, `modules_relations`
+(estas dos últimas reconvertidas a `menu_items`).
+
+---
+
+## 12. Despliegue nativo en el VPS Ferozo
+
+**Base:** replicar el runbook real de `crm_gilen/docs/despliegue.md` (deploy hecho el 28-ago-2026). **Sin Docker,
+sin Node en el server.**
+
+### Hechos del servidor
+
+| Cosa         | Detalle                                                                                                                                                |
+| ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| SO / web     | CentOS 7 + **LiteSpeed**, panel propio Ferozo (no cPanel), cuenta `gilen` (`nologin`; entrar con `su -s /bin/bash - gilen`)                            |
+| Ubicación    | `/home/gilen/public_html/<app>_app/`, document root del subdominio → `<app>_app/public`                                                                |
+| PHP          | `php` = 5.6 (no usable). Usar **`/usr/local/lsws/lsphp83/bin/php`** (PHP 8.3, todas las extensiones + redis/imagick/gd/memcached/gmp)                  |
+| Composer     | `composer83`; **`proc_open` deshabilitado** → `composer install --no-dev --optimize-autoloader --no-scripts` + `php83 artisan package:discover` a mano |
+| MySQL        | 5.7.44, BD + usuario por cuenta desde el panel                                                                                                         |
+| Node         | v16, inservible → **`public/build/` se commitea** desde local                                                                                          |
+| Git          | 1.8.3.1, solo HTTPS; repo privado → PAT classic (`repo`+`workflow`) + `credential.helper store`                                                        |
+| open_basedir | sin symlinks fuera de `public_html`; la raíz del proyecto se protege con `.htaccess` (`RewriteRule ^ - [F,L]`)                                         |
+
+### Alias de sesión (`gilen`)
+
+```bash
+alias php83='/usr/local/lsws/lsphp83/bin/php'
+alias composer83='/usr/local/lsws/lsphp83/bin/php /usr/local/bin/composer83'
+```
+
+### Preparación única
+
+1. **Panel Ferozo:** subdominio con **PHP 8.3 FPM**, BD MySQL + usuario, **SSL Let's Encrypt** + "Redirección https".
+2. **Clone y montaje:**
+    ```bash
+    git clone https://<user>:<token>@github.com/enrony/sisconpre-v2.git
+    cd sisconpre-v2
+    git remote set-url origin https://github.com/enrony/sisconpre-v2.git
+    git config credential.helper store
+    composer83 install --no-dev --optimize-autoloader --no-scripts
+    php83 artisan package:discover
+    cp .env.production.example .env       # editar DB_*, APP_URL, MAIL_*, S3, etc.
+    php83 artisan key:generate
+    php83 artisan migrate --force
+    php83 artisan db:seed --force          # solo maestros + usuario admin
+    ```
+3. **Mover a `public_html` y proteger la raíz:**
+    ```bash
+    mv ~/sisconpre-v2 ~/public_html/prestamos_app
+    cd ~/public_html/prestamos_app
+    printf 'RewriteEngine On\nRewriteRule ^ - [F,L]\n' > .htaccess
+    rm -f public/storage
+    mkdir -p storage/app/public storage/framework/{cache/data,sessions,views} storage/logs
+    chmod -R ug+rwx storage bootstrap/cache
+    php83 artisan storage:link
+    php83 artisan config:cache && php83 artisan route:cache && php83 artisan view:cache
+    ```
+4. **Panel Ferozo:** document root del subdominio → `prestamos_app/public`. Reiniciar LiteSpeed.
+5. **Cron (panel Ferozo):** los 5 campos en `*`, comando:
+    ```
+    /usr/local/lsws/lsphp83/bin/php /home/gilen/public_html/prestamos_app/artisan schedule:run
+    ```
+6. **Verificar:** subdominio → `/login`; `https://gilensoft.com/prestamos_app/.env` → **403**; `config('app.debug')` → `false`.
+
+### Release (cada actualización)
+
+1. **En local:** `npm run build` → commit de código **+ `public/build/`** juntos → push.
+2. **En el server** (como `gilen`):
+    ```bash
+    cd ~/public_html/prestamos_app
+    php83 artisan down
+    git pull
+    composer83 install --no-dev --optimize-autoloader --no-scripts
+    php83 artisan package:discover
+    php83 artisan migrate --force
+    php83 artisan config:cache && php83 artisan route:cache && php83 artisan view:cache
+    php83 artisan up
+    ```
+
+### Colas / broadcasting
+
+- Colas: si se usan, `QUEUE_CONNECTION=database` + una entrada de cron que lance `queue:work --stop-when-empty` cada minuto (LiteSpeed no gestiona workers persistentes cómodamente); o `redis` si la cuenta lo permite.
+- Broadcasting: confirmar en Fase 8 si Pusher sigue vivo; si no, retirar.
