@@ -159,13 +159,16 @@ repo tiene ~13 migraciones posteriores — se incorporan al portar). Conviven `s
 - [x] **RBAC consolidado en spatie (§11):** comando `php artisan rbac:sync-from-legacy` (idempotente) — lee `modules`/`actions`/`modules_actions`/`modules_actions_profiles`/`profiles`/`users_profiles` importados y genera **196 permisos** (`<clave>.<habilidad>`), **9 roles** (`super-admin` + 8 perfiles), concesiones (`Acceso Total` → todos los permisos del módulo; perfil `admin` → todos), y asigna roles a usuarios (perfil `su` → también `super-admin`). Helper `App\Support\Permission` (slugs). `Gate::before` para `super-admin` en `AppServiceProvider`. Tabla **`menu_items`** (nueva migración) + modelo + `App\Support\Menu` que arma el árbol filtrado por `can(permission)`. `HandleInertiaRequests` comparte `auth.roles`, `auth.permissions` y `menu`. Verificado: super pasa todo; "Cliente Verficado" ve 9 permisos y menú reducido. pint + larastan L5 OK.
 - [ ] **Orden de arranque de datos** (documentar): `migrate --seed` (catálogos) → `legacy:import-data` (tenant) → `rbac:sync-from-legacy` (spatie + menú).
 
-### Fase 4 — Rutas y controladores · 3–5 días
+### Fase 4 — Rutas y controladores · 3–5 días — **🟡 backend funcional**
 
-- [ ] Portar los ~24 archivos de rutas; consolidar carga en `routes/web.php` + includes.
-- [ ] Portar ~40 controladores: validación a FormRequests con `authorize()` **real**, respuestas `Inertia::render`.
-- [ ] Añadir `->middleware('permission:<recurso>.<habilidad>')` por ruta (spatie middleware registrado en `bootstrap/app.php`).
-- [ ] Wayfinder: generar acciones tipadas; reemplazar usos de `route()` / `ziggy` en el front.
-- [ ] Sanctum 4 solo si `routes/api.php` sigue en uso.
+- [x] **24 archivos de rutas** portados a `routes/` y registrados en `bootstrap/app.php` (`then:`). `auth:sanctum` → `auth`; se elimina el middleware propio `access_enrony` (`AccessVerified`, era el chequeo de RBAC casero).
+- [x] **Cada archivo de módulo protegido con `permission:<clave>.listar`** — sin ese permiso no se accede a ninguna acción del módulo. Ajuste fino por acción (`registrar`/`editar`/`eliminar`) → Fase 6/9.
+- [x] Alias de middleware de spatie (`role`/`permission`/`role_or_permission`) registrados en `bootstrap/app.php` (v6 no lo hace solo).
+- [x] **39 controladores + 50 FormRequests** portados + `pint`. Base `Controller` fusionado con el del starter kit (helpers de tenant `obtenerGrupoTrabajo*` + `generalsTrait`). Locale de la app → `es`.
+- [x] `routes/api.php` con utilidades (`/listaTipoDocu`, `/dateServerCurrent`). Sanctum sigue diferido (no hay API con tokens).
+- [x] **Smoke test** (`tests/Feature/PanelSmokeTest.php`, contra la BD local): super entra a todos los índices; "Cliente Verficado" entra a `/prestamos` y recibe 403 en `/banks`; endpoint JSON OK. **42/42 tests en verde.**
+- [ ] `authorize()` real en los FormRequests (hoy `true`; la ruta ya está protegida por `permission:`). Endurecer en Fase 9.
+- [ ] Wayfinder: generar acciones tipadas para el front (se hace al portar cada pantalla, Fase 6).
 
 ### Fase 5 — Shell de frontend · 2–4 días
 
