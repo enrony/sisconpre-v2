@@ -193,7 +193,9 @@ Orden por criticidad de negocio:
     - [ ] `TipoPrestamo`, `Frecuencias` (maestros de préstamos)
 2. [ ] **Informes de pago** (`PaymentReport`, movimientos, soportes, métodos, formas de pago)
 3. [ ] **Clientes** (`Clientes`, tipos de documento, grupos de trabajo del cliente)
-4. [ ] **Maestros** (`Bank`, `BankAccountType`, `Cities`, `Departments`, `Festivos`, `Franquicias`, `gruposTrabajo`, `TipoDocumentos`, `typePaymentRecord`, `PaymentForm`, `PaymentMethod`)
+4. 🟡 **Maestros** — **CRUD genérico** `components/maestros/{MaestroCrud,MaestroFormModal}.vue` + `types.ts`: config declarativa (columnas + campos text/number/switch/select), tabla + `el-pagination` + modal de alta/edición (`PUT /<recurso>`) + borrado con confirmación (`DELETE /<recurso>/{id}/{page}`), todo gateado por `can('<recurso>.registrar|editar|eliminar')`. Errores de validación de Inertia mostrados en el form.
+    - [x] `PaymentForm`, `PaymentMethod` (con columnas/switches booleanos), `Franquicias`, `BankAccountType`, `typePaymentRecord` — páginas de ~25 líneas cada una. **Verificado en navegador** (Franquicias, Métodos de pago) + **CRUD probado** (crear/editar/borrar Franquicia) + smoke tests.
+    - [ ] Faltan con este mismo patrón: `Bank` (+ select de país), `TipoDocumentos` (+ país), `Frecuencias` (+ tipo), `Festivos` (país + año), `gruposTrabajo`, `Cities`/`Departments` (listas grandes).
 5. [ ] **Admin / RBAC** (`Modules` → editor de `menu_items`, `Action`, `Profiles` → roles)
 6. [ ] **Perfil de usuario + 2FA** (páginas de Fortify del starter kit; **sin Teams**)
 

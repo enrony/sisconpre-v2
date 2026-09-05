@@ -65,4 +65,39 @@ class PanelSmokeTest extends TestCase
             ->get('/banks/tables')
             ->assertSuccessful();
     }
+
+    /** Las pantallas de maestros (CRUD genérico) resuelven. */
+    public function test_maestros_resuelven(): void
+    {
+        foreach ([
+            '/payment_forms',
+            '/payment_methods',
+            '/franquicias',
+            '/bank_account_types',
+            '/type_payment_record',
+        ] as $path) {
+            $this->actingAs($this->super())->get($path)->assertSuccessful();
+        }
+    }
+
+    /** Alta + edición + borrado de un maestro (Franquicia) por el flujo real. */
+    public function test_maestro_crud_franquicia(): void
+    {
+        $super = $this->super();
+
+        $this->actingAs($super)
+            ->put('/franquicias', ['code' => 'QA', 'description' => 'QA test', 'paginaActual' => 1])
+            ->assertRedirect();
+
+        $fr = DB::table('franquicias')->where('code', 'QA')->first();
+        $this->assertNotNull($fr);
+
+        $this->actingAs($super)
+            ->put('/franquicias', ['id' => $fr->id, 'code' => 'QA', 'description' => 'QA editado', 'paginaActual' => 1])
+            ->assertRedirect();
+        $this->assertSame('QA editado', DB::table('franquicias')->where('id', $fr->id)->value('description'));
+
+        $this->actingAs($super)->delete("/franquicias/{$fr->id}/1")->assertRedirect();
+        $this->assertNull(DB::table('franquicias')->where('id', $fr->id)->first());
+    }
 }
