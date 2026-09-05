@@ -9,3 +9,6 @@
 CHANGELOG.md export-ignore
 README.md export-ignore
 .github/workflows/browser-tests.yml export-ignore
+
+# Assets compilados (se versionan para el deploy en Ferozo, pero no ensucian los diffs)
+public/build/** -diff linguist-generated
