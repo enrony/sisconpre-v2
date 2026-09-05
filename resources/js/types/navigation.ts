@@ -12,3 +12,12 @@ export type NavItem = {
     icon?: LucideIcon;
     isActive?: boolean;
 };
+
+/** Nodo del menú dinámico servido por el backend (App\Support\Menu). */
+export type MenuNode = {
+    key: string;
+    label: string;
+    icon: string | null;
+    url: string | null;
+    children: MenuNode[];
+};

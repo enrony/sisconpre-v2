@@ -170,13 +170,14 @@ repo tiene ~13 migraciones posteriores — se incorporan al portar). Conviven `s
 - [ ] `authorize()` real en los FormRequests (hoy `true`; la ruta ya está protegida por `permission:`). Endurecer en Fase 9.
 - [ ] Wayfinder: generar acciones tipadas para el front (se hace al portar cada pantalla, Fase 6).
 
-### Fase 5 — Shell de frontend · 2–4 días
+### Fase 5 — Shell de frontend · 2–4 días — **✅ COMPLETADA**
 
-- [ ] `vite.config.ts` con `laravel-vite-plugin` + `@vitejs/plugin-vue` + plugin de Wayfinder.
-- [ ] `resources/js/app.ts`: `createInertiaApp` + `createApp` + `createPinia` + `ElementPlus` + iconos.
-- [ ] Layout principal (sidebar dinámico desde `menu_items` filtrado por `can()`), páginas de auth del starter kit.
-- [ ] Helper `can()` / directiva `v-can` a partir de los permisos compartidos por Inertia.
-- [ ] Config de `element-plus` (locale es, tema, tamaño por defecto). Tailwind 4 del starter kit.
+- [x] `vite.config.ts` ya trae Vite + `@vitejs/plugin-vue` + Wayfinder + Tailwind 4 (starter kit). Añadido `public/build/**` a `lint.ignorePatterns`.
+- [x] `resources/js/app.ts`: `setup()` propio con `createApp` + `createPinia` + `ElementPlus` (locale `es`) + iconos de element-plus + directiva `v-can`. CSS de element-plus (claro + dark-vars) importado.
+- [x] **Sidebar dinámico**: `components/NavMenu.vue` consume `page.props.menu` (árbol servido por `App\Support\Menu`, ya filtrado por `can()` en el backend). `App\Support\Menu` ahora emite `url` (resuelta desde el nombre de ruta) en vez del nombre. `AppSidebar` usa `NavMenu` (se quitan los items hardcodeados y `NavFooter`).
+- [x] Helper **`resources/js/lib/can.ts`** (`can`, `canAny`, `canAll`, `hasRole`, `isSuperAdmin`) + directiva **`v-can`** (elimina el elemento sin permiso). Tipos: `Auth` con `roles`/`permissions`, `MenuNode`, `sharedPageProps.menu`.
+- [x] **Verificado en navegador**: login como `enrony` → dashboard + sidebar con el menú completo (Registros/Procesos/Mantenimiento) filtrado por permisos; `element-plus` y Pinia cargan sin errores. Las rutas de módulo llegan al controlador y fallan solo al resolver el componente Vue (Fase 6).
+- [ ] Pendiente menor (Fase 9): `app.js` pesa ~1,2 MB (element-plus completo) → auto-import por componente.
 
 ### Fase 6 — Migración de pantallas por módulo · 2–4 semanas _(el grueso)_
 

@@ -5,6 +5,7 @@ namespace App\Support;
 use App\Models\MenuItem;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Route;
 
 /**
  * Construye el árbol de navegación visible para un usuario, filtrando cada ítem
@@ -55,12 +56,22 @@ final class Menu
                     'key' => $item->key,
                     'label' => $item->label,
                     'icon' => $item->icon,
-                    'route' => $item->route,
+                    'url' => self::url($item->route),
                     'children' => $children,
                 ];
             })
             ->filter()
             ->values()
             ->all();
+    }
+
+    /** Nombre de ruta del legado → URL. `null`/`#` para nodos agrupadores. */
+    private static function url(?string $route): ?string
+    {
+        if ($route === null || $route === '' || $route === '#') {
+            return null;
+        }
+
+        return Route::has($route) ? route($route) : url('/'.ltrim($route, '/'));
     }
 }
