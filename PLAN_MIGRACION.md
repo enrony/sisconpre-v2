@@ -146,7 +146,7 @@ repo tiene ~13 migraciones posteriores — se incorporan al portar). Conviven `s
 - [x] **Seeder de maestros** `LegacyCatalogSeeder` + fixtures `database/seeders/data/*.sql` (18 tablas: `countries` 239, `cities` 4095, `departments` 1417, `banks` 146, `country_holidays` 132, frecuencias/tipos/monedas/acciones/estatus…). `actions` sin las filas de prueba 13/14. Idempotente (borra y recarga). `migrate:fresh --seed` en verde, 0 huérfanos de FK.
 - [ ] `menu_items` (navegación) — se genera en Fase 3 §11 junto con el RBAC.
 - [ ] `php artisan schema:dump --prune` → baseline (tras validar import de datos y ajustes de Fase 3).
-- [ ] Script de **import de datos de tenant** desde `prestamos_db.sql` (clientes, préstamos, cuotas, informes de pago, grupos de trabajo; regenerar spatie desde el RBAC propio; descartar `teams`).
+- [x] **Import de datos de tenant**: comando `php artisan legacy:import-data` (conexión `mysql_ref` → `prestamos_ref` cargada desde el dump). Copia server-side (`INSERT…SELECT`, FKs off), idempotente, intersección de columnas (descarta `current_team_id`/`profile_photo_path` de `users`). **27 tablas, 1463 filas**: users 2, grupos_trabajos(_users) 3/2, clientes 5, prestamos 60, prestamos_dias 851, payment_reports 16 (+methods/movements/…), + RBAC propio (modules 28, modules_actions 217, profiles 8, modules_actions_profiles 39). Excluye perfil "Prueba" y sus 11 asignaciones. **0 huérfanos de FK**, charset UTF-8 correcto.
 
 ### Fase 3 — Dominio (modelos + servicios) · 3–5 días — **🟡 EN CURSO**
 

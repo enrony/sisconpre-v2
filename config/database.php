@@ -64,6 +64,26 @@ return [
             ]) : [],
         ],
 
+        /*
+         * Conexión al volcado del sistema legado (BD `prestamos_ref`, cargada desde
+         * `prestamos_db.sql`). La usa `php artisan legacy:import-data` para copiar los
+         * datos de tenant al esquema nuevo. Ver PLAN_MIGRACION.md §5. Se puede quitar
+         * al terminar la migración.
+         */
+        'mysql_ref' => [
+            'driver' => 'mysql',
+            'host' => env('DB_REF_HOST', env('DB_HOST', '127.0.0.1')),
+            'port' => env('DB_REF_PORT', env('DB_PORT', '3306')),
+            'database' => env('DB_REF_DATABASE', 'prestamos_ref'),
+            'username' => env('DB_REF_USERNAME', env('DB_USERNAME', 'root')),
+            'password' => env('DB_REF_PASSWORD', env('DB_PASSWORD', '')),
+            'charset' => 'utf8mb4',
+            'collation' => 'utf8mb4_unicode_ci',
+            'prefix' => '',
+            'strict' => false,
+            'engine' => null,
+        ],
+
         'mariadb' => [
             'driver' => 'mariadb',
             'url' => env('DB_URL'),
