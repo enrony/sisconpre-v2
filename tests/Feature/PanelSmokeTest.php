@@ -66,6 +66,20 @@ class PanelSmokeTest extends TestCase
             ->assertSuccessful();
     }
 
+    /** Listado de Informes de pago + su endpoint de datos. */
+    public function test_informes_de_pago(): void
+    {
+        $this->actingAs($this->super())->get('/payment_report')->assertSuccessful();
+        $this->actingAs($this->super())
+            ->get('/payment_report/records')
+            ->assertOk()
+            ->assertJsonStructure(['lista' => ['data', 'total', 'current_page']]);
+        $this->actingAs($this->super())
+            ->get('/PaymentReportsMovementsEstatu/tables')
+            ->assertOk()
+            ->assertJsonStructure(['PaymentReportsMovementsEstatu']);
+    }
+
     /** Las pantallas de maestros (CRUD genérico) resuelven. */
     public function test_maestros_resuelven(): void
     {
