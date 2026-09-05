@@ -137,12 +137,15 @@ repo tiene ~13 migraciones posteriores — se incorporan al portar). Conviven `s
 - [ ] **`git push -u origin main`** — bloqueado por el clasificador de seguridad de la sesión; lo ejecuta el usuario.
 - [ ] Pendiente menor: `sanctum` y `pestphp/pest` se añaden cuando se necesiten (API en Fase 4 / tests en Fase 7).
 
-### Fase 2 — Base de datos · 2–3 días
+### Fase 2 — Base de datos · 2–3 días — **🟡 EN CURSO (esquema hecho)**
 
-- [ ] Portar migraciones a L13; `utf8mb4`; `DECIMAL` en montos/tasas; índices FK / país / franquicia / grupo.
-- [ ] `schema:dump` → baseline. Seeders de maestros idempotentes.
-- [ ] Script de **import de datos** desde `prestamos_db.sql` (con exclusión de basura).
-- [ ] Ejecutar contra copia local de MySQL y validar recuentos por tabla.
+- [x] Esquema portado a L13: dump importado a BD scratch `prestamos_ref`; migraciones reverse-engineered con `kitloong/laravel-migrations-generator` (paquete ya removido); ajustadas (sin `connection()`, sin `no action`). **86 migraciones**, `migrate:fresh` en verde sobre MySQL 8 / `utf8mb4`.
+- [x] Tablas excluidas: `users`/`password_resets`/`sessions`/`failed_jobs`/`personal_access_tokens` (starter kit), `teams`/`team_user` (Jetstream vestigial), spatie (ya publicadas).
+- [x] Verificación estructural ref vs new: **las 53 tablas de negocio coinciden columna a columna**. Únicas diferencias: `users` (columnas de Jetstream teams/photo quitadas, `two_factor_confirmed_at` añadida por el starter kit) y 5 columnas `double(10,2)` → `double` (stats de países + `configuration_items.valor_numerico` — revisar si conviene `decimal` en Fase 3).
+- [x] `DECIMAL` de montos/tasas verificados fieles (`decimal(15,2)`, `decimal(16,3)`, `decimal(4,2)`).
+- [ ] `php artisan schema:dump --prune` → baseline (tras validar import de datos y ajustes de Fase 3).
+- [ ] Seeders de maestros idempotentes (`actions` 12 reales, `countries`, `country_holidays`, `frecuencias`, `tipo_prestamos`, `payment_methods`/`forms`, `banks`, `tipos_documentos`, `monedas`, `menu_items`).
+- [ ] Script de **import de datos** desde `prestamos_db.sql` (excluir `actions` 13/14 y perfiles de prueba; regenerar spatie desde el RBAC propio; descartar `teams`).
 
 ### Fase 3 — Dominio (modelos + servicios) · 3–5 días
 
