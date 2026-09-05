@@ -181,9 +181,13 @@ repo tiene ~13 migraciones posteriores — se incorporan al portar). Conviven `s
 
 ### Fase 6 — Migración de pantallas por módulo · 2–4 semanas _(el grueso)_
 
+**Andamiaje establecido con Préstamos** (reutilizable en todas las pantallas): `lib/http.ts` (axios + XSRF), `lib/format.ts`, patrón store Pinia (`stores/prestamos.ts`) + `el-table` con paginación/orden server-side + `el-pagination` + barra de filtros + `flash.toast` (backend en `HandleInertiaRequests`, front en `lib/flashToast.ts` sobre `router.on('success')`).
+
 Orden por criticidad de negocio:
 
-1. [ ] **Préstamos** (`Prestamos`, `Prestamos/Pasos`, `TipoPrestamo`, `Frecuencias`)
+1. [ ] **Préstamos** — 🟡 **listado hecho** (`pages/Prestamos.vue` + `components/prestamos/{PrestamosTable,PrestamosFilters}.vue` + `stores/prestamos.ts`): tabla con datos reales, filtros (clientes remoto, rangos de fecha, estado), orden y paginación contra `POST /prestamos/records`; `el-tag` de estado desde `p_estatus.type_tag`; botones/acciones gateados por `can()`. **Verificado en navegador.**
+   Pendiente: asistente de alta (`form.vue` + `Pasos/*` + `ShoppingCart` + `MasterCustomers` + lógica de `generaListPays`/festivos del store — el trozo grande), fila expandible (cuotas + `LegendStates`), acciones Novedades/Pausar. "Informar un pago" va con Informes de pago.
+   - [ ] `TipoPrestamo`, `Frecuencias` (maestros de préstamos)
 2. [ ] **Informes de pago** (`PaymentReport`, movimientos, soportes, métodos, formas de pago)
 3. [ ] **Clientes** (`Clientes`, tipos de documento, grupos de trabajo del cliente)
 4. [ ] **Maestros** (`Bank`, `BankAccountType`, `Cities`, `Departments`, `Festivos`, `Franquicias`, `gruposTrabajo`, `TipoDocumentos`, `typePaymentRecord`, `PaymentForm`, `PaymentMethod`)

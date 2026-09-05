@@ -47,6 +47,15 @@ class HandleInertiaRequests extends Middleware
                 'permissions' => $user?->getAllPermissions()->pluck('name')->values() ?? [],
             ],
             'menu' => fn () => Menu::forUser($user),
+            'flash' => [
+                // Los controladores portados usan session()->flash('flash.message'|'flash.type').
+                'toast' => fn () => $request->session()->get('flash.message')
+                    ? [
+                        'type' => $request->session()->get('flash.type', 'success'),
+                        'message' => $request->session()->get('flash.message'),
+                    ]
+                    : null,
+            ],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
         ];
     }
