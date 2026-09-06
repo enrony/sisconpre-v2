@@ -3,6 +3,7 @@ import { storeToRefs } from 'pinia';
 import { ref } from 'vue';
 import ChangeStateModal from '@/components/paymentReport/ChangeStateModal.vue';
 import DetalleInformeModal from '@/components/paymentReport/DetalleInformeModal.vue';
+import GestionClienteModal from '@/components/paymentReport/GestionClienteModal.vue';
 import { can } from '@/lib/can';
 import { formatNumber } from '@/lib/format';
 import {
@@ -118,6 +119,12 @@ function onPage(page: number) {
                                 >
                                     Cambiar estado
                                 </el-dropdown-item>
+                                <el-dropdown-item
+                                    :disabled="!puedeGestionar"
+                                    @click="store.abrirGestion(row)"
+                                >
+                                    Gestionar informes del cliente
+                                </el-dropdown-item>
                             </el-dropdown-menu>
                         </template>
                     </el-dropdown>
@@ -127,6 +134,7 @@ function onPage(page: number) {
 
         <ChangeStateModal v-model:open="stateModalOpen" :row="stateRow" />
         <DetalleInformeModal />
+        <GestionClienteModal />
 
         <div v-if="lista" class="mt-4 flex justify-end">
             <el-pagination

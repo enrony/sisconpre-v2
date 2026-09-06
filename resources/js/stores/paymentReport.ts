@@ -14,6 +14,35 @@ export interface DetallePrestamo {
     prestamos_dias: DetalleCuota[];
 }
 
+/** Fila de la consola de gestión multi-informe de un cliente. */
+export interface GestionReporteRow {
+    id: number;
+    created: string;
+    updated: string;
+    destination_text: string;
+    number_cuotas: number;
+    importe: string | number;
+    value_amount: number;
+    estatus?: number;
+    status_description?: {
+        id: number;
+        desc: string;
+        color: string;
+        finish_estatus: boolean;
+    };
+    // estado local de edición
+    estatusSelected: number | null;
+    motivoEdit: string;
+    procesando: boolean;
+}
+
+interface ClienteMini {
+    id?: number;
+    nombre?: string;
+    apellido?: string;
+    documento?: string;
+}
+
 export interface InformePagoRow {
     id: number;
     cliente: { nombre?: string; apellido?: string } | string | null;
@@ -128,6 +157,12 @@ export const usePaymentReportStore = defineStore('paymentReport', {
         detalleLoading: false,
         detalleRow: null as InformePagoRow | null,
         detallePrestamos: [] as DetallePrestamo[],
+
+        // --- Gestión multi-informe de un cliente ---
+        gestionOpen: false,
+        gestionLoading: false,
+        gestionCliente: null as ClienteMini | null,
+        gestionReportes: [] as GestionReporteRow[],
 
         // --- Informar un pago ---
         informarOpen: false,
@@ -246,6 +281,94 @@ export const usePaymentReportStore = defineStore('paymentReport', {
 
         cerrarDetalle(): void {
             this.detalleOpen = false;
+        },
+
+        /**
+         * Abre la consola de gestión con todos los informes pendientes
+         * (estatus 1/4) del cliente de la fila indicada.
+         */
+        async abrirGestion(row: InformePagoRow): Promise<void> {
+            const cli: ClienteMini =
+                typeof row.cliente === 'string'
+                    ? (JSON.parse(row.cliente || '{}') as ClienteMini)
+                    : ((row.cliente as ClienteMini) ?? {});
+            this.gestionCliente = cli;
+            this.gestionReportes = [];
+            this.gestionOpen = true;
+
+            if (!this.estados.length) {
+                await this.fetchEstados();
+            }
+            if (!cli.id) {
+                return;
+            }
+
+            this.gestionLoading = true;
+            try {
+                const { data } = await http.get(
+                    `/payment_report/obtenerReportPaymentActivos/${cli.id}`,
+                );
+                const filas: GestionReporteRow[] = Array.isArray(data)
+                    ? data
+                    : (data.data ?? []);
+                this.gestionReportes = filas.map((r) => ({
+                    ...r,
+                    estatusSelected: null,
+                    motivoEdit: '',
+                    procesando: false,
+                }));
+            } finally {
+                this.gestionLoading = false;
+            }
+        },
+
+        cerrarGestion(): void {
+            this.gestionOpen = false;
+            void this.fetchList(this.lista?.current_page ?? 1);
+        },
+
+        /** Procesa el cambio de estado de una fila de la consola de gestión. */
+        async procesarGestion(
+            row: GestionReporteRow,
+        ): Promise<{ success: boolean; message: string } | undefined> {
+            if (!row.estatusSelected) {
+                return;
+            }
+            row.procesando = true;
+            try {
+                const res = await this.changeState({
+                    id: row.id,
+                    estatusActual:
+                        row.status_description?.id ?? row.estatus ?? 0,
+                    estatusSelected: row.estatusSelected,
+                    motivo: row.motivoEdit || null,
+                });
+                if (res.success) {
+                    const nuevo = this.estados.find(
+                        (e) => e.id === row.estatusSelected,
+                    );
+                    if (nuevo) {
+                        row.status_description = {
+                            id: nuevo.id,
+                            desc: nuevo.description,
+                            color: '',
+                            finish_estatus: Boolean(nuevo.finish_estatus),
+                        };
+                    }
+                    row.estatusSelected = null;
+                    row.motivoEdit = '';
+                }
+                return res;
+            } finally {
+                row.procesando = false;
+            }
+        },
+
+        /** Estados ofrecibles para una fila (todos menos el actual). */
+        estadosParaFila(row: GestionReporteRow): EstadoMovimiento[] {
+            return this.estados.filter(
+                (e) => e.id !== (row.status_description?.id ?? row.estatus),
+            );
         },
 
         /**

@@ -151,6 +151,26 @@ class PanelSmokeTest extends TestCase
         );
     }
 
+    /** Consola de gestión: informes pendientes (estatus 1/4) de un cliente. */
+    public function test_gestion_informes_cliente(): void
+    {
+        $pr = DB::table('payment_reports')
+            ->where(fn ($q) => $q->whereNull('payment_reports_movements_estatus_id')->orWhere('payment_reports_movements_estatus_id', 1))
+            ->orderByDesc('id')
+            ->first();
+        $this->assertNotNull($pr);
+
+        $res = $this->actingAs($this->super())
+            ->getJson("/payment_report/obtenerReportPaymentActivos/{$pr->cliente_id}")
+            ->assertOk();
+
+        $filas = $res->json();
+        $this->assertNotEmpty($filas);
+        $this->assertArrayHasKey('status_description', $filas[0]);
+        $this->assertArrayHasKey('value_amount', $filas[0]);
+        $this->assertContains($pr->id, array_column($filas, 'id'));
+    }
+
     /** Cambio de estado de un informe de pago (Pendiente -> En revisión). */
     public function test_cambio_de_estado_informe(): void
     {
