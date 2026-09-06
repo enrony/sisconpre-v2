@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { storeToRefs } from 'pinia';
+import CuotasReadonlyGrid from '@/components/prestamos/CuotasReadonlyGrid.vue';
+import PrestamoLegend from '@/components/prestamos/PrestamoLegend.vue';
 import { usePrestamosStore } from '@/stores/prestamos';
 import { formatNumber } from '@/lib/format';
 
@@ -39,6 +41,14 @@ function tagType(row: {
             :default-sort="{ prop: 'id', order: 'descending' }"
             @sort-change="onSortChange"
         >
+            <el-table-column type="expand" width="32">
+                <template #default="{ row }">
+                    <div class="space-y-3 p-3">
+                        <PrestamoLegend :dias="row.prestamos_dias ?? []" />
+                        <CuotasReadonlyGrid :dias="row.prestamos_dias ?? []" />
+                    </div>
+                </template>
+            </el-table-column>
             <el-table-column
                 prop="id"
                 label="#"

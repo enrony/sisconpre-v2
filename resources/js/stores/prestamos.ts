@@ -10,6 +10,18 @@ import {
     type Holiday,
 } from '@/lib/prestamoSchedule';
 
+export interface CuotaDia {
+    id: number;
+    date: string;
+    sigla: string;
+    cuota: string | number;
+    apply: boolean;
+    pagado: boolean;
+    demorado: boolean;
+    dom: boolean;
+    festivo: boolean;
+}
+
 /** Fila de la lista de préstamos (respuesta de POST /prestamos/records). */
 export interface PrestamoRow {
     id: number;
@@ -22,6 +34,7 @@ export interface PrestamoRow {
     utilidad: string | number;
     total: string | number;
     p_estatus?: { id: number; type_tag?: { type?: string } };
+    prestamos_dias?: CuotaDia[];
 }
 
 export interface Paginated<T> {
