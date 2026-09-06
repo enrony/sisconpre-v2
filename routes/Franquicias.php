@@ -19,6 +19,6 @@ Route::middleware(['auth', 'verified'])->get('/franquicias', [FranquiciaControll
 Route::prefix('/franquicias')->middleware(['auth', 'verified'])->group(function () {
     Route::put('/', [FranquiciaController::class, 'store']);
     Route::delete('/{id}/{page}', [FranquiciaController::class, 'destroy']);
-    Route::get('/tables', [FranquiciaController::class, 'tables']);
     Route::get('/record/{id}', [FranquiciaController::class, 'record']);
+    // `/franquicias/tables` vive en routes/shared.php (transversal, solo auth).
 });

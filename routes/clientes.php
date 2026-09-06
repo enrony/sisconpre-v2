@@ -21,8 +21,7 @@ Route::prefix('/clientes')->middleware(['auth', 'verified'])->group(function () 
     Route::put('/', [ClientesController::class, 'actualizaCliente']);
     Route::delete('/{id}/{page}', [ClientesController::class, 'destroy']);
     Route::post('/lista-clientes', [ClientesController::class, 'listaClientes2']);
-    Route::get('/lista-clientes-json', [ClientesController::class, 'listaClientesJson']);
-    Route::get('/lista-clientes-json-basic', [ClientesController::class, 'listaClientesJsonBasic']);
     Route::get('/record/{id}', [ClientesController::class, 'record']);
-    Route::get('/tables', [ClientesController::class, 'tables']);
+    // `/clientes/tables`, `/clientes/lista-clientes-json[-basic]` viven en
+    // routes/shared.php (los consumen Préstamos e Informes de pago, no solo Clientes).
 });

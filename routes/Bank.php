@@ -19,6 +19,6 @@ Route::middleware(['auth', 'verified'])->get('/banks', [BankController::class, '
 Route::prefix('/banks')->middleware(['auth', 'verified'])->group(function () {
     Route::put('/', [BankController::class, 'store']);
     Route::delete('/{id}/{page}', [BankController::class, 'destroy']);
-    Route::get('/tables/{country_id?}', [BankController::class, 'tables']);
     Route::get('/record/{id}', [BankController::class, 'record']);
+    // `/banks/tables` vive en routes/shared.php (transversal, solo auth).
 });

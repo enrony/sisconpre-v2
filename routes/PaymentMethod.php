@@ -19,6 +19,6 @@ Route::middleware(['auth', 'verified'])->get('/payment_methods', [PaymentMethodC
 Route::prefix('/payment_methods')->middleware(['auth', 'verified'])->group(function () {
     Route::put('/', [PaymentMethodController::class, 'store']);
     Route::delete('/{id}/{page}', [PaymentMethodController::class, 'destroy']);
-    Route::get('/tables', [PaymentMethodController::class, 'tables']);
     Route::get('/record/{id}', [PaymentMethodController::class, 'record']);
+    // `/payment_methods/tables` vive en routes/shared.php (transversal, solo auth).
 });

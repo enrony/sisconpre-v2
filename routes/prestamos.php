@@ -27,7 +27,8 @@ Route::prefix('/prestamos')->middleware(['auth'])->group(function () {
     Route::get('', [PrestamosController::class, 'index'])->name('prestamos');
     Route::get('/tables', [PrestamosController::class, 'tables']);
     Route::put('/', [PrestamosController::class, 'store']);
-    Route::get('/obtenerPrestamosActivos/{cliente}', [PrestamosController::class, 'obtenerPrestamosActivos']);
+    // `/prestamos/obtenerPrestamosActivos/{cliente}` vive en routes/shared.php
+    // (lo consume "Informar un pago" del módulo de Informes de pago).
     Route::post('/records', [PrestamosController::class, 'records']);
     Route::get('/recordsEstados', [PrestamosController::class, 'recordsEstados']);
     Route::put('/{prestamo}/pausar-recargo', [PrestamosController::class, 'togglePausaRecargo'])

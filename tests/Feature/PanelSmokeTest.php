@@ -59,6 +59,20 @@ class PanelSmokeTest extends TestCase
         $this->actingAs($this->cliente())->get('/banks')->assertForbidden();
     }
 
+    /**
+     * Los endpoints auxiliares transversales (routes/aux.php) NO se gatean por
+     * módulo: "Cliente Verficado" (sin `banks.listar` ni `payment_methods.listar`)
+     * puede leerlos porque los consume "Informar un pago".
+     */
+    public function test_endpoints_auxiliares_no_gateados_por_modulo(): void
+    {
+        $this->actingAs($this->cliente())->get('/banks')->assertForbidden();
+
+        foreach (['/banks/tables', '/payment_methods/tables', '/franquicias/tables', '/clientes/tables', '/clientes/lista-clientes-json-basic'] as $path) {
+            $this->actingAs($this->cliente())->get($path)->assertOk();
+        }
+    }
+
     /** Un endpoint JSON de datos responde sin romper. */
     public function test_endpoint_de_tablas_responde(): void
     {
