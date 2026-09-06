@@ -212,6 +212,10 @@ class PanelSmokeTest extends TestCase
             '/banks',
             '/tipo_documentos',
             '/frecuencias',
+            '/festivos',
+            '/departamentos',
+            '/cities',
+            '/grupos_trabajo',
         ] as $path) {
             $this->actingAs($this->super())->get($path)->assertSuccessful();
         }
@@ -219,6 +223,9 @@ class PanelSmokeTest extends TestCase
         // endpoints de datos auxiliares para los selects
         $this->actingAs($this->super())->get('/banks/tables')->assertOk()->assertJsonStructure(['CountryAll']);
         $this->actingAs($this->super())->get('/frecuencias/tables')->assertOk()->assertJsonStructure(['TipoFrecuenciaPrestamoAll']);
+        $this->actingAs($this->super())->get('/departamentos/tables')->assertOk()->assertJsonStructure(['CountryAll']);
+        $this->actingAs($this->super())->get('/cities/tables')->assertOk()->assertJsonStructure(['CountryAll', 'DepartmentAll']);
+        $this->actingAs($this->super())->get('/grupos_trabajo/tables')->assertOk()->assertJsonStructure(['CitiesAll']);
     }
 
     /** Alta + edición + borrado de un maestro (Franquicia) por el flujo real. */

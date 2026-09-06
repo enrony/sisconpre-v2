@@ -49,6 +49,7 @@ function reset() {
         form[f.key] =
             props.record?.[f.key] ??
             (f.type === 'switch' ? false : f.type === 'number' ? 0 : '');
+        if (f.type === 'date' && !form[f.key]) form[f.key] = '';
     }
 }
 
@@ -111,6 +112,14 @@ function guardar() {
                         v-else-if="f.type === 'number'"
                         v-model="form[f.key] as number"
                         controls-position="right"
+                        class="!w-full"
+                    />
+                    <el-date-picker
+                        v-else-if="f.type === 'date'"
+                        v-model="form[f.key] as string"
+                        type="date"
+                        value-format="YYYY-MM-DD"
+                        format="YYYY-MM-DD"
                         class="!w-full"
                     />
                     <el-select

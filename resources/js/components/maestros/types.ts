@@ -1,7 +1,7 @@
 export interface MaestroField {
     key: string;
     label: string;
-    type?: 'text' | 'number' | 'switch' | 'select';
+    type?: 'text' | 'number' | 'switch' | 'select' | 'date';
     /** opciones estáticas */
     options?: { label: string; value: string | number }[];
     /** opciones dinámicas: clave dentro de la respuesta de `tablesUrl` */
@@ -30,6 +30,8 @@ export interface MaestroConfig {
     singular: string;
     /** prop de Inertia con el paginador (por defecto 'lista'). */
     pageProp?: string;
+    /** prop de la fila a mostrar en el diálogo de confirmación de borrado (por defecto 'description'). */
+    labelProp?: string;
     /** endpoint de datos auxiliares para selects/lookups (p. ej. '/banks/tables'). */
     tablesUrl?: string;
     columns: MaestroColumn[];

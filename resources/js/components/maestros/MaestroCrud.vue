@@ -63,8 +63,11 @@ function editar(row: MaestroRow) {
 }
 
 function eliminar(row: MaestroRow) {
+    const etiqueta = String(
+        row[props.config.labelProp ?? 'description'] ?? row.id,
+    );
     void ElMessageBox.confirm(
-        `¿Eliminar ${props.config.singular} "${String(row.description ?? row.id)}"?`,
+        `¿Eliminar ${props.config.singular} "${etiqueta}"?`,
         'Confirmar',
         { type: 'warning', confirmButtonText: 'Sí', cancelButtonText: 'No' },
     ).then(() => {
