@@ -248,4 +248,50 @@ class PanelSmokeTest extends TestCase
         $this->actingAs($super)->delete("/franquicias/{$fr->id}/1")->assertRedirect();
         $this->assertNull(DB::table('franquicias')->where('id', $fr->id)->first());
     }
+
+    /** Pantalla de Clientes: índice + alta / edición / baja lógica (PUT|DELETE /clientes). */
+    public function test_clientes_crud(): void
+    {
+        $super = $this->super();
+
+        $this->actingAs($super)->get('/clientes')->assertSuccessful();
+
+        $td = DB::table('tipos_documentos')->value('id');
+        $city = DB::table('cities')->value('id');
+        $antes = DB::table('clientes')->where('estatus', 1)->count();
+
+        $this->actingAs($super)->put('/clientes', [
+            'id' => 0,
+            'idtipo_documento' => $td,
+            'documento' => 'QA-CLI-SCREEN',
+            'nombre' => 'QA', 'nombre_segundo' => '', 'apellido' => 'Pantalla', 'apellido_segundo' => '',
+            'telefono' => '3000000001',
+            'email' => 'qa.pantalla@test.com',
+            'direccion' => 'Calle QA 2',
+            'city_id' => $city,
+            'paginaActual' => 1,
+        ])->assertRedirect();
+
+        $cli = DB::table('clientes')->where('documento', 'QA-CLI-SCREEN')->first();
+        $this->assertNotNull($cli);
+        $this->assertSame($antes + 1, DB::table('clientes')->where('estatus', 1)->count());
+
+        $this->actingAs($super)->put('/clientes', [
+            'id' => $cli->id,
+            'idtipo_documento' => $cli->idtipo_documento,
+            'documento' => $cli->documento,
+            'nombre' => 'QA editado', 'nombre_segundo' => '', 'apellido' => 'Pantalla', 'apellido_segundo' => '',
+            'telefono' => '3000000001',
+            'email' => 'qa.pantalla@test.com',
+            'direccion' => 'Calle QA 2',
+            'city_id' => $cli->city_id,
+            'paginaActual' => 1,
+        ])->assertRedirect();
+        $this->assertSame('QA editado', DB::table('clientes')->where('id', $cli->id)->value('nombre'));
+
+        $this->actingAs($super)->delete("/clientes/{$cli->id}/1")->assertRedirect();
+        $this->assertSame(0, (int) DB::table('clientes')->where('id', $cli->id)->value('estatus'));
+
+        DB::table('clientes')->where('id', $cli->id)->delete();
+    }
 }

@@ -6,10 +6,10 @@ use App\Models\City;
 use App\Models\Clientes;
 use App\Models\Country;
 use App\Models\Department;
-use App\Models\Modules;
 use App\Models\Prestamos;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\Validator;
 use Inertia;
@@ -18,43 +18,41 @@ use stdClass;
 class ClientesController extends Controller
 {
     /**
-     * Display a listing of the resource.
-     *
-     * @return Response
+     * Listado de clientes (Inertia). Filtra por grupo de trabajo salvo super
+     * usuario. Usa el query builder (sin los `$appends` del modelo, que
+     * disparan N+1 y fallan si falta la ciudad) — la pantalla solo necesita
+     * los campos de despliegue.
      */
-    public function listaClientes(Request $request, Clientes $clientes)
+    public function index(Request $request)
     {
-        //
-        // return $clientes::get();
-        // return Inertia\Inertia::render('Clientes');
+        $GruposTrabajoUser = $this->obtenerGrupoTrabajo($request);
+        $su = $this->isSuperUsuario($request->user()->id);
 
-        // dd($request->user()->id);
-
-        $GruposTrabajoUser = $this->obtenerGrupoTrabajo($request); // grupo de trabajo del usuario
-        // dd( $GruposTrabajoUser->idgrupo_trabajo );
-        // dd(Modules::with(['actions'])->get());
-
-        $su = $this->isSuperUsuario($request->user()->id); // true si es super usuario
+        $lista = DB::table('clientes as c')
+            ->join('tipos_documentos as td', 'td.id', '=', 'c.idtipo_documento')
+            ->join('grupos_trabajos_users as gtu', function ($j) use ($GruposTrabajoUser, $su) {
+                $j->on('gtu.id', '=', 'c.grupos_trabajos_user_id');
+                if (! $su) {
+                    $j->where('gtu.idgrupo_trabajo', $GruposTrabajoUser->idgrupo_trabajo);
+                }
+            })
+            ->where('c.estatus', 1)
+            ->when($request->term, function ($q, $term) {
+                $q->where(function ($w) use ($term) {
+                    $w->where('c.nombre', 'like', '%'.$term.'%')
+                        ->orWhere('c.apellido', 'like', '%'.$term.'%')
+                        ->orWhere('c.documento', 'like', '%'.$term.'%');
+                });
+            })
+            ->selectRaw("c.id, c.documento, c.nombre, c.nombre_segundo, c.apellido, c.apellido_segundo, c.telefono, c.email, c.direccion, c.idtipo_documento, c.city_id, td.sigla, concat_ws(' ', c.nombre, c.nombre_segundo, c.apellido, c.apellido_segundo) as full_name, concat(td.sigla, '-', c.documento) as full_document, date_format(c.created_at, '%Y-%m-%d %H:%i') as created")
+            ->latest('c.created_at')
+            ->paginate(15)
+            ->withQueryString();
 
         return Inertia\Inertia::render(
             'Clientes',
             [
-                'lista' => $clientes::selectRaw('clientes.id, clientes.documento, clientes.nombre, clientes.nombre_segundo, clientes.apellido, clientes.apellido_segundo, clientes.telefono, clientes.direccion, clientes.grupos_trabajos_user_id, clientes.idtipo_documento, clientes.email, clientes.city_id, clientes.email_verified_at, clientes.created_at as created_at, td.sigla')
-                    ->when($request->term, function ($query, $term) {
-                        $query->where('clientes.nombre', 'LIKE', '%'.$term.'%');
-                        $query->orWhere('apellido', 'LIKE', '%'.$term.'%');
-                        $query->orWhere('documento', 'LIKE', '%'.$term.'%');
-                    })->where('clientes.estatus', 1)
-                    ->join('grupos_trabajos_users', function ($j) use ($GruposTrabajoUser, $su) {
-                        $j->on('grupos_trabajos_users.id', '=', 'clientes.grupos_trabajos_user_id');
-                        if (! $su) {
-                            $j->where('grupos_trabajos_users.idgrupo_trabajo', $GruposTrabajoUser->idgrupo_trabajo);
-                        }
-                    })
-                    ->join('tipos_documentos as td', function ($join) {
-                        $join->on('td.id', '=', 'clientes.idtipo_documento');
-                    })
-                    ->latest('clientes.created_at')->paginate(2),
+                'lista' => $lista,
                 'messages' => __('messages'),
             ]
         );
@@ -284,13 +282,15 @@ class ClientesController extends Controller
     }
 
     /**
-     * Remove the specified resource from storage.
-     *
-     * @return Response
+     * Baja lógica de un cliente (`estatus = 0`; el listado filtra por `estatus = 1`).
      */
-    public function destroy(Clientes $clientes)
+    public function destroy(Clientes $clientes, $id, $page)
     {
-        //
+        $clientes->findOrFail($id)->forceFill(['estatus' => 0])->save();
+        session()->flash('flash.type', 'success');
+        session()->flash('flash.message', 'Registro eliminado!');
+
+        return Redirect::route('clientes', ['page' => $page]);
     }
 
     public function tables(Country $Country)

@@ -34,4 +34,4 @@ Route::prefix('/prestamos')->middleware(['auth'])->group(function () {
         ->middleware('permission:prestamos.editar');
 });
 
-Route::middleware(['auth'])->get('/clientes', [ClientesController::class, 'listaClientes'])->name('clientes');
+// La ruta GET /clientes vive ahora en routes/clientes.php (gate `clientes.listar`).
