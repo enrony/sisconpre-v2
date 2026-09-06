@@ -23,8 +23,16 @@
         <env name="BCRYPT_ROUNDS" value="4"/>
         <env name="BROADCAST_CONNECTION" value="null"/>
         <env name="CACHE_STORE" value="array"/>
-        <env name="DB_CONNECTION" value="sqlite"/>
-        <env name="DB_DATABASE" value=":memory:"/>
+        <!--
+            Este proyecto testea contra MySQL (no hay `pdo_sqlite` y el esquema
+            se ingeniería-inversa de la BD real). Las suites propias
+            (PanelSmokeTest, PaymentReportServiceTest, ...) apuntan a la BD con
+            datos importados `prestamos_gilen` desde su `setUp()`. Las pruebas
+            del starter kit usan `RefreshDatabase` sobre esta BD desechable, que
+            debe existir: `CREATE DATABASE prestamos_gilen_test`.
+        -->
+        <env name="DB_CONNECTION" value="mysql"/>
+        <env name="DB_DATABASE" value="prestamos_gilen_test"/>
         <env name="DB_URL" value=""/>
         <env name="MAIL_MAILER" value="array"/>
         <env name="QUEUE_CONNECTION" value="sync"/>
