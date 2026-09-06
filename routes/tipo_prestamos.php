@@ -17,7 +17,7 @@ use Illuminate\Support\Facades\Route;
 Route::middleware(['auth', 'verified'])->get('/tipo_prestamo', [TipoPrestamoController::class, 'index'])->name('tipo_prestamo');
 
 Route::prefix('/tipo_prestamo')->middleware(['auth', 'verified'])->group(function () {
-    Route::put('/', [TipoPrestamoController::class, 'store']);
-    Route::delete('/{id}/{page}', [TipoPrestamoController::class, 'destroy']);
+    Route::put('/', [TipoPrestamoController::class, 'store'])->middleware('permission:tipo_prestamo.registrar|tipo_prestamo.editar');
+    Route::delete('/{id}/{page}', [TipoPrestamoController::class, 'destroy'])->middleware('permission:tipo_prestamo.eliminar');
     Route::get('/tables', [TipoPrestamoController::class, 'tables']);
 });

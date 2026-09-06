@@ -17,7 +17,7 @@ use Illuminate\Support\Facades\Route;
 Route::middleware(['auth', 'verified'])->get('/frecuencias', [FrecuenciasController::class, 'index'])->name('frecuencias');
 
 Route::prefix('/frecuencias')->middleware(['auth', 'verified'])->group(function () {
-    Route::put('/', [FrecuenciasController::class, 'store']);
-    Route::delete('/{id}/{page}', [FrecuenciasController::class, 'destroy']);
+    Route::put('/', [FrecuenciasController::class, 'store'])->middleware('permission:frecuencias.registrar|frecuencias.editar');
+    Route::delete('/{id}/{page}', [FrecuenciasController::class, 'destroy'])->middleware('permission:frecuencias.eliminar');
     Route::get('/tables', [FrecuenciasController::class, 'tables']);
 });

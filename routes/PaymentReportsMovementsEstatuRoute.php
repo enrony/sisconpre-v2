@@ -17,7 +17,8 @@ use Illuminate\Support\Facades\Route;
 Route::middleware(['auth', 'verified'])->get('/PaymentReportsMovementsEstatu', [PaymentReportsMovementsEstatuController::class, 'index'])->name('payment_report_movement_estatu');
 
 Route::prefix('/PaymentReportsMovementsEstatu')->middleware(['auth', 'verified'])->group(function () {
-    Route::post('/', [PaymentReportsMovementsEstatuController::class, 'store']);
+    Route::post('/', [PaymentReportsMovementsEstatuController::class, 'store'])
+        ->middleware('permission:payment_report.registrar|payment_report.editar');
     Route::get('/obtenerReportPaymentActivos/{cliente}', [PaymentReportsMovementsEstatuController::class, 'obtenerReportPaymentActivos']);
     // Route::delete('/{id}/{page}', [PaymentReportController::class, 'destroy']);
     Route::get('/tables', [PaymentReportsMovementsEstatuController::class, 'tables']);

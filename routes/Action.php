@@ -18,5 +18,5 @@ Route::middleware(['auth', 'verified'])->get('/action', [ActionController::class
 Route::prefix('/action')->middleware(['auth', 'verified'])->group(function () {
     Route::get('/lista', [ActionController::class, 'lista']);
     Route::get('/record/{id}', [ActionController::class, 'record']);
-    Route::put('/', [ActionController::class, 'store']);
+    Route::put('/', [ActionController::class, 'store'])->middleware('permission:action.registrar|action.editar');
 });

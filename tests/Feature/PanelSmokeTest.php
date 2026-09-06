@@ -73,6 +73,29 @@ class PanelSmokeTest extends TestCase
         }
     }
 
+    /**
+     * Las rutas de escritura exigen el permiso de acción, no solo `.listar`.
+     * "Cliente Verficado" tiene `payment_report.listar`+`registrar` y
+     * `prestamos.listar`+`registrar`, pero NO `gestionar-informe-de-pago` ni
+     * `prestamos.editar`.
+     */
+    public function test_rutas_de_escritura_exigen_permiso_de_accion(): void
+    {
+        $cli = $this->cliente();
+        $prestamoId = DB::table('prestamos')->orderByDesc('id')->value('id');
+
+        // sin gestionar-informe-de-pago ni editar → 403
+        $this->actingAs($cli)
+            ->postJson('/payment_report/change_estatus_report', ['data' => json_encode(['id' => 1, 'estatus_actual' => 1, 'estatus_selected' => 4, 'motivo' => 'x', 'support_image' => []])])
+            ->assertForbidden();
+
+        // sin prestamos.editar → 403
+        $this->actingAs($cli)->putJson("/prestamos/{$prestamoId}/pausar-recargo")->assertForbidden();
+
+        // con prestamos.registrar → pasa el middleware (falla luego por validación, no 403)
+        $this->assertNotSame(403, $this->actingAs($cli)->putJson('/prestamos', [])->getStatusCode());
+    }
+
     /** Un endpoint JSON de datos responde sin romper. */
     public function test_endpoint_de_tablas_responde(): void
     {

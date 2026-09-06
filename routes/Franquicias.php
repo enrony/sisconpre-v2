@@ -17,8 +17,8 @@ use Illuminate\Support\Facades\Route;
 Route::middleware(['auth', 'verified'])->get('/franquicias', [FranquiciaController::class, 'index'])->name('franquicias');
 
 Route::prefix('/franquicias')->middleware(['auth', 'verified'])->group(function () {
-    Route::put('/', [FranquiciaController::class, 'store']);
-    Route::delete('/{id}/{page}', [FranquiciaController::class, 'destroy']);
+    Route::put('/', [FranquiciaController::class, 'store'])->middleware('permission:franquicias.registrar|franquicias.editar');
+    Route::delete('/{id}/{page}', [FranquiciaController::class, 'destroy'])->middleware('permission:franquicias.eliminar');
     Route::get('/record/{id}', [FranquiciaController::class, 'record']);
     // `/franquicias/tables` vive en routes/shared.php (transversal, solo auth).
 });

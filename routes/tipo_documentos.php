@@ -17,8 +17,8 @@ use Illuminate\Support\Facades\Route;
 Route::middleware(['auth', 'verified'])->get('/tipo_documentos', [TiposDocumentosController::class, 'index'])->name('tipo_documentos');
 
 Route::prefix('/tipo_documentos')->middleware(['auth', 'verified'])->group(function () {
-    Route::put('/', [TiposDocumentosController::class, 'store']);
-    Route::delete('/{id}/{page}', [TiposDocumentosController::class, 'destroy']);
+    Route::put('/', [TiposDocumentosController::class, 'store'])->middleware('permission:tipo_documentos.registrar|tipo_documentos.editar');
+    Route::delete('/{id}/{page}', [TiposDocumentosController::class, 'destroy'])->middleware('permission:tipo_documentos.eliminar');
     Route::get('/tables', [TiposDocumentosController::class, 'tables']);
     Route::get('/record/{id}', [TiposDocumentosController::class, 'record']);
 });

@@ -17,8 +17,8 @@ use Illuminate\Support\Facades\Route;
 Route::middleware(['auth', 'verified'])->get('/banks', [BankController::class, 'index'])->name('banks');
 
 Route::prefix('/banks')->middleware(['auth', 'verified'])->group(function () {
-    Route::put('/', [BankController::class, 'store']);
-    Route::delete('/{id}/{page}', [BankController::class, 'destroy']);
+    Route::put('/', [BankController::class, 'store'])->middleware('permission:banks.registrar|banks.editar');
+    Route::delete('/{id}/{page}', [BankController::class, 'destroy'])->middleware('permission:banks.eliminar');
     Route::get('/record/{id}', [BankController::class, 'record']);
     // `/banks/tables` vive en routes/shared.php (transversal, solo auth).
 });

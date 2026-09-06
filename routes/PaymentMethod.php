@@ -17,8 +17,8 @@ use Illuminate\Support\Facades\Route;
 Route::middleware(['auth', 'verified'])->get('/payment_methods', [PaymentMethodController::class, 'index'])->name('payment_methods');
 
 Route::prefix('/payment_methods')->middleware(['auth', 'verified'])->group(function () {
-    Route::put('/', [PaymentMethodController::class, 'store']);
-    Route::delete('/{id}/{page}', [PaymentMethodController::class, 'destroy']);
+    Route::put('/', [PaymentMethodController::class, 'store'])->middleware('permission:payment_methods.registrar|payment_methods.editar');
+    Route::delete('/{id}/{page}', [PaymentMethodController::class, 'destroy'])->middleware('permission:payment_methods.eliminar');
     Route::get('/record/{id}', [PaymentMethodController::class, 'record']);
     // `/payment_methods/tables` vive en routes/shared.php (transversal, solo auth).
 });

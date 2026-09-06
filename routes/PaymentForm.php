@@ -17,8 +17,8 @@ use Illuminate\Support\Facades\Route;
 Route::middleware(['auth', 'verified'])->get('/payment_forms', [PaymentFormController::class, 'index'])->name('payment_forms');
 
 Route::prefix('/payment_forms')->middleware(['auth', 'verified'])->group(function () {
-    Route::put('/', [PaymentFormController::class, 'store']);
-    Route::delete('/{id}/{page}', [PaymentFormController::class, 'destroy']);
+    Route::put('/', [PaymentFormController::class, 'store'])->middleware('permission:payment_forms.registrar|payment_forms.editar');
+    Route::delete('/{id}/{page}', [PaymentFormController::class, 'destroy'])->middleware('permission:payment_forms.eliminar');
     Route::get('/tables', [PaymentFormController::class, 'tables']);
     Route::get('/record/{id}', [PaymentFormController::class, 'record']);
 });

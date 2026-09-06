@@ -17,8 +17,8 @@ use Illuminate\Support\Facades\Route;
 Route::middleware(['auth', 'verified'])->get('/grupos_trabajo', [GruposTrabajoController::class, 'index'])->name('grupos_trabajo');
 
 Route::prefix('/grupos_trabajo')->middleware(['auth', 'verified'])->group(function () {
-    Route::put('/', [GruposTrabajoController::class, 'store']);
-    Route::delete('/{id}/{page}', [GruposTrabajoController::class, 'destroy']);
+    Route::put('/', [GruposTrabajoController::class, 'store'])->middleware('permission:grupos_trabajo.registrar|grupos_trabajo.editar');
+    Route::delete('/{id}/{page}', [GruposTrabajoController::class, 'destroy'])->middleware('permission:grupos_trabajo.eliminar');
     Route::get('/generateCode', [GruposTrabajoController::class, 'generateCode']);
     Route::get('/tables', [GruposTrabajoController::class, 'tables']);
 });

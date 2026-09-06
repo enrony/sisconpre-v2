@@ -18,8 +18,10 @@ Route::middleware(['auth', 'verified'])
     ->name('clientes');
 
 Route::prefix('/clientes')->middleware(['auth', 'verified'])->group(function () {
-    Route::put('/', [ClientesController::class, 'actualizaCliente']);
-    Route::delete('/{id}/{page}', [ClientesController::class, 'destroy']);
+    Route::put('/', [ClientesController::class, 'actualizaCliente'])
+        ->middleware('permission:clientes.registrar|clientes.editar');
+    Route::delete('/{id}/{page}', [ClientesController::class, 'destroy'])
+        ->middleware('permission:clientes.eliminar');
     Route::post('/lista-clientes', [ClientesController::class, 'listaClientes2']);
     Route::get('/record/{id}', [ClientesController::class, 'record']);
     // `/clientes/tables`, `/clientes/lista-clientes-json[-basic]` viven en

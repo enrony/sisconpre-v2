@@ -19,8 +19,8 @@ $controlador = DepartmentController::class;
 Route::middleware(['auth', 'verified'])->get('/departamentos', [$controlador, 'index'])->name('departamentos');
 
 Route::prefix('/departamentos')->middleware(['auth', 'verified'])->group(function () use ($controlador) {
-    Route::put('/', [$controlador, 'store']);
-    Route::delete('/{id}/{page}', [$controlador, 'destroy']);
+    Route::put('/', [$controlador, 'store'])->middleware('permission:departamentos.registrar|departamentos.editar');
+    Route::delete('/{id}/{page}', [$controlador, 'destroy'])->middleware('permission:departamentos.eliminar');
     Route::get('/tables', [$controlador, 'tables']);
     Route::get('/record/{id}', [$controlador, 'record']);
 });

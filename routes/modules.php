@@ -19,6 +19,6 @@ Route::prefix('/modules')->middleware(['auth', 'verified'])->group(function () {
     Route::get('/modulesMenues', [ModulesController::class, 'modulesMenues']);
     Route::get('/lista_modules', [ModulesController::class, 'records']);
     Route::get('/record/{id}', [ModulesController::class, 'record']);
-    Route::post('/record', [ModulesController::class, 'store']);
+    Route::post('/record', [ModulesController::class, 'store'])->middleware('permission:modules.registrar|modules.editar');
     Route::get('/esquema', [ModulesController::class, 'esquema']);
 });

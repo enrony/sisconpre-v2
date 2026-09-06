@@ -19,8 +19,8 @@ $controlador = CountryHolidayController::class;
 Route::middleware(['auth', 'verified'])->get('/festivos', [$controlador, 'index'])->name('festivos');
 
 Route::prefix('/festivos')->middleware(['auth', 'verified'])->group(function () use ($controlador) {
-    Route::put('/', [$controlador, 'store']);
-    Route::delete('/{id}/{page}', [$controlador, 'destroy']);
+    Route::put('/', [$controlador, 'store'])->middleware('permission:festivos.registrar|festivos.editar');
+    Route::delete('/{id}/{page}', [$controlador, 'destroy'])->middleware('permission:festivos.eliminar');
     Route::get('/tables', [$controlador, 'tables']);
     Route::get('/record/{id}', [$controlador, 'record']);
 });

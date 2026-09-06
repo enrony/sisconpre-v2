@@ -18,7 +18,8 @@ use Illuminate\Support\Facades\Route;
 
 Route::prefix('/user')->middleware(['auth', 'verified'])->group(function () {
     Route::post('/lista-clientes', [ClientesController::class, 'listaClientes2']);
-    Route::put('/actualizaCliente', [ClientesController::class, 'actualizaCliente']);
+    Route::put('/actualizaCliente', [ClientesController::class, 'actualizaCliente'])
+        ->middleware('permission:clientes.registrar|clientes.editar');
     Route::get('/consultaPrestamos/{id_cliente}', [ClientesController::class, 'consultaPrestamos']);
 });
 
@@ -26,7 +27,7 @@ Route::prefix('/prestamos')->middleware(['auth'])->group(function () {
     // return Inertia\Inertia::render('Prestamos');
     Route::get('', [PrestamosController::class, 'index'])->name('prestamos');
     Route::get('/tables', [PrestamosController::class, 'tables']);
-    Route::put('/', [PrestamosController::class, 'store']);
+    Route::put('/', [PrestamosController::class, 'store'])->middleware('permission:prestamos.registrar');
     // `/prestamos/obtenerPrestamosActivos/{cliente}` vive en routes/shared.php
     // (lo consume "Informar un pago" del módulo de Informes de pago).
     Route::post('/records', [PrestamosController::class, 'records']);
