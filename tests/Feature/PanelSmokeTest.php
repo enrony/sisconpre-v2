@@ -126,6 +126,31 @@ class PanelSmokeTest extends TestCase
             ->assertJsonStructure(['PaymentReportsMovementsEstatu']);
     }
 
+    /** Detalle de un informe: préstamos informados + cuotas con `p_seleccionado`. */
+    public function test_detalle_informe(): void
+    {
+        $id = DB::table('selected_payment_reports')
+            ->select('payment_report_id')
+            ->groupBy('payment_report_id')
+            ->orderByRaw('count(*) desc')
+            ->value('payment_report_id');
+        $this->assertNotNull($id, 'no hay informes con cuotas seleccionadas');
+
+        $res = $this->actingAs($this->super())
+            ->get("/payment_report/record/{$id}")
+            ->assertOk()
+            ->assertJsonStructure(['Prestamos' => [['id', 'monto_prestamo', 'prestamos_dias' => [['id', 'date', 'cuota', 'p_seleccionado']]]]]);
+
+        $seleccionadas = collect($res->json('Prestamos'))
+            ->flatMap(fn ($p) => $p['prestamos_dias'])
+            ->filter(fn ($d) => $d['p_seleccionado'] === true)
+            ->count();
+        $this->assertSame(
+            DB::table('selected_payment_reports')->where('payment_report_id', $id)->count(),
+            $seleccionadas,
+        );
+    }
+
     /** Cambio de estado de un informe de pago (Pendiente -> En revisión). */
     public function test_cambio_de_estado_informe(): void
     {

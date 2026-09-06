@@ -1,6 +1,18 @@
 import { defineStore } from 'pinia';
 import http from '@/lib/http';
-import type { Paginated } from '@/stores/prestamos';
+import type { CuotaDia, Paginated } from '@/stores/prestamos';
+
+/** Cuota de un préstamo dentro del detalle de un informe (marca `p_seleccionado`). */
+export interface DetalleCuota extends CuotaDia {
+    p_seleccionado?: boolean;
+}
+
+export interface DetallePrestamo {
+    id: number;
+    monto_prestamo: string | number;
+    cuota_establecida?: string | number;
+    prestamos_dias: DetalleCuota[];
+}
 
 export interface InformePagoRow {
     id: number;
@@ -111,6 +123,12 @@ export const usePaymentReportStore = defineStore('paymentReport', {
         loadingClientes: false,
         filtro: emptyFiltro(),
 
+        // --- Detalle de un informe (cuotas seleccionadas) ---
+        detalleOpen: false,
+        detalleLoading: false,
+        detalleRow: null as InformePagoRow | null,
+        detallePrestamos: [] as DetallePrestamo[],
+
         // --- Informar un pago ---
         informarOpen: false,
         informarSubmitting: false,
@@ -208,6 +226,26 @@ export const usePaymentReportStore = defineStore('paymentReport', {
 
         resetFiltro(): void {
             this.filtro = emptyFiltro();
+        },
+
+        /** Abre el detalle de un informe: préstamos informados + sus cuotas. */
+        async abrirDetalle(row: InformePagoRow): Promise<void> {
+            this.detalleRow = row;
+            this.detallePrestamos = [];
+            this.detalleOpen = true;
+            this.detalleLoading = true;
+            try {
+                const { data } = await http.get(
+                    `/payment_report/record/${row.id}`,
+                );
+                this.detallePrestamos = data.Prestamos ?? [];
+            } finally {
+                this.detalleLoading = false;
+            }
+        },
+
+        cerrarDetalle(): void {
+            this.detalleOpen = false;
         },
 
         /**

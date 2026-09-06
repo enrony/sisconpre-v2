@@ -2,6 +2,7 @@
 import { storeToRefs } from 'pinia';
 import { ref } from 'vue';
 import ChangeStateModal from '@/components/paymentReport/ChangeStateModal.vue';
+import DetalleInformeModal from '@/components/paymentReport/DetalleInformeModal.vue';
 import { can } from '@/lib/can';
 import { formatNumber } from '@/lib/format';
 import {
@@ -106,7 +107,9 @@ function onPage(page: number) {
                         >
                         <template #dropdown>
                             <el-dropdown-menu>
-                                <el-dropdown-item disabled>
+                                <el-dropdown-item
+                                    @click="store.abrirDetalle(row)"
+                                >
                                     Ver detalle (#{{ row.id }})
                                 </el-dropdown-item>
                                 <el-dropdown-item
@@ -123,6 +126,7 @@ function onPage(page: number) {
         </el-table>
 
         <ChangeStateModal v-model:open="stateModalOpen" :row="stateRow" />
+        <DetalleInformeModal />
 
         <div v-if="lista" class="mt-4 flex justify-end">
             <el-pagination
