@@ -254,7 +254,7 @@ Por cada SFC: migrar a Vue 3 (filtros fuera, `.sync` → `v-model:arg`, bus de e
 - [x] **Reubicar los gates de endpoints auxiliares transversales** → `routes/shared.php` (solo `auth`), quitados de los 5 archivos de módulo. Ver detalle en §6 punto 2.
 - [ ] Regresión completa por checklist de módulos.
 - [ ] Seguridad: subida de archivos por magic bytes, CSRF, **autorización por permiso en cada ruta**, aislamiento por país/franquicia/grupo de trabajo (query scoping), hashing de contraseñas.
-- [ ] `FormRequest::authorize()` sigue devolviendo `true` en todos lados — implementar el chequeo real (`$this->user()->can('<recurso>.<accion>')`) o Policies.
+- [x] **`FormRequest::authorize()` real** en los 15 requests de alta/edición alcanzables (los 13 maestros + `StoreActionRequest`/`StoreModuleRequest`): trait `App\Http\Requests\Concerns\AuthorizesResourceWrite` → `canWriteResource('<recurso>')` exige `<recurso>.registrar` (si `id == 0`) o `<recurso>.editar` (si `id > 0`); el super-admin pasa por `Gate::before`. Tests `FormRequestAuthorizationTest` (sin permiso → 403; `registrar` no habilita `editar`). Los `Update*Request` de scaffold sin ruta se dejan como están (código muerto). **Pendiente aparte**: gatear también las rutas `DELETE`/`PUT` con `permission:<recurso>.<accion>` a nivel de middleware (hoy solo exigen `<recurso>.listar`).
 - [ ] Páginas de auth del starter kit (Login/Register/Forgot/Reset/VerifyEmail) siguen en inglés — pase de i18n.
 - [ ] Pruebas *stock* del starter kit rotas (`sqlite :memory:` sin `pdo_sqlite`) — instalar el driver, apuntarlas a MySQL de test, o borrarlas.
 - [ ] `pint` + `larastan` en verde. `.env.production.example` sin secretos.

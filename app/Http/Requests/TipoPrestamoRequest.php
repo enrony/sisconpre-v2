@@ -2,11 +2,14 @@
 
 namespace App\Http\Requests;
 
+use App\Http\Requests\Concerns\AuthorizesResourceWrite;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
 class TipoPrestamoRequest extends FormRequest
 {
+    use AuthorizesResourceWrite;
+
     /**
      * Determine if the user is authorized to make this request.
      *
@@ -14,7 +17,7 @@ class TipoPrestamoRequest extends FormRequest
      */
     public function authorize()
     {
-        return true;
+        return $this->canWriteResource('tipo_prestamo');
     }
 
     /**

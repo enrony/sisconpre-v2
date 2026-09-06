@@ -2,10 +2,13 @@
 
 namespace App\Http\Requests;
 
+use App\Http\Requests\Concerns\AuthorizesResourceWrite;
 use Illuminate\Foundation\Http\FormRequest;
 
 class StoreBankAccountTypeRequest extends FormRequest
 {
+    use AuthorizesResourceWrite;
+
     /**
      * Determine if the user is authorized to make this request.
      *
@@ -13,7 +16,7 @@ class StoreBankAccountTypeRequest extends FormRequest
      */
     public function authorize()
     {
-        return true;
+        return $this->canWriteResource('bank_account_types');
     }
 
     /**
