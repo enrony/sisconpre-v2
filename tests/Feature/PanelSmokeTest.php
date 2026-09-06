@@ -46,7 +46,7 @@ class PanelSmokeTest extends TestCase
     /** El super-usuario (Gate::before) entra a cualquier índice del panel. */
     public function test_super_accede_a_los_indices_del_panel(): void
     {
-        foreach (['/prestamos', '/clientes', '/banks', '/frecuencias', '/payment_report', '/modules'] as $path) {
+        foreach (['/prestamos', '/clientes', '/banks', '/frecuencias', '/payment_report', '/modules', '/profile', '/profile/usuarios'] as $path) {
             $this->actingAs($this->super())->get($path)->assertSuccessful();
         }
     }
@@ -293,5 +293,60 @@ class PanelSmokeTest extends TestCase
         $this->assertSame(0, (int) DB::table('clientes')->where('id', $cli->id)->value('estatus'));
 
         DB::table('clientes')->where('id', $cli->id)->delete();
+    }
+
+    /** Admin/RBAC: alta de rol con permisos + edición + borrado; rol protegido intacto. */
+    public function test_admin_roles(): void
+    {
+        $super = $this->super();
+        $this->actingAs($super)->get('/profile')->assertSuccessful();
+
+        $perms = DB::table('permissions')->whereIn('name', ['clientes.listar', 'clientes.registrar'])->pluck('name')->all();
+
+        $this->actingAs($super)->put('/profile', [
+            'id' => 0,
+            'name' => 'QA Rol',
+            'permissions' => $perms,
+        ])->assertRedirect();
+
+        $rol = DB::table('roles')->where('name', 'QA Rol')->first();
+        $this->assertNotNull($rol);
+        $this->assertSame(2, DB::table('role_has_permissions')->where('role_id', $rol->id)->count());
+
+        // edición: quita un permiso
+        $this->actingAs($super)->put('/profile', [
+            'id' => $rol->id,
+            'name' => 'QA Rol',
+            'permissions' => ['clientes.listar'],
+        ])->assertRedirect();
+        $this->assertSame(1, DB::table('role_has_permissions')->where('role_id', $rol->id)->count());
+
+        // el rol protegido no se puede borrar
+        $sa = DB::table('roles')->where('name', 'super-admin')->first();
+        $this->actingAs($super)->delete("/profile/roles/{$sa->id}")->assertSessionHasErrors('role');
+        $this->assertNotNull(DB::table('roles')->where('id', $sa->id)->first());
+
+        $this->actingAs($super)->delete("/profile/roles/{$rol->id}")->assertRedirect();
+        $this->assertNull(DB::table('roles')->where('id', $rol->id)->first());
+    }
+
+    /** Admin/RBAC: sincroniza los roles de un usuario. */
+    public function test_admin_usuarios(): void
+    {
+        $super = $this->super();
+        $this->actingAs($super)->get('/profile/usuarios')->assertSuccessful();
+
+        $u = $this->cliente();
+        $antes = $u->getRoleNames()->all();
+
+        $this->actingAs($super)->put("/profile/usuarios/{$u->id}", [
+            'roles' => ['Cliente Verficado', 'Inversionista V'],
+        ])->assertRedirect();
+
+        $u->unsetRelation('roles');
+        $this->assertEqualsCanonicalizing(['Cliente Verficado', 'Inversionista V'], $u->getRoleNames()->all());
+
+        // revertir
+        $this->actingAs($super)->put("/profile/usuarios/{$u->id}", ['roles' => $antes])->assertRedirect();
     }
 }
