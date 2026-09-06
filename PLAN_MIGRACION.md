@@ -236,9 +236,10 @@ Por cada SFC: migrar a Vue 3 (filtros fuera, `.sync` → `v-model:arg`, bus de e
 
 - [x] **Runner de tests JS**: `vp test` (vitest 4), script `npm test`. `resources/js/lib/__tests__/`.
 - [x] **`lib/prestamoSchedule.test.ts`** (9 casos): `calcLastDate` (incl. recorte de mes corto); reparto exacto (10 cuotas iguales); redondeo por tramos + ajuste de la última cuota (7 cuotas → 6×42800 + 43200 = 300000); exclusión de domingos; exclusión de festivos; cuota sugerida (desmarca las que exceden el total); `applySurcharge` (N días hábiles saltando domingos) + caso desactivado. Valores esperados trazados a mano desde `generaListPays` del legado.
-- [ ] Tests (Pest): `PaymentReportService`, precisión `DECIMAL`, flujo de informe de pago.
-- [ ] Feature tests: crear préstamo (backend), registrar pago, informe de pago con soporte, cambio de estado.
+- [x] **`tests/Feature/PaymentReportServiceTest.php`** (8 casos, corre contra la BD local como `PanelSmokeTest`, cada test restaura lo que toca): `registerPositiveBalance` (tipoPago 1 → `Σpagos − Σcuotas` cuando es positivo / no cambia si ≤ 0; tipoPago 2 → `Σpagos`), `processPaymentCouotas` (marca `pagado` solo las pendientes, reporta las ya pagadas en `prestamosIdNotProccess`), `processSummaryCustomer` (operación `S` suma a `balance`+`credit`; `R` resta de `balance` y suma a `debit`), `verifiedCurrentStatus` (lanza si el estado destino == el actual; no lanza si difiere).
+- [x] **Feature tests del flujo de informe de pago** (en `PanelSmokeTest`): `test_informar_un_pago` (crea informe + método + cuotas + saldo a favor), `test_cambio_de_estado_informe`, `test_cambio_de_estado_con_soporte` (guarda archivo + fila de soporte), `test_detalle_informe`, `test_gestion_informes_cliente`, `test_alta_rapida_cliente`, `test_comando_aplicar_recargos`. Crear préstamo backend: `PrestamosController@store` cubierto por la verificación manual de Fase 6 (falta un feature test dedicado).
 - [ ] Comparación de salidas nuevo vs sistema viejo con un set de casos reales documentado.
+- ⚠️ **Fase 9**: las pruebas *stock* del starter kit (`tests/Unit/ExampleTest`, `tests/Feature/Auth/*`, `tests/Feature/Settings/*`, `DashboardTest`) usan `RefreshDatabase` sobre `sqlite :memory:` y fallan con *"could not find driver"* (no hay `pdo_sqlite` en el PHP de Herd). Decidir: instalar `pdo_sqlite`, apuntarlas a una BD MySQL de test, o borrarlas (el proyecto testea contra la BD real).
 
 ### Fase 8 — Integraciones · 2–3 días
 
