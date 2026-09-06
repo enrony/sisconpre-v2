@@ -66,6 +66,32 @@ class PanelSmokeTest extends TestCase
             ->assertSuccessful();
     }
 
+    /** Alta rápida de cliente (usada por el asistente de préstamos). */
+    public function test_alta_rapida_cliente(): void
+    {
+        $antes = DB::table('clientes')->count();
+
+        $res = $this->actingAs($this->super())->putJson('/user/actualizaCliente', [
+            'id' => 0,
+            'otherForm' => true,
+            'paginaActual' => 1,
+            'idtipo_documento' => 2,
+            'documento' => 'QA-CLI-1',
+            'nombre' => 'QA', 'nombre_segundo' => '', 'apellido' => 'Cliente', 'apellido_segundo' => '',
+            'telefono' => '3000000000',
+            'email' => 'qa.cli@test.com',
+            'direccion' => 'Calle QA 1',
+            'city_id' => 2261,
+        ]);
+
+        $res->assertOk()->assertJson(['success' => true]);
+        $id = $res->json('id');
+        $this->assertSame($antes + 1, DB::table('clientes')->count());
+        $this->assertSame(1, (int) DB::table('clientes')->where('id', $id)->value('grupos_trabajos_user_id'));
+
+        DB::table('clientes')->where('id', $id)->delete();
+    }
+
     /** Listado de Informes de pago + su endpoint de datos. */
     public function test_informes_de_pago(): void
     {

@@ -110,6 +110,42 @@ interface ClienteFull {
     tipo_documento?: { sigla?: string };
 }
 
+export interface NuevoCliente {
+    idtipo_documento: number | null;
+    documento: string;
+    nombre: string;
+    nombre_segundo: string;
+    apellido: string;
+    apellido_segundo: string;
+    telefono: string;
+    email: string;
+    direccion: string;
+    country_id: string | null;
+    department_id: number | null;
+    city_id: number | null;
+}
+
+export const nuevoClienteVacio = (): NuevoCliente => ({
+    idtipo_documento: null,
+    documento: '',
+    nombre: '',
+    nombre_segundo: '',
+    apellido: '',
+    apellido_segundo: '',
+    telefono: '',
+    email: '',
+    direccion: '',
+    country_id: null,
+    department_id: null,
+    city_id: null,
+});
+
+interface ClientesTables {
+    CountryAll: { id: string; Name: string }[];
+    DepartmentAll: { id: number; nombre: string; country_id: string }[];
+    CitiesAll: { id: number; nombre: string; department_id: number }[];
+}
+
 interface PrestamoForm {
     cliente_id: number | null;
     clienteSelected: ClienteFull | Record<string, never>;
@@ -186,6 +222,21 @@ export const usePrestamosStore = defineStore('prestamos', {
         } as PrestamoTables,
         clientesAll: [] as ClienteFull[],
         form: emptyForm(),
+
+        // alta rápida de cliente
+        nuevoClienteOpen: false,
+        creandoCliente: false,
+        clientesTables: {
+            CountryAll: [],
+            DepartmentAll: [],
+            CitiesAll: [],
+        } as ClientesTables,
+        tiposDocumento: [] as {
+            id: number;
+            sigla: string;
+            nombre: string;
+            country_id: string;
+        }[],
     }),
 
     getters: {
@@ -322,6 +373,50 @@ export const usePrestamosStore = defineStore('prestamos', {
                 '/clientes/lista-clientes-json-basic',
             );
             this.clientesAll = data.clien ?? [];
+        },
+
+        async abrirNuevoCliente(): Promise<void> {
+            this.nuevoClienteOpen = true;
+            if (this.clientesTables.CountryAll.length) {
+                return;
+            }
+            const [t, td] = await Promise.all([
+                http.get('/clientes/tables'),
+                http.get('/api/listaTipoDocu'),
+            ]);
+            this.clientesTables = {
+                CountryAll: t.data.CountryAll ?? [],
+                DepartmentAll: t.data.DepartmentAll ?? [],
+                CitiesAll: t.data.CitiesAll ?? [],
+            };
+            this.tiposDocumento = Array.isArray(td.data)
+                ? td.data
+                : (td.data.data ?? []);
+        },
+
+        async crearClienteRapido(
+            payload: Record<string, unknown>,
+        ): Promise<{ success: boolean; id?: number }> {
+            this.creandoCliente = true;
+            try {
+                const { data } = await http.put('/user/actualizaCliente', {
+                    ...payload,
+                    id: 0,
+                    otherForm: true,
+                    paginaActual: 1,
+                });
+
+                if (data.success && data.id) {
+                    await this.fetchClientesAll();
+                    this.form.cliente_id = data.id;
+                    this.seleccionarCliente();
+                    this.nuevoClienteOpen = false;
+                }
+
+                return data;
+            } finally {
+                this.creandoCliente = false;
+            }
         },
 
         seleccionarCliente(): void {

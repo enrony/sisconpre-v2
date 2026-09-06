@@ -2,6 +2,7 @@
 import { storeToRefs } from 'pinia';
 import { computed } from 'vue';
 import CuotasGrid from '@/components/prestamos/CuotasGrid.vue';
+import NuevoClienteModal from '@/components/prestamos/NuevoClienteModal.vue';
 import { formatNumber } from '@/lib/format';
 import { usePrestamosStore } from '@/stores/prestamos';
 
@@ -60,23 +61,32 @@ function siguiente() {
                 <label class="text-muted-foreground text-xs font-semibold"
                     >Cliente</label
                 >
-                <el-select
-                    v-model="form.cliente_id"
-                    filterable
-                    clearable
-                    size="small"
-                    class="w-full"
-                    placeholder="Seleccione el cliente"
-                    :disabled="form.stepActive > 0"
-                    @change="store.seleccionarCliente()"
-                >
-                    <el-option
-                        v-for="c in clientesAll"
-                        :key="c.id"
-                        :label="`${c.documento}: ${c.nombre} ${c.apellido ?? ''}`"
-                        :value="c.id"
-                    />
-                </el-select>
+                <div class="flex gap-2">
+                    <el-select
+                        v-model="form.cliente_id"
+                        filterable
+                        clearable
+                        size="small"
+                        class="w-full"
+                        placeholder="Seleccione el cliente"
+                        :disabled="form.stepActive > 0"
+                        @change="store.seleccionarCliente()"
+                    >
+                        <el-option
+                            v-for="c in clientesAll"
+                            :key="c.id"
+                            :label="`${c.documento}: ${c.nombre} ${c.apellido ?? ''}`"
+                            :value="c.id"
+                        />
+                    </el-select>
+                    <el-button
+                        size="small"
+                        :disabled="form.stepActive > 0"
+                        @click="store.abrirNuevoCliente()"
+                    >
+                        + Nuevo
+                    </el-button>
+                </div>
             </div>
 
             <div
@@ -328,4 +338,6 @@ function siguiente() {
             </el-button>
         </template>
     </el-dialog>
+
+    <NuevoClienteModal />
 </template>
