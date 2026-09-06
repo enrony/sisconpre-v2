@@ -4,9 +4,11 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Redirect;
 use Inertia\Inertia;
+use Inertia\Response;
 use Spatie\Permission\Models\Role;
 
 /**
@@ -15,7 +17,7 @@ use Spatie\Permission\Models\Role;
  */
 class UsersController extends Controller
 {
-    public function index(Request $request)
+    public function index(Request $request): Response
     {
         $usuarios = User::query()
             ->select('id', 'name', 'email')
@@ -43,7 +45,7 @@ class UsersController extends Controller
         ]);
     }
 
-    public function update(Request $request, User $user)
+    public function update(Request $request, User $user): RedirectResponse
     {
         $data = $request->validate([
             'roles' => ['array'],

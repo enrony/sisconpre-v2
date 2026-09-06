@@ -1,6 +1,11 @@
 includes:
     - vendor/larastan/larastan/extension.neon
     - vendor/nesbot/carbon/extension.neon
+    # Deuda de tipado heredada del sistema legado (controladores/modelos
+    # generados por `make:model -a`, servicios portados sin tipos). Congelada
+    # para que `phpstan` pase en verde; el código nuevo debe entrar limpio.
+    # Burn-down: al tocar un archivo del baseline, quitar sus entradas y tiparlo.
+    - phpstan-baseline.neon
 
 parameters:
     paths:

@@ -1,0 +1,4183 @@
+parameters:
+	ignoreErrors:
+		-
+			message: '#^Access to an undefined property App\\Models\\PrestamosDias\:\:\$Prestamo\.$#'
+			identifier: property.notFound
+			count: 5
+			path: app/Console/Commands/AplicarRecargosPrestamos.php
+
+		-
+			message: '#^Method App\\Console\\Commands\\AplicarRecargosPrestamos\:\:handle\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Console/Commands/AplicarRecargosPrestamos.php
+
+		-
+			message: '#^Property App\\Models\\PrestamosDias\:\:\$day_apply_surcharge \(Carbon\\CarbonImmutable\|null\) does not accept string\.$#'
+			identifier: assign.propertyType
+			count: 1
+			path: app/Console/Commands/AplicarRecargosPrestamos.php
+
+		-
+			message: '#^Property App\\Models\\PrestamosDias\:\:\$prestamo_dia_id \(int\<0, max\>\|null\) does not accept int\.$#'
+			identifier: assign.propertyType
+			count: 1
+			path: app/Console/Commands/AplicarRecargosPrestamos.php
+
+		-
+			message: '#^Relation ''Prestamo'' is not found in App\\Models\\PrestamosDias model\.$#'
+			identifier: larastan.relationExistence
+			count: 2
+			path: app/Console/Commands/AplicarRecargosPrestamos.php
+
+		-
+			message: '#^Left side of && is always true\.$#'
+			identifier: booleanAnd.leftAlwaysTrue
+			count: 1
+			path: app/Console/Commands/CountryHoliday.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\PrestamosDias\:\:\$Prestamo\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Console/Commands/NotificarRecargosPrestamos.php
+
+		-
+			message: '#^If condition is always true\.$#'
+			identifier: if.alwaysTrue
+			count: 1
+			path: app/Console/Commands/NotificarRecargosPrestamos.php
+
+		-
+			message: '#^Method App\\Console\\Commands\\NotificarRecargosPrestamos\:\:handle\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Console/Commands/NotificarRecargosPrestamos.php
+
+		-
+			message: '#^Relation ''Prestamo'' is not found in App\\Models\\PrestamosDias model\.$#'
+			identifier: larastan.relationExistence
+			count: 2
+			path: app/Console/Commands/NotificarRecargosPrestamos.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\User\|Illuminate\\Database\\Eloquent\\Collection\<int, App\\Models\\User\>\:\:\$email\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Console/Commands/RbacSyncFromLegacy.php
+
+		-
+			message: '#^Access to an undefined property object\:\:\$clave\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Console/Commands/RbacSyncFromLegacy.php
+
+		-
+			message: '#^Access to an undefined property object\:\:\$code\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Console/Commands/RbacSyncFromLegacy.php
+
+		-
+			message: '#^Access to an undefined property object\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Console/Commands/RbacSyncFromLegacy.php
+
+		-
+			message: '#^Access to an undefined property object\:\:\$route\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Console/Commands/RbacSyncFromLegacy.php
+
+		-
+			message: '#^Call to an undefined method App\\Models\\User\|Illuminate\\Database\\Eloquent\\Collection\<int, App\\Models\\User\>\:\:syncRoles\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Console/Commands/RbacSyncFromLegacy.php
+
+		-
+			message: '#^Method App\\Events\\EnviarCorreo\:\:broadcastOn\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Events/EnviarCorreo.php
+
+		-
+			message: '#^Property App\\Events\\EnviarCorreo\:\:\$users has no type specified\.$#'
+			identifier: missingType.property
+			count: 1
+			path: app/Events/EnviarCorreo.php
+
+		-
+			message: '#^Call to an undefined method App\\Models\\Action\|Illuminate\\Database\\Eloquent\\Collection\<int, App\\Models\\Action\>\:\:update\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Http/Controllers/ActionController.php
+
+		-
+			message: '#^Call to static method collection\(\) on an unknown class App\\Http\\Resources\\ActionResource\.$#'
+			identifier: class.notFound
+			count: 1
+			path: app/Http/Controllers/ActionController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\ActionController\:\:create\(\) should return Illuminate\\Http\\Response but return statement is missing\.$#'
+			identifier: return.missing
+			count: 1
+			path: app/Http/Controllers/ActionController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\ActionController\:\:destroy\(\) should return Illuminate\\Http\\Response but return statement is missing\.$#'
+			identifier: return.missing
+			count: 1
+			path: app/Http/Controllers/ActionController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\ActionController\:\:edit\(\) should return Illuminate\\Http\\Response but return statement is missing\.$#'
+			identifier: return.missing
+			count: 1
+			path: app/Http/Controllers/ActionController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\ActionController\:\:index\(\) should return Illuminate\\Http\\Response but returns Inertia\\Response\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/ActionController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\ActionController\:\:lista\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Http/Controllers/ActionController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\ActionController\:\:record\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Http/Controllers/ActionController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\ActionController\:\:record\(\) has parameter \$id with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Http/Controllers/ActionController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\ActionController\:\:show\(\) should return Illuminate\\Http\\Response but return statement is missing\.$#'
+			identifier: return.missing
+			count: 1
+			path: app/Http/Controllers/ActionController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\ActionController\:\:store\(\) should return Illuminate\\Http\\Response but returns Illuminate\\Http\\RedirectResponse\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/ActionController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\ActionController\:\:store\(\) should return Illuminate\\Http\\Response but returns array\<string, mixed\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/ActionController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\ActionController\:\:update\(\) should return Illuminate\\Http\\Response but return statement is missing\.$#'
+			identifier: return.missing
+			count: 1
+			path: app/Http/Controllers/ActionController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\Controller\:\:obtenerGrupoTrabajo\(\) invoked with 1 parameter, 0 required\.$#'
+			identifier: arguments.count
+			count: 1
+			path: app/Http/Controllers/ActionController.php
+
+		-
+			message: '#^Call to an undefined method App\\Models\\BankAccountType\|Illuminate\\Database\\Eloquent\\Collection\<int, App\\Models\\BankAccountType\>\:\:delete\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Http/Controllers/BankAccountTypeController.php
+
+		-
+			message: '#^Call to an undefined method App\\Models\\BankAccountType\|Illuminate\\Database\\Eloquent\\Collection\<int, App\\Models\\BankAccountType\>\:\:update\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Http/Controllers/BankAccountTypeController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\BankAccountTypeController\:\:create\(\) should return Illuminate\\Http\\Response but return statement is missing\.$#'
+			identifier: return.missing
+			count: 1
+			path: app/Http/Controllers/BankAccountTypeController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\BankAccountTypeController\:\:destroy\(\) has parameter \$id with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Http/Controllers/BankAccountTypeController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\BankAccountTypeController\:\:destroy\(\) has parameter \$page with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Http/Controllers/BankAccountTypeController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\BankAccountTypeController\:\:destroy\(\) should return Illuminate\\Http\\Response but returns Illuminate\\Http\\RedirectResponse\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/BankAccountTypeController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\BankAccountTypeController\:\:edit\(\) should return Illuminate\\Http\\Response but return statement is missing\.$#'
+			identifier: return.missing
+			count: 1
+			path: app/Http/Controllers/BankAccountTypeController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\BankAccountTypeController\:\:index\(\) should return Illuminate\\Http\\Response but returns Inertia\\Response\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/BankAccountTypeController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\BankAccountTypeController\:\:record\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Http/Controllers/BankAccountTypeController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\BankAccountTypeController\:\:record\(\) has parameter \$id with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Http/Controllers/BankAccountTypeController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\BankAccountTypeController\:\:show\(\) should return Illuminate\\Http\\Response but return statement is missing\.$#'
+			identifier: return.missing
+			count: 1
+			path: app/Http/Controllers/BankAccountTypeController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\BankAccountTypeController\:\:store\(\) should return Illuminate\\Http\\Response but returns Illuminate\\Http\\RedirectResponse\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/BankAccountTypeController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\BankAccountTypeController\:\:store\(\) should return Illuminate\\Http\\Response but returns array\<string, mixed\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/BankAccountTypeController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\BankAccountTypeController\:\:update\(\) should return Illuminate\\Http\\Response but return statement is missing\.$#'
+			identifier: return.missing
+			count: 1
+			path: app/Http/Controllers/BankAccountTypeController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\Controller\:\:obtenerGrupoTrabajo\(\) invoked with 1 parameter, 0 required\.$#'
+			identifier: arguments.count
+			count: 1
+			path: app/Http/Controllers/BankAccountTypeController.php
+
+		-
+			message: '#^PHPDoc tag @param references unknown parameter\: \$bankAccountType$#'
+			identifier: parameter.notFound
+			count: 1
+			path: app/Http/Controllers/BankAccountTypeController.php
+
+		-
+			message: '#^Call to an undefined method App\\Models\\Bank\|Illuminate\\Database\\Eloquent\\Collection\<int, App\\Models\\Bank\>\:\:delete\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Http/Controllers/BankController.php
+
+		-
+			message: '#^Call to an undefined method App\\Models\\Bank\|Illuminate\\Database\\Eloquent\\Collection\<int, App\\Models\\Bank\>\:\:update\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Http/Controllers/BankController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\BankController\:\:create\(\) should return Illuminate\\Http\\Response but return statement is missing\.$#'
+			identifier: return.missing
+			count: 1
+			path: app/Http/Controllers/BankController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\BankController\:\:destroy\(\) has parameter \$id with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Http/Controllers/BankController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\BankController\:\:destroy\(\) has parameter \$page with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Http/Controllers/BankController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\BankController\:\:destroy\(\) should return Illuminate\\Http\\Response but returns Illuminate\\Http\\RedirectResponse\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/BankController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\BankController\:\:edit\(\) should return Illuminate\\Http\\Response but return statement is missing\.$#'
+			identifier: return.missing
+			count: 1
+			path: app/Http/Controllers/BankController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\BankController\:\:index\(\) should return Illuminate\\Http\\Response but returns Inertia\\Response\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/BankController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\BankController\:\:record\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Http/Controllers/BankController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\BankController\:\:record\(\) has parameter \$id with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Http/Controllers/BankController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\BankController\:\:show\(\) should return Illuminate\\Http\\Response but return statement is missing\.$#'
+			identifier: return.missing
+			count: 1
+			path: app/Http/Controllers/BankController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\BankController\:\:store\(\) should return Illuminate\\Http\\Response but returns Illuminate\\Http\\RedirectResponse\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/BankController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\BankController\:\:store\(\) should return Illuminate\\Http\\Response but returns array\<string, mixed\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/BankController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\BankController\:\:tables\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Http/Controllers/BankController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\BankController\:\:tables\(\) has parameter \$country_id with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Http/Controllers/BankController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\BankController\:\:update\(\) should return Illuminate\\Http\\Response but return statement is missing\.$#'
+			identifier: return.missing
+			count: 1
+			path: app/Http/Controllers/BankController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\Controller\:\:obtenerGrupoTrabajo\(\) invoked with 1 parameter, 0 required\.$#'
+			identifier: arguments.count
+			count: 1
+			path: app/Http/Controllers/BankController.php
+
+		-
+			message: '#^PHPDoc tag @param references unknown parameter\: \$bank$#'
+			identifier: parameter.notFound
+			count: 1
+			path: app/Http/Controllers/BankController.php
+
+		-
+			message: '#^Call to an undefined method App\\Models\\City\|Illuminate\\Database\\Eloquent\\Collection\<int, App\\Models\\City\>\:\:delete\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Http/Controllers/CityController.php
+
+		-
+			message: '#^Call to an undefined method App\\Models\\City\|Illuminate\\Database\\Eloquent\\Collection\<int, App\\Models\\City\>\:\:update\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Http/Controllers/CityController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\CityController\:\:create\(\) should return Illuminate\\Http\\Response but return statement is missing\.$#'
+			identifier: return.missing
+			count: 1
+			path: app/Http/Controllers/CityController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\CityController\:\:destroy\(\) has parameter \$id with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Http/Controllers/CityController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\CityController\:\:destroy\(\) has parameter \$page with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Http/Controllers/CityController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\CityController\:\:destroy\(\) should return Illuminate\\Http\\Response but returns Illuminate\\Http\\RedirectResponse\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/CityController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\CityController\:\:edit\(\) should return Illuminate\\Http\\Response but return statement is missing\.$#'
+			identifier: return.missing
+			count: 1
+			path: app/Http/Controllers/CityController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\CityController\:\:index\(\) should return Illuminate\\Http\\Response but returns Inertia\\Response\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/CityController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\CityController\:\:paginate\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Http/Controllers/CityController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\CityController\:\:paginate\(\) has parameter \$options with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Http/Controllers/CityController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\CityController\:\:paginate\(\) has parameter \$page with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Http/Controllers/CityController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\CityController\:\:paginate\(\) has parameter \$per_page with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Http/Controllers/CityController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\CityController\:\:paginate\(\) has parameter \$queryAll with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Http/Controllers/CityController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\CityController\:\:record\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Http/Controllers/CityController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\CityController\:\:record\(\) has parameter \$id with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Http/Controllers/CityController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\CityController\:\:show\(\) should return Illuminate\\Http\\Response but return statement is missing\.$#'
+			identifier: return.missing
+			count: 1
+			path: app/Http/Controllers/CityController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\CityController\:\:store\(\) should return Illuminate\\Http\\Response but returns Illuminate\\Http\\RedirectResponse\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/CityController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\CityController\:\:store\(\) should return Illuminate\\Http\\Response but returns array\<string, mixed\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/CityController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\CityController\:\:tables\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Http/Controllers/CityController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\CityController\:\:update\(\) should return Illuminate\\Http\\Response but return statement is missing\.$#'
+			identifier: return.missing
+			count: 1
+			path: app/Http/Controllers/CityController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\Controller\:\:obtenerGrupoTrabajo\(\) invoked with 1 parameter, 0 required\.$#'
+			identifier: arguments.count
+			count: 1
+			path: app/Http/Controllers/CityController.php
+
+		-
+			message: '#^PHPDoc tag @param for parameter \$request with type Illuminate\\Http\\Request is not subtype of native type App\\Http\\Requests\\CityRequest\.$#'
+			identifier: parameter.phpDocType
+			count: 1
+			path: app/Http/Controllers/CityController.php
+
+		-
+			message: '#^PHPDoc tag @param references unknown parameter\: \$city$#'
+			identifier: parameter.notFound
+			count: 1
+			path: app/Http/Controllers/CityController.php
+
+		-
+			message: '#^Relation ''department'' is not found in App\\Models\\City model\.$#'
+			identifier: larastan.relationExistence
+			count: 1
+			path: app/Http/Controllers/CityController.php
+
+		-
+			message: '#^Call to an undefined method App\\Models\\Clientes\|Illuminate\\Database\\Eloquent\\Collection\<int, App\\Models\\Clientes\>\:\:forceFill\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Http/Controllers/ClientesController.php
+
+		-
+			message: '#^Call to an undefined method App\\Models\\Clientes\|Illuminate\\Database\\Eloquent\\Collection\<int, App\\Models\\Clientes\>\:\:update\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Http/Controllers/ClientesController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\ClientesController\:\:actualizaCliente\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Http/Controllers/ClientesController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\ClientesController\:\:consultaPrestamos\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Http/Controllers/ClientesController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\ClientesController\:\:consultaPrestamos\(\) has parameter \$id_cliente with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Http/Controllers/ClientesController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\ClientesController\:\:create\(\) should return Illuminate\\Http\\Response but return statement is missing\.$#'
+			identifier: return.missing
+			count: 1
+			path: app/Http/Controllers/ClientesController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\ClientesController\:\:destroy\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Http/Controllers/ClientesController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\ClientesController\:\:destroy\(\) has parameter \$id with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Http/Controllers/ClientesController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\ClientesController\:\:destroy\(\) has parameter \$page with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Http/Controllers/ClientesController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\ClientesController\:\:edit\(\) should return Illuminate\\Http\\Response but return statement is missing\.$#'
+			identifier: return.missing
+			count: 1
+			path: app/Http/Controllers/ClientesController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\ClientesController\:\:index\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Http/Controllers/ClientesController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\ClientesController\:\:listaClientes2\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Http/Controllers/ClientesController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\ClientesController\:\:listaClientesJson\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Http/Controllers/ClientesController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\ClientesController\:\:listaClientesJsonBasic\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Http/Controllers/ClientesController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\ClientesController\:\:record\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Http/Controllers/ClientesController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\ClientesController\:\:record\(\) has parameter \$id with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Http/Controllers/ClientesController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\ClientesController\:\:show\(\) should return Illuminate\\Http\\Response but return statement is missing\.$#'
+			identifier: return.missing
+			count: 1
+			path: app/Http/Controllers/ClientesController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\ClientesController\:\:store\(\) should return Illuminate\\Http\\Response but return statement is missing\.$#'
+			identifier: return.missing
+			count: 1
+			path: app/Http/Controllers/ClientesController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\ClientesController\:\:tables\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Http/Controllers/ClientesController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\ClientesController\:\:update\(\) should return Illuminate\\Http\\Response but return statement is missing\.$#'
+			identifier: return.missing
+			count: 1
+			path: app/Http/Controllers/ClientesController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\Controller\:\:obtenerGrupoTrabajo\(\) invoked with 1 parameter, 0 required\.$#'
+			identifier: arguments.count
+			count: 2
+			path: app/Http/Controllers/ClientesController.php
+
+		-
+			message: '#^Parameter \#1 \$id of method App\\Http\\Controllers\\Controller\:\:isSuperUsuario\(\) expects int, int\|string\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Http/Controllers/ClientesController.php
+
+		-
+			message: '#^Relation ''city'' is not found in App\\Models\\Clientes model\.$#'
+			identifier: larastan.relationExistence
+			count: 1
+			path: app/Http/Controllers/ClientesController.php
+
+		-
+			message: '#^Unreachable statement \- code above always terminates\.$#'
+			identifier: deadCode.unreachable
+			count: 2
+			path: app/Http/Controllers/ClientesController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\Controller\:\:isSuperUsuario\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Http/Controllers/Controller.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\Controller\:\:obtenerGruposTrabajos\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Http/Controllers/Controller.php
+
+		-
+			message: '#^Call to an undefined method App\\Models\\CountryHoliday\|Illuminate\\Database\\Eloquent\\Collection\<int, App\\Models\\CountryHoliday\>\:\:delete\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Http/Controllers/CountryHolidayController.php
+
+		-
+			message: '#^Call to an undefined method App\\Models\\CountryHoliday\|Illuminate\\Database\\Eloquent\\Collection\<int, App\\Models\\CountryHoliday\>\:\:update\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Http/Controllers/CountryHolidayController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\Controller\:\:obtenerGrupoTrabajo\(\) invoked with 1 parameter, 0 required\.$#'
+			identifier: arguments.count
+			count: 1
+			path: app/Http/Controllers/CountryHolidayController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\CountryHolidayController\:\:create\(\) should return Illuminate\\Http\\Response but return statement is missing\.$#'
+			identifier: return.missing
+			count: 1
+			path: app/Http/Controllers/CountryHolidayController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\CountryHolidayController\:\:destroy\(\) has parameter \$id with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Http/Controllers/CountryHolidayController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\CountryHolidayController\:\:destroy\(\) has parameter \$page with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Http/Controllers/CountryHolidayController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\CountryHolidayController\:\:destroy\(\) should return Illuminate\\Http\\Response but returns Illuminate\\Http\\RedirectResponse\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/CountryHolidayController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\CountryHolidayController\:\:edit\(\) should return Illuminate\\Http\\Response but return statement is missing\.$#'
+			identifier: return.missing
+			count: 1
+			path: app/Http/Controllers/CountryHolidayController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\CountryHolidayController\:\:index\(\) should return Illuminate\\Http\\Response but returns Inertia\\Response\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/CountryHolidayController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\CountryHolidayController\:\:paginate\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Http/Controllers/CountryHolidayController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\CountryHolidayController\:\:paginate\(\) has parameter \$options with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Http/Controllers/CountryHolidayController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\CountryHolidayController\:\:paginate\(\) has parameter \$page with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Http/Controllers/CountryHolidayController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\CountryHolidayController\:\:paginate\(\) has parameter \$per_page with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Http/Controllers/CountryHolidayController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\CountryHolidayController\:\:paginate\(\) has parameter \$queryAll with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Http/Controllers/CountryHolidayController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\CountryHolidayController\:\:record\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Http/Controllers/CountryHolidayController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\CountryHolidayController\:\:record\(\) has parameter \$id with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Http/Controllers/CountryHolidayController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\CountryHolidayController\:\:show\(\) should return Illuminate\\Http\\Response but return statement is missing\.$#'
+			identifier: return.missing
+			count: 1
+			path: app/Http/Controllers/CountryHolidayController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\CountryHolidayController\:\:store\(\) should return Illuminate\\Http\\Response but returns Illuminate\\Http\\RedirectResponse\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/CountryHolidayController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\CountryHolidayController\:\:store\(\) should return Illuminate\\Http\\Response but returns array\<string, mixed\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/CountryHolidayController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\CountryHolidayController\:\:tables\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Http/Controllers/CountryHolidayController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\CountryHolidayController\:\:update\(\) should return Illuminate\\Http\\Response but return statement is missing\.$#'
+			identifier: return.missing
+			count: 1
+			path: app/Http/Controllers/CountryHolidayController.php
+
+		-
+			message: '#^PHPDoc tag @param references unknown parameter\: \$countryHoliday$#'
+			identifier: parameter.notFound
+			count: 1
+			path: app/Http/Controllers/CountryHolidayController.php
+
+		-
+			message: '#^Relation ''country'' is not found in App\\Models\\CountryHoliday model\.$#'
+			identifier: larastan.relationExistence
+			count: 1
+			path: app/Http/Controllers/CountryHolidayController.php
+
+		-
+			message: '#^Call to an undefined method App\\Models\\Department\|Illuminate\\Database\\Eloquent\\Collection\<int, App\\Models\\Department\>\:\:delete\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Http/Controllers/DepartmentController.php
+
+		-
+			message: '#^Call to an undefined method App\\Models\\Department\|Illuminate\\Database\\Eloquent\\Collection\<int, App\\Models\\Department\>\:\:update\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Http/Controllers/DepartmentController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\Controller\:\:obtenerGrupoTrabajo\(\) invoked with 1 parameter, 0 required\.$#'
+			identifier: arguments.count
+			count: 1
+			path: app/Http/Controllers/DepartmentController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\DepartmentController\:\:create\(\) should return Illuminate\\Http\\Response but return statement is missing\.$#'
+			identifier: return.missing
+			count: 1
+			path: app/Http/Controllers/DepartmentController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\DepartmentController\:\:destroy\(\) has parameter \$id with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Http/Controllers/DepartmentController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\DepartmentController\:\:destroy\(\) has parameter \$page with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Http/Controllers/DepartmentController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\DepartmentController\:\:destroy\(\) should return Illuminate\\Http\\Response but returns Illuminate\\Http\\RedirectResponse\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/DepartmentController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\DepartmentController\:\:edit\(\) should return Illuminate\\Http\\Response but return statement is missing\.$#'
+			identifier: return.missing
+			count: 1
+			path: app/Http/Controllers/DepartmentController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\DepartmentController\:\:index\(\) should return Illuminate\\Http\\Response but returns Inertia\\Response\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/DepartmentController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\DepartmentController\:\:paginate\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Http/Controllers/DepartmentController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\DepartmentController\:\:paginate\(\) has parameter \$options with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Http/Controllers/DepartmentController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\DepartmentController\:\:paginate\(\) has parameter \$page with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Http/Controllers/DepartmentController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\DepartmentController\:\:paginate\(\) has parameter \$per_page with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Http/Controllers/DepartmentController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\DepartmentController\:\:paginate\(\) has parameter \$queryAll with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Http/Controllers/DepartmentController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\DepartmentController\:\:record\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Http/Controllers/DepartmentController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\DepartmentController\:\:record\(\) has parameter \$id with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Http/Controllers/DepartmentController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\DepartmentController\:\:show\(\) should return Illuminate\\Http\\Response but return statement is missing\.$#'
+			identifier: return.missing
+			count: 1
+			path: app/Http/Controllers/DepartmentController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\DepartmentController\:\:store\(\) should return Illuminate\\Http\\Response but returns Illuminate\\Http\\RedirectResponse\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/DepartmentController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\DepartmentController\:\:store\(\) should return Illuminate\\Http\\Response but returns array\<string, mixed\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/DepartmentController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\DepartmentController\:\:tables\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Http/Controllers/DepartmentController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\DepartmentController\:\:update\(\) should return Illuminate\\Http\\Response but return statement is missing\.$#'
+			identifier: return.missing
+			count: 1
+			path: app/Http/Controllers/DepartmentController.php
+
+		-
+			message: '#^PHPDoc tag @param for parameter \$request with type App\\Http\\Requests\\StoreDepartmentRequest is incompatible with native type App\\Http\\Requests\\DepartmentRequest\.$#'
+			identifier: parameter.phpDocType
+			count: 1
+			path: app/Http/Controllers/DepartmentController.php
+
+		-
+			message: '#^PHPDoc tag @param references unknown parameter\: \$department$#'
+			identifier: parameter.notFound
+			count: 1
+			path: app/Http/Controllers/DepartmentController.php
+
+		-
+			message: '#^Relation ''country'' is not found in App\\Models\\Department model\.$#'
+			identifier: larastan.relationExistence
+			count: 1
+			path: app/Http/Controllers/DepartmentController.php
+
+		-
+			message: '#^Call to an undefined method App\\Models\\Franquicia\|Illuminate\\Database\\Eloquent\\Collection\<int, App\\Models\\Franquicia\>\:\:delete\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Http/Controllers/FranquiciaController.php
+
+		-
+			message: '#^Call to an undefined method App\\Models\\Franquicia\|Illuminate\\Database\\Eloquent\\Collection\<int, App\\Models\\Franquicia\>\:\:update\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Http/Controllers/FranquiciaController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\Controller\:\:obtenerGrupoTrabajo\(\) invoked with 1 parameter, 0 required\.$#'
+			identifier: arguments.count
+			count: 1
+			path: app/Http/Controllers/FranquiciaController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\FranquiciaController\:\:create\(\) should return Illuminate\\Http\\Response but return statement is missing\.$#'
+			identifier: return.missing
+			count: 1
+			path: app/Http/Controllers/FranquiciaController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\FranquiciaController\:\:destroy\(\) has parameter \$id with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Http/Controllers/FranquiciaController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\FranquiciaController\:\:destroy\(\) has parameter \$page with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Http/Controllers/FranquiciaController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\FranquiciaController\:\:destroy\(\) should return Illuminate\\Http\\Response but returns Illuminate\\Http\\RedirectResponse\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/FranquiciaController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\FranquiciaController\:\:edit\(\) should return Illuminate\\Http\\Response but return statement is missing\.$#'
+			identifier: return.missing
+			count: 1
+			path: app/Http/Controllers/FranquiciaController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\FranquiciaController\:\:index\(\) should return Illuminate\\Http\\Response but returns Inertia\\Response\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/FranquiciaController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\FranquiciaController\:\:record\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Http/Controllers/FranquiciaController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\FranquiciaController\:\:record\(\) has parameter \$id with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Http/Controllers/FranquiciaController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\FranquiciaController\:\:show\(\) should return Illuminate\\Http\\Response but return statement is missing\.$#'
+			identifier: return.missing
+			count: 1
+			path: app/Http/Controllers/FranquiciaController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\FranquiciaController\:\:store\(\) should return Illuminate\\Http\\Response but returns Illuminate\\Http\\RedirectResponse\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/FranquiciaController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\FranquiciaController\:\:store\(\) should return Illuminate\\Http\\Response but returns array\<string, mixed\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/FranquiciaController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\FranquiciaController\:\:tables\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Http/Controllers/FranquiciaController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\FranquiciaController\:\:update\(\) should return Illuminate\\Http\\Response but return statement is missing\.$#'
+			identifier: return.missing
+			count: 1
+			path: app/Http/Controllers/FranquiciaController.php
+
+		-
+			message: '#^PHPDoc tag @param references unknown parameter\: \$franquicia$#'
+			identifier: parameter.notFound
+			count: 1
+			path: app/Http/Controllers/FranquiciaController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Frecuencias\|Illuminate\\Database\\Eloquent\\Collection\<int, App\\Models\\Frecuencias\>\:\:\$por_defecto\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/FrecuenciasController.php
+
+		-
+			message: '#^Call to an undefined method App\\Models\\Frecuencias\|Illuminate\\Database\\Eloquent\\Collection\<int, App\\Models\\Frecuencias\>\:\:delete\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Http/Controllers/FrecuenciasController.php
+
+		-
+			message: '#^Call to an undefined method App\\Models\\Frecuencias\|Illuminate\\Database\\Eloquent\\Collection\<int, App\\Models\\Frecuencias\>\:\:update\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Http/Controllers/FrecuenciasController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\Controller\:\:obtenerGrupoTrabajo\(\) invoked with 1 parameter, 0 required\.$#'
+			identifier: arguments.count
+			count: 1
+			path: app/Http/Controllers/FrecuenciasController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\FrecuenciasController\:\:create\(\) should return Illuminate\\Http\\Response but return statement is missing\.$#'
+			identifier: return.missing
+			count: 1
+			path: app/Http/Controllers/FrecuenciasController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\FrecuenciasController\:\:destroy\(\) has parameter \$id with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Http/Controllers/FrecuenciasController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\FrecuenciasController\:\:destroy\(\) has parameter \$page with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Http/Controllers/FrecuenciasController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\FrecuenciasController\:\:destroy\(\) should return Illuminate\\Http\\Response but returns Illuminate\\Http\\RedirectResponse\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/FrecuenciasController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\FrecuenciasController\:\:edit\(\) should return Illuminate\\Http\\Response but return statement is missing\.$#'
+			identifier: return.missing
+			count: 1
+			path: app/Http/Controllers/FrecuenciasController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\FrecuenciasController\:\:index\(\) should return Illuminate\\Http\\Response but returns Inertia\\Response\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/FrecuenciasController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\FrecuenciasController\:\:show\(\) should return Illuminate\\Http\\Response but return statement is missing\.$#'
+			identifier: return.missing
+			count: 1
+			path: app/Http/Controllers/FrecuenciasController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\FrecuenciasController\:\:store\(\) should return Illuminate\\Http\\Response but returns Illuminate\\Http\\RedirectResponse\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/FrecuenciasController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\FrecuenciasController\:\:tables\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Http/Controllers/FrecuenciasController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\FrecuenciasController\:\:update\(\) should return Illuminate\\Http\\Response but return statement is missing\.$#'
+			identifier: return.missing
+			count: 1
+			path: app/Http/Controllers/FrecuenciasController.php
+
+		-
+			message: '#^PHPDoc tag @param for parameter \$request with type Illuminate\\Http\\Request is not subtype of native type App\\Http\\Requests\\FrecuenciasRequest\.$#'
+			identifier: parameter.phpDocType
+			count: 1
+			path: app/Http/Controllers/FrecuenciasController.php
+
+		-
+			message: '#^Relation ''tipo'' is not found in App\\Models\\Frecuencias model\.$#'
+			identifier: larastan.relationExistence
+			count: 1
+			path: app/Http/Controllers/FrecuenciasController.php
+
+		-
+			message: '#^Call to an undefined method App\\Models\\GruposTrabajo\|Illuminate\\Database\\Eloquent\\Collection\<int, App\\Models\\GruposTrabajo\>\:\:delete\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Http/Controllers/GruposTrabajoController.php
+
+		-
+			message: '#^Call to an undefined method App\\Models\\GruposTrabajo\|Illuminate\\Database\\Eloquent\\Collection\<int, App\\Models\\GruposTrabajo\>\:\:update\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Http/Controllers/GruposTrabajoController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\GruposTrabajoController\:\:create\(\) should return Illuminate\\Http\\Response but return statement is missing\.$#'
+			identifier: return.missing
+			count: 1
+			path: app/Http/Controllers/GruposTrabajoController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\GruposTrabajoController\:\:destroy\(\) has parameter \$id with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Http/Controllers/GruposTrabajoController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\GruposTrabajoController\:\:destroy\(\) has parameter \$page with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Http/Controllers/GruposTrabajoController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\GruposTrabajoController\:\:destroy\(\) should return Illuminate\\Http\\Response but returns Illuminate\\Http\\RedirectResponse\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/GruposTrabajoController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\GruposTrabajoController\:\:edit\(\) should return Illuminate\\Http\\Response but return statement is missing\.$#'
+			identifier: return.missing
+			count: 1
+			path: app/Http/Controllers/GruposTrabajoController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\GruposTrabajoController\:\:generateCode\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Http/Controllers/GruposTrabajoController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\GruposTrabajoController\:\:index\(\) should return Illuminate\\Http\\Response but returns Inertia\\Response\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/GruposTrabajoController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\GruposTrabajoController\:\:show\(\) should return Illuminate\\Http\\Response but return statement is missing\.$#'
+			identifier: return.missing
+			count: 1
+			path: app/Http/Controllers/GruposTrabajoController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\GruposTrabajoController\:\:store\(\) should return Illuminate\\Http\\Response but returns Illuminate\\Http\\RedirectResponse\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/GruposTrabajoController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\GruposTrabajoController\:\:tables\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Http/Controllers/GruposTrabajoController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\GruposTrabajoController\:\:update\(\) should return Illuminate\\Http\\Response but return statement is missing\.$#'
+			identifier: return.missing
+			count: 1
+			path: app/Http/Controllers/GruposTrabajoController.php
+
+		-
+			message: '#^PHPDoc tag @param for parameter \$request with type Illuminate\\Http\\Request is not subtype of native type App\\Http\\Requests\\GrupoUsuarioRequest\.$#'
+			identifier: parameter.phpDocType
+			count: 1
+			path: app/Http/Controllers/GruposTrabajoController.php
+
+		-
+			message: '#^Call to method toArray\(\) on an unknown class App\\Http\\Resources\\ModuleResource\.$#'
+			identifier: class.notFound
+			count: 1
+			path: app/Http/Controllers/ModulesController.php
+
+		-
+			message: '#^Call to static method collection\(\) on an unknown class App\\Http\\Resources\\ModuleResource\.$#'
+			identifier: class.notFound
+			count: 2
+			path: app/Http/Controllers/ModulesController.php
+
+		-
+			message: '#^Instantiated class App\\Http\\Resources\\ModuleResource not found\.$#'
+			identifier: class.notFound
+			count: 2
+			path: app/Http/Controllers/ModulesController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\Controller\:\:obtenerGrupoTrabajo\(\) invoked with 1 parameter, 0 required\.$#'
+			identifier: arguments.count
+			count: 1
+			path: app/Http/Controllers/ModulesController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\ModulesController\:\:create\(\) should return Illuminate\\Http\\Response but return statement is missing\.$#'
+			identifier: return.missing
+			count: 1
+			path: app/Http/Controllers/ModulesController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\ModulesController\:\:destroy\(\) should return Illuminate\\Http\\Response but return statement is missing\.$#'
+			identifier: return.missing
+			count: 1
+			path: app/Http/Controllers/ModulesController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\ModulesController\:\:edit\(\) should return Illuminate\\Http\\Response but return statement is missing\.$#'
+			identifier: return.missing
+			count: 1
+			path: app/Http/Controllers/ModulesController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\ModulesController\:\:esquema\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Http/Controllers/ModulesController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\ModulesController\:\:esquema_activos\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Http/Controllers/ModulesController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\ModulesController\:\:index\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Http/Controllers/ModulesController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\ModulesController\:\:isUserAdmin\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Http/Controllers/ModulesController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\ModulesController\:\:isUserAdmin\(\) has parameter \$request with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Http/Controllers/ModulesController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\ModulesController\:\:modulesMenues\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Http/Controllers/ModulesController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\ModulesController\:\:modulesMenues2\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Http/Controllers/ModulesController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\ModulesController\:\:modulesUserAccess\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Http/Controllers/ModulesController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\ModulesController\:\:modulesUserAccess\(\) has parameter \$request with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Http/Controllers/ModulesController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\ModulesController\:\:paginate\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Http/Controllers/ModulesController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\ModulesController\:\:paginate\(\) has parameter \$options with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Http/Controllers/ModulesController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\ModulesController\:\:paginate\(\) has parameter \$page with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Http/Controllers/ModulesController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\ModulesController\:\:paginate\(\) has parameter \$per_page with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Http/Controllers/ModulesController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\ModulesController\:\:paginate\(\) has parameter \$queryAll with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Http/Controllers/ModulesController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\ModulesController\:\:record\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Http/Controllers/ModulesController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\ModulesController\:\:record\(\) has parameter \$id with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Http/Controllers/ModulesController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\ModulesController\:\:records\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Http/Controllers/ModulesController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\ModulesController\:\:selectModulesUserAccess\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Http/Controllers/ModulesController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\ModulesController\:\:selectModulesUserAccess\(\) has parameter \$modules with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Http/Controllers/ModulesController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\ModulesController\:\:selectModulesUserAccess\(\) has parameter \$moulesUser with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Http/Controllers/ModulesController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\ModulesController\:\:show\(\) should return Illuminate\\Http\\Response but return statement is missing\.$#'
+			identifier: return.missing
+			count: 1
+			path: app/Http/Controllers/ModulesController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\ModulesController\:\:store\(\) should return Illuminate\\Http\\Response but returns array\<string, string\|true\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/ModulesController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\ModulesController\:\:update\(\) should return Illuminate\\Http\\Response but return statement is missing\.$#'
+			identifier: return.missing
+			count: 1
+			path: app/Http/Controllers/ModulesController.php
+
+		-
+			message: '#^PHPDoc tag @param for parameter \$request with type Illuminate\\Http\\Request is not subtype of native type App\\Http\\Requests\\StoreModuleRequest\.$#'
+			identifier: parameter.phpDocType
+			count: 1
+			path: app/Http/Controllers/ModulesController.php
+
+		-
+			message: '#^Parameter \#1 \$value of function collect expects Illuminate\\Contracts\\Support\\Arrayable\<\(int\|string\), mixed\>\|iterable\<\(int\|string\), mixed\>\|null, stdClass\|null given\.$#'
+			identifier: argument.type
+			count: 2
+			path: app/Http/Controllers/ModulesController.php
+
+		-
+			message: '#^Parameter \#1 \$value of function count expects array\|Countable, stdClass\|null given\.$#'
+			identifier: argument.type
+			count: 2
+			path: app/Http/Controllers/ModulesController.php
+
+		-
+			message: '#^Relation ''children'' is not found in App\\Models\\Modules model\.$#'
+			identifier: larastan.relationExistence
+			count: 2
+			path: app/Http/Controllers/ModulesController.php
+
+		-
+			message: '#^Static method App\\Models\\Modules\:\:lista\(\) invoked with 2 parameters, 1 required\.$#'
+			identifier: arguments.count
+			count: 1
+			path: app/Http/Controllers/ModulesController.php
+
+		-
+			message: '#^Unable to resolve the template type TKey in call to function collect$#'
+			identifier: argument.templateType
+			count: 2
+			path: app/Http/Controllers/ModulesController.php
+
+		-
+			message: '#^Unable to resolve the template type TValue in call to function collect$#'
+			identifier: argument.templateType
+			count: 2
+			path: app/Http/Controllers/ModulesController.php
+
+		-
+			message: '#^Call to an undefined method App\\Models\\PaymentForm\|Illuminate\\Database\\Eloquent\\Collection\<int, App\\Models\\PaymentForm\>\:\:delete\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Http/Controllers/PaymentFormController.php
+
+		-
+			message: '#^Call to an undefined method App\\Models\\PaymentForm\|Illuminate\\Database\\Eloquent\\Collection\<int, App\\Models\\PaymentForm\>\:\:update\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Http/Controllers/PaymentFormController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\Controller\:\:obtenerGrupoTrabajo\(\) invoked with 1 parameter, 0 required\.$#'
+			identifier: arguments.count
+			count: 1
+			path: app/Http/Controllers/PaymentFormController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\PaymentFormController\:\:create\(\) should return Illuminate\\Http\\Response but return statement is missing\.$#'
+			identifier: return.missing
+			count: 1
+			path: app/Http/Controllers/PaymentFormController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\PaymentFormController\:\:destroy\(\) has parameter \$id with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Http/Controllers/PaymentFormController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\PaymentFormController\:\:destroy\(\) has parameter \$page with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Http/Controllers/PaymentFormController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\PaymentFormController\:\:destroy\(\) should return Illuminate\\Http\\Response but returns Illuminate\\Http\\RedirectResponse\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/PaymentFormController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\PaymentFormController\:\:edit\(\) should return Illuminate\\Http\\Response but return statement is missing\.$#'
+			identifier: return.missing
+			count: 1
+			path: app/Http/Controllers/PaymentFormController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\PaymentFormController\:\:index\(\) should return Illuminate\\Http\\Response but returns Inertia\\Response\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/PaymentFormController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\PaymentFormController\:\:record\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Http/Controllers/PaymentFormController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\PaymentFormController\:\:record\(\) has parameter \$id with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Http/Controllers/PaymentFormController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\PaymentFormController\:\:show\(\) should return Illuminate\\Http\\Response but return statement is missing\.$#'
+			identifier: return.missing
+			count: 1
+			path: app/Http/Controllers/PaymentFormController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\PaymentFormController\:\:store\(\) should return Illuminate\\Http\\Response but returns Illuminate\\Http\\RedirectResponse\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/PaymentFormController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\PaymentFormController\:\:store\(\) should return Illuminate\\Http\\Response but returns array\<string, mixed\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/PaymentFormController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\PaymentFormController\:\:update\(\) should return Illuminate\\Http\\Response but return statement is missing\.$#'
+			identifier: return.missing
+			count: 1
+			path: app/Http/Controllers/PaymentFormController.php
+
+		-
+			message: '#^PHPDoc tag @param references unknown parameter\: \$paymentForm$#'
+			identifier: parameter.notFound
+			count: 1
+			path: app/Http/Controllers/PaymentFormController.php
+
+		-
+			message: '#^Call to an undefined method App\\Models\\PaymentMethod\|Illuminate\\Database\\Eloquent\\Collection\<int, App\\Models\\PaymentMethod\>\:\:delete\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Http/Controllers/PaymentMethodController.php
+
+		-
+			message: '#^Call to an undefined method App\\Models\\PaymentMethod\|Illuminate\\Database\\Eloquent\\Collection\<int, App\\Models\\PaymentMethod\>\:\:update\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Http/Controllers/PaymentMethodController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\Controller\:\:obtenerGrupoTrabajo\(\) invoked with 1 parameter, 0 required\.$#'
+			identifier: arguments.count
+			count: 1
+			path: app/Http/Controllers/PaymentMethodController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\PaymentMethodController\:\:create\(\) should return Illuminate\\Http\\Response but return statement is missing\.$#'
+			identifier: return.missing
+			count: 1
+			path: app/Http/Controllers/PaymentMethodController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\PaymentMethodController\:\:destroy\(\) has parameter \$id with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Http/Controllers/PaymentMethodController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\PaymentMethodController\:\:destroy\(\) has parameter \$page with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Http/Controllers/PaymentMethodController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\PaymentMethodController\:\:destroy\(\) should return Illuminate\\Http\\Response but returns Illuminate\\Http\\RedirectResponse\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/PaymentMethodController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\PaymentMethodController\:\:edit\(\) should return Illuminate\\Http\\Response but return statement is missing\.$#'
+			identifier: return.missing
+			count: 1
+			path: app/Http/Controllers/PaymentMethodController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\PaymentMethodController\:\:index\(\) should return Illuminate\\Http\\Response but returns Inertia\\Response\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/PaymentMethodController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\PaymentMethodController\:\:record\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Http/Controllers/PaymentMethodController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\PaymentMethodController\:\:record\(\) has parameter \$id with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Http/Controllers/PaymentMethodController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\PaymentMethodController\:\:show\(\) should return Illuminate\\Http\\Response but return statement is missing\.$#'
+			identifier: return.missing
+			count: 1
+			path: app/Http/Controllers/PaymentMethodController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\PaymentMethodController\:\:store\(\) should return Illuminate\\Http\\Response but returns Illuminate\\Http\\RedirectResponse\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/PaymentMethodController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\PaymentMethodController\:\:store\(\) should return Illuminate\\Http\\Response but returns array\<string, mixed\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/PaymentMethodController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\PaymentMethodController\:\:tables\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Http/Controllers/PaymentMethodController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\PaymentMethodController\:\:update\(\) should return Illuminate\\Http\\Response but return statement is missing\.$#'
+			identifier: return.missing
+			count: 1
+			path: app/Http/Controllers/PaymentMethodController.php
+
+		-
+			message: '#^PHPDoc tag @param references unknown parameter\: \$paymentMethod$#'
+			identifier: parameter.notFound
+			count: 1
+			path: app/Http/Controllers/PaymentMethodController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\PaymentReport\:\:\$estatus_selected\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/PaymentReportController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\PaymentReport\:\:\$support_image\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/PaymentReportController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\PaymentReport\|Illuminate\\Database\\Eloquent\\Collection\<int, App\\Models\\PaymentReport\>\:\:\$selected_payment_reports\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Http/Controllers/PaymentReportController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Prestamos\:\:\$prestamos_dias\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/PaymentReportController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\PaymentReportController\:\:change_estatus_report\(\) should return Illuminate\\Http\\Response but returns array\<string, string\|false\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/PaymentReportController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\PaymentReportController\:\:change_estatus_report\(\) should return Illuminate\\Http\\Response but returns array\<string, string\|true\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/PaymentReportController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\PaymentReportController\:\:create\(\) should return Illuminate\\Http\\Response but return statement is missing\.$#'
+			identifier: return.missing
+			count: 1
+			path: app/Http/Controllers/PaymentReportController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\PaymentReportController\:\:destroy\(\) should return Illuminate\\Http\\Response but return statement is missing\.$#'
+			identifier: return.missing
+			count: 1
+			path: app/Http/Controllers/PaymentReportController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\PaymentReportController\:\:edit\(\) should return Illuminate\\Http\\Response but return statement is missing\.$#'
+			identifier: return.missing
+			count: 1
+			path: app/Http/Controllers/PaymentReportController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\PaymentReportController\:\:index\(\) should return Illuminate\\Http\\Response but returns Inertia\\Response\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/PaymentReportController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\PaymentReportController\:\:obtenerReportPaymentActivos\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Http/Controllers/PaymentReportController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\PaymentReportController\:\:obtenerReportPaymentActivos\(\) has parameter \$cliente with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Http/Controllers/PaymentReportController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\PaymentReportController\:\:paginate\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Http/Controllers/PaymentReportController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\PaymentReportController\:\:paginate\(\) has parameter \$options with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Http/Controllers/PaymentReportController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\PaymentReportController\:\:paginate\(\) has parameter \$page with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Http/Controllers/PaymentReportController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\PaymentReportController\:\:paginate\(\) has parameter \$per_page with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Http/Controllers/PaymentReportController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\PaymentReportController\:\:paginate\(\) has parameter \$queryAll with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Http/Controllers/PaymentReportController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\PaymentReportController\:\:record\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Http/Controllers/PaymentReportController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\PaymentReportController\:\:record\(\) has parameter \$id with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Http/Controllers/PaymentReportController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\PaymentReportController\:\:records\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Http/Controllers/PaymentReportController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\PaymentReportController\:\:show\(\) should return Illuminate\\Http\\Response but return statement is missing\.$#'
+			identifier: return.missing
+			count: 1
+			path: app/Http/Controllers/PaymentReportController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\PaymentReportController\:\:store\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Http/Controllers/PaymentReportController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\PaymentReportController\:\:update\(\) should return Illuminate\\Http\\Response but return statement is missing\.$#'
+			identifier: return.missing
+			count: 1
+			path: app/Http/Controllers/PaymentReportController.php
+
+		-
+			message: '#^Relation ''payment_reports_movement_first'' is not found in App\\Models\\PaymentReport model\.$#'
+			identifier: larastan.relationExistence
+			count: 1
+			path: app/Http/Controllers/PaymentReportController.php
+
+		-
+			message: '#^Relation ''prestamos_dias'' is not found in App\\Models\\Prestamos model\.$#'
+			identifier: larastan.relationExistence
+			count: 1
+			path: app/Http/Controllers/PaymentReportController.php
+
+		-
+			message: '#^Relation ''selected_payment_reports'' is not found in App\\Models\\PaymentReport model\.$#'
+			identifier: larastan.relationExistence
+			count: 1
+			path: app/Http/Controllers/PaymentReportController.php
+
+		-
+			message: '#^Static method App\\Models\\PaymentReport\:\:lista\(\) invoked with 2 parameters, 1 required\.$#'
+			identifier: arguments.count
+			count: 1
+			path: app/Http/Controllers/PaymentReportController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\PaymentReportsMovementsEstatuController\:\:create\(\) should return Illuminate\\Http\\Response but return statement is missing\.$#'
+			identifier: return.missing
+			count: 1
+			path: app/Http/Controllers/PaymentReportsMovementsEstatuController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\PaymentReportsMovementsEstatuController\:\:destroy\(\) should return Illuminate\\Http\\Response but return statement is missing\.$#'
+			identifier: return.missing
+			count: 1
+			path: app/Http/Controllers/PaymentReportsMovementsEstatuController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\PaymentReportsMovementsEstatuController\:\:edit\(\) should return Illuminate\\Http\\Response but return statement is missing\.$#'
+			identifier: return.missing
+			count: 1
+			path: app/Http/Controllers/PaymentReportsMovementsEstatuController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\PaymentReportsMovementsEstatuController\:\:index\(\) should return Illuminate\\Http\\Response but return statement is missing\.$#'
+			identifier: return.missing
+			count: 1
+			path: app/Http/Controllers/PaymentReportsMovementsEstatuController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\PaymentReportsMovementsEstatuController\:\:show\(\) should return Illuminate\\Http\\Response but return statement is missing\.$#'
+			identifier: return.missing
+			count: 1
+			path: app/Http/Controllers/PaymentReportsMovementsEstatuController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\PaymentReportsMovementsEstatuController\:\:store\(\) should return Illuminate\\Http\\Response but return statement is missing\.$#'
+			identifier: return.missing
+			count: 1
+			path: app/Http/Controllers/PaymentReportsMovementsEstatuController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\PaymentReportsMovementsEstatuController\:\:tables\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Http/Controllers/PaymentReportsMovementsEstatuController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\PaymentReportsMovementsEstatuController\:\:update\(\) should return Illuminate\\Http\\Response but return statement is missing\.$#'
+			identifier: return.missing
+			count: 1
+			path: app/Http/Controllers/PaymentReportsMovementsEstatuController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\PrestamosController\:\:create\(\) should return Illuminate\\Http\\Response but return statement is missing\.$#'
+			identifier: return.missing
+			count: 1
+			path: app/Http/Controllers/PrestamosController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\PrestamosController\:\:destroy\(\) should return Illuminate\\Http\\Response but return statement is missing\.$#'
+			identifier: return.missing
+			count: 1
+			path: app/Http/Controllers/PrestamosController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\PrestamosController\:\:edit\(\) should return Illuminate\\Http\\Response but return statement is missing\.$#'
+			identifier: return.missing
+			count: 1
+			path: app/Http/Controllers/PrestamosController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\PrestamosController\:\:index\(\) should return Illuminate\\Http\\Response but returns Inertia\\Response\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/PrestamosController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\PrestamosController\:\:index_old\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Http/Controllers/PrestamosController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\PrestamosController\:\:obtenerPrestamosActivos\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Http/Controllers/PrestamosController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\PrestamosController\:\:obtenerPrestamosActivos\(\) has parameter \$cliente with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Http/Controllers/PrestamosController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\PrestamosController\:\:paginate\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Http/Controllers/PrestamosController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\PrestamosController\:\:paginate\(\) has parameter \$options with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Http/Controllers/PrestamosController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\PrestamosController\:\:paginate\(\) has parameter \$page with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Http/Controllers/PrestamosController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\PrestamosController\:\:paginate\(\) has parameter \$per_page2 with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Http/Controllers/PrestamosController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\PrestamosController\:\:paginate\(\) has parameter \$queryAll with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Http/Controllers/PrestamosController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\PrestamosController\:\:records\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Http/Controllers/PrestamosController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\PrestamosController\:\:recordsEstados\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Http/Controllers/PrestamosController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\PrestamosController\:\:show\(\) should return Illuminate\\Http\\Response but return statement is missing\.$#'
+			identifier: return.missing
+			count: 1
+			path: app/Http/Controllers/PrestamosController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\PrestamosController\:\:store\(\) should return Illuminate\\Http\\Response but returns Illuminate\\Http\\RedirectResponse\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/PrestamosController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\PrestamosController\:\:tables\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Http/Controllers/PrestamosController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\PrestamosController\:\:togglePausaRecargo\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Http/Controllers/PrestamosController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\PrestamosController\:\:transformData\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Http/Controllers/PrestamosController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\PrestamosController\:\:transformData\(\) has parameter \$queryAll with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Http/Controllers/PrestamosController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\PrestamosController\:\:update\(\) should return Illuminate\\Http\\Response but return statement is missing\.$#'
+			identifier: return.missing
+			count: 1
+			path: app/Http/Controllers/PrestamosController.php
+
+		-
+			message: '#^Relation ''prestamos_dias'' is not found in App\\Models\\Prestamos model\.$#'
+			identifier: larastan.relationExistence
+			count: 2
+			path: app/Http/Controllers/PrestamosController.php
+
+		-
+			message: '#^Static method App\\Models\\Prestamos\:\:lista\(\) invoked with 2 parameters, 1 required\.$#'
+			identifier: arguments.count
+			count: 1
+			path: app/Http/Controllers/PrestamosController.php
+
+		-
+			message: '#^Unable to resolve the template type TKey in call to function collect$#'
+			identifier: argument.templateType
+			count: 1
+			path: app/Http/Controllers/PrestamosController.php
+
+		-
+			message: '#^Unable to resolve the template type TValue in call to function collect$#'
+			identifier: argument.templateType
+			count: 1
+			path: app/Http/Controllers/PrestamosController.php
+
+		-
+			message: '#^Call to an undefined method App\\Models\\Profiles\|Illuminate\\Database\\Eloquent\\Collection\<int, App\\Models\\Profiles\>\:\:acciones\(\)\.$#'
+			identifier: method.notFound
+			count: 3
+			path: app/Http/Controllers/ProfileController.php
+
+		-
+			message: '#^Call to an undefined method App\\Models\\Profiles\|Illuminate\\Database\\Eloquent\\Collection\<int, App\\Models\\Profiles\>\:\:fill\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Http/Controllers/ProfileController.php
+
+		-
+			message: '#^Call to an undefined method App\\Models\\Profiles\|Illuminate\\Database\\Eloquent\\Collection\<int, App\\Models\\Profiles\>\:\:save\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Http/Controllers/ProfileController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\Controller\:\:obtenerGrupoTrabajo\(\) invoked with 1 parameter, 0 required\.$#'
+			identifier: arguments.count
+			count: 1
+			path: app/Http/Controllers/ProfileController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\ProfileController\:\:create\(\) should return Illuminate\\Http\\Response but return statement is missing\.$#'
+			identifier: return.missing
+			count: 1
+			path: app/Http/Controllers/ProfileController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\ProfileController\:\:destroy\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Http/Controllers/ProfileController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\ProfileController\:\:destroy\(\) has parameter \$id with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Http/Controllers/ProfileController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\ProfileController\:\:edit\(\) should return Illuminate\\Http\\Response but return statement is missing\.$#'
+			identifier: return.missing
+			count: 1
+			path: app/Http/Controllers/ProfileController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\ProfileController\:\:index\(\) should return Illuminate\\Http\\Response but returns Inertia\\Response\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/ProfileController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\ProfileController\:\:paginate\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Http/Controllers/ProfileController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\ProfileController\:\:paginate\(\) has parameter \$options with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Http/Controllers/ProfileController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\ProfileController\:\:paginate\(\) has parameter \$page with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Http/Controllers/ProfileController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\ProfileController\:\:paginate\(\) has parameter \$per_page with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Http/Controllers/ProfileController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\ProfileController\:\:paginate\(\) has parameter \$queryAll with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Http/Controllers/ProfileController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\ProfileController\:\:record\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Http/Controllers/ProfileController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\ProfileController\:\:record\(\) has parameter \$id with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Http/Controllers/ProfileController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\ProfileController\:\:show\(\) should return Illuminate\\Http\\Response but return statement is missing\.$#'
+			identifier: return.missing
+			count: 1
+			path: app/Http/Controllers/ProfileController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\ProfileController\:\:store\(\) should return Illuminate\\Http\\Response but returns Illuminate\\Http\\RedirectResponse\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/ProfileController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\ProfileController\:\:store\(\) should return Illuminate\\Http\\Response but returns array\<string, mixed\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/ProfileController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\ProfileController\:\:tables\(\) should return Illuminate\\Http\\Response but returns array\<string, Illuminate\\Database\\Eloquent\\Collection\<int, App\\Models\\Modules\>\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/ProfileController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\ProfileController\:\:update\(\) should return Illuminate\\Http\\Response but return statement is missing\.$#'
+			identifier: return.missing
+			count: 1
+			path: app/Http/Controllers/ProfileController.php
+
+		-
+			message: '#^PHPDoc tag @param for parameter \$request with type Illuminate\\Http\\Request is not subtype of native type App\\Http\\Requests\\ProfileRequest\.$#'
+			identifier: parameter.phpDocType
+			count: 1
+			path: app/Http/Controllers/ProfileController.php
+
+		-
+			message: '#^PHPDoc tag @param references unknown parameter\: \$id$#'
+			identifier: parameter.notFound
+			count: 1
+			path: app/Http/Controllers/ProfileController.php
+
+		-
+			message: '#^Relation ''acciones'' is not found in App\\Models\\Modules model\.$#'
+			identifier: larastan.relationExistence
+			count: 1
+			path: app/Http/Controllers/ProfileController.php
+
+		-
+			message: '#^Relation ''actions'' is not found in App\\Models\\Modules model\.$#'
+			identifier: larastan.relationExistence
+			count: 1
+			path: app/Http/Controllers/ProfileController.php
+
+		-
+			message: '#^Unable to resolve the template type TKey in call to function collect$#'
+			identifier: argument.templateType
+			count: 1
+			path: app/Http/Controllers/ProfileController.php
+
+		-
+			message: '#^Unable to resolve the template type TValue in call to function collect$#'
+			identifier: argument.templateType
+			count: 1
+			path: app/Http/Controllers/ProfileController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\TipoPrestamo\|Illuminate\\Database\\Eloquent\\Collection\<int, App\\Models\\TipoPrestamo\>\:\:\$por_defecto\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/TipoPrestamoController.php
+
+		-
+			message: '#^Call to an undefined method App\\Models\\TipoPrestamo\|Illuminate\\Database\\Eloquent\\Collection\<int, App\\Models\\TipoPrestamo\>\:\:delete\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Http/Controllers/TipoPrestamoController.php
+
+		-
+			message: '#^Call to an undefined method App\\Models\\TipoPrestamo\|Illuminate\\Database\\Eloquent\\Collection\<int, App\\Models\\TipoPrestamo\>\:\:update\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Http/Controllers/TipoPrestamoController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\Controller\:\:obtenerGrupoTrabajo\(\) invoked with 1 parameter, 0 required\.$#'
+			identifier: arguments.count
+			count: 1
+			path: app/Http/Controllers/TipoPrestamoController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\TipoPrestamoController\:\:create\(\) should return Illuminate\\Http\\Response but return statement is missing\.$#'
+			identifier: return.missing
+			count: 1
+			path: app/Http/Controllers/TipoPrestamoController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\TipoPrestamoController\:\:destroy\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Http/Controllers/TipoPrestamoController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\TipoPrestamoController\:\:destroy\(\) has parameter \$id with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Http/Controllers/TipoPrestamoController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\TipoPrestamoController\:\:destroy\(\) has parameter \$page with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Http/Controllers/TipoPrestamoController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\TipoPrestamoController\:\:edit\(\) should return Illuminate\\Http\\Response but return statement is missing\.$#'
+			identifier: return.missing
+			count: 1
+			path: app/Http/Controllers/TipoPrestamoController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\TipoPrestamoController\:\:index\(\) should return Illuminate\\Http\\Response but returns Inertia\\Response\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/TipoPrestamoController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\TipoPrestamoController\:\:show\(\) should return Illuminate\\Http\\Response but return statement is missing\.$#'
+			identifier: return.missing
+			count: 1
+			path: app/Http/Controllers/TipoPrestamoController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\TipoPrestamoController\:\:store\(\) should return Illuminate\\Http\\Response but returns Illuminate\\Http\\RedirectResponse\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/TipoPrestamoController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\TipoPrestamoController\:\:tables\(\) should return Illuminate\\Http\\Response but returns array\<string, Illuminate\\Database\\Eloquent\\Collection\<int, App\\Models\\TipoFrecuenciaPrestamo\>\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/TipoPrestamoController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\TipoPrestamoController\:\:update\(\) should return Illuminate\\Http\\Response but return statement is missing\.$#'
+			identifier: return.missing
+			count: 1
+			path: app/Http/Controllers/TipoPrestamoController.php
+
+		-
+			message: '#^PHPDoc tag @param for parameter \$request with type Illuminate\\Http\\Request is not subtype of native type App\\Http\\Requests\\TipoPrestamoRequest\.$#'
+			identifier: parameter.phpDocType
+			count: 1
+			path: app/Http/Controllers/TipoPrestamoController.php
+
+		-
+			message: '#^PHPDoc tag @param references unknown parameter\: \$tipoPrestamo$#'
+			identifier: parameter.notFound
+			count: 1
+			path: app/Http/Controllers/TipoPrestamoController.php
+
+		-
+			message: '#^Relation ''frecuencias'' is not found in App\\Models\\TipoPrestamo model\.$#'
+			identifier: larastan.relationExistence
+			count: 1
+			path: app/Http/Controllers/TipoPrestamoController.php
+
+		-
+			message: '#^Call to an undefined method App\\Models\\tiposDocumentos\|Illuminate\\Database\\Eloquent\\Collection\<int, App\\Models\\tiposDocumentos\>\:\:delete\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Http/Controllers/TiposDocumentosController.php
+
+		-
+			message: '#^Call to an undefined method App\\Models\\tiposDocumentos\|Illuminate\\Database\\Eloquent\\Collection\<int, App\\Models\\tiposDocumentos\>\:\:update\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Http/Controllers/TiposDocumentosController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\Controller\:\:obtenerGrupoTrabajo\(\) invoked with 1 parameter, 0 required\.$#'
+			identifier: arguments.count
+			count: 1
+			path: app/Http/Controllers/TiposDocumentosController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\TiposDocumentosController\:\:create\(\) should return Illuminate\\Http\\Response but return statement is missing\.$#'
+			identifier: return.missing
+			count: 1
+			path: app/Http/Controllers/TiposDocumentosController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\TiposDocumentosController\:\:destroy\(\) has parameter \$id with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Http/Controllers/TiposDocumentosController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\TiposDocumentosController\:\:destroy\(\) has parameter \$page with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Http/Controllers/TiposDocumentosController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\TiposDocumentosController\:\:destroy\(\) should return Illuminate\\Http\\Response but returns Illuminate\\Http\\RedirectResponse\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/TiposDocumentosController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\TiposDocumentosController\:\:edit\(\) should return Illuminate\\Http\\Response but return statement is missing\.$#'
+			identifier: return.missing
+			count: 1
+			path: app/Http/Controllers/TiposDocumentosController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\TiposDocumentosController\:\:index\(\) should return Illuminate\\Http\\Response but returns Inertia\\Response\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/TiposDocumentosController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\TiposDocumentosController\:\:paginate\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Http/Controllers/TiposDocumentosController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\TiposDocumentosController\:\:paginate\(\) has parameter \$options with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Http/Controllers/TiposDocumentosController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\TiposDocumentosController\:\:paginate\(\) has parameter \$page with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Http/Controllers/TiposDocumentosController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\TiposDocumentosController\:\:paginate\(\) has parameter \$per_page with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Http/Controllers/TiposDocumentosController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\TiposDocumentosController\:\:paginate\(\) has parameter \$queryAll with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Http/Controllers/TiposDocumentosController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\TiposDocumentosController\:\:paginate_resp\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Http/Controllers/TiposDocumentosController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\TiposDocumentosController\:\:paginate_resp\(\) has parameter \$items with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Http/Controllers/TiposDocumentosController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\TiposDocumentosController\:\:paginate_resp\(\) has parameter \$options with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Http/Controllers/TiposDocumentosController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\TiposDocumentosController\:\:paginate_resp\(\) has parameter \$page with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Http/Controllers/TiposDocumentosController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\TiposDocumentosController\:\:paginate_resp\(\) has parameter \$perPage with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Http/Controllers/TiposDocumentosController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\TiposDocumentosController\:\:record\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Http/Controllers/TiposDocumentosController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\TiposDocumentosController\:\:record\(\) has parameter \$id with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Http/Controllers/TiposDocumentosController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\TiposDocumentosController\:\:show\(\) should return Illuminate\\Http\\Response but return statement is missing\.$#'
+			identifier: return.missing
+			count: 1
+			path: app/Http/Controllers/TiposDocumentosController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\TiposDocumentosController\:\:store\(\) should return Illuminate\\Http\\Response but returns Illuminate\\Http\\RedirectResponse\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/TiposDocumentosController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\TiposDocumentosController\:\:store\(\) should return Illuminate\\Http\\Response but returns array\<string, mixed\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/TiposDocumentosController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\TiposDocumentosController\:\:tables\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Http/Controllers/TiposDocumentosController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\TiposDocumentosController\:\:update\(\) should return Illuminate\\Http\\Response but return statement is missing\.$#'
+			identifier: return.missing
+			count: 1
+			path: app/Http/Controllers/TiposDocumentosController.php
+
+		-
+			message: '#^PHPDoc tag @param for parameter \$request with type Illuminate\\Http\\Request is not subtype of native type App\\Http\\Requests\\TipoDocumentosRequest\.$#'
+			identifier: parameter.phpDocType
+			count: 1
+			path: app/Http/Controllers/TiposDocumentosController.php
+
+		-
+			message: '#^Unable to resolve the template type TMakeKey in call to static method Illuminate\\Support\\Collection\<\(int\|string\),mixed\>\:\:make\(\)$#'
+			identifier: argument.templateType
+			count: 1
+			path: app/Http/Controllers/TiposDocumentosController.php
+
+		-
+			message: '#^Unable to resolve the template type TMakeValue in call to static method Illuminate\\Support\\Collection\<\(int\|string\),mixed\>\:\:make\(\)$#'
+			identifier: argument.templateType
+			count: 1
+			path: app/Http/Controllers/TiposDocumentosController.php
+
+		-
+			message: '#^Call to an undefined method App\\Models\\TypePaymentRecord\|Illuminate\\Database\\Eloquent\\Collection\<int, App\\Models\\TypePaymentRecord\>\:\:delete\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Http/Controllers/TypePaymentRecordController.php
+
+		-
+			message: '#^Call to an undefined method App\\Models\\TypePaymentRecord\|Illuminate\\Database\\Eloquent\\Collection\<int, App\\Models\\TypePaymentRecord\>\:\:update\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Http/Controllers/TypePaymentRecordController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\Controller\:\:obtenerGrupoTrabajo\(\) invoked with 1 parameter, 0 required\.$#'
+			identifier: arguments.count
+			count: 1
+			path: app/Http/Controllers/TypePaymentRecordController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\TypePaymentRecordController\:\:create\(\) should return Illuminate\\Http\\Response but return statement is missing\.$#'
+			identifier: return.missing
+			count: 1
+			path: app/Http/Controllers/TypePaymentRecordController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\TypePaymentRecordController\:\:destroy\(\) has parameter \$id with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Http/Controllers/TypePaymentRecordController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\TypePaymentRecordController\:\:destroy\(\) has parameter \$page with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Http/Controllers/TypePaymentRecordController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\TypePaymentRecordController\:\:destroy\(\) should return Illuminate\\Http\\Response but returns Illuminate\\Http\\RedirectResponse\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/TypePaymentRecordController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\TypePaymentRecordController\:\:edit\(\) should return Illuminate\\Http\\Response but return statement is missing\.$#'
+			identifier: return.missing
+			count: 1
+			path: app/Http/Controllers/TypePaymentRecordController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\TypePaymentRecordController\:\:index\(\) should return Illuminate\\Http\\Response but returns Inertia\\Response\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/TypePaymentRecordController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\TypePaymentRecordController\:\:record\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Http/Controllers/TypePaymentRecordController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\TypePaymentRecordController\:\:record\(\) has parameter \$id with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Http/Controllers/TypePaymentRecordController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\TypePaymentRecordController\:\:show\(\) should return Illuminate\\Http\\Response but return statement is missing\.$#'
+			identifier: return.missing
+			count: 1
+			path: app/Http/Controllers/TypePaymentRecordController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\TypePaymentRecordController\:\:store\(\) should return Illuminate\\Http\\Response but returns Illuminate\\Http\\RedirectResponse\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/TypePaymentRecordController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\TypePaymentRecordController\:\:store\(\) should return Illuminate\\Http\\Response but returns array\<string, mixed\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/TypePaymentRecordController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\TypePaymentRecordController\:\:tables\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Http/Controllers/TypePaymentRecordController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\TypePaymentRecordController\:\:update\(\) should return Illuminate\\Http\\Response but return statement is missing\.$#'
+			identifier: return.missing
+			count: 1
+			path: app/Http/Controllers/TypePaymentRecordController.php
+
+		-
+			message: '#^PHPDoc tag @param references unknown parameter\: \$typePaymentRecord$#'
+			identifier: parameter.notFound
+			count: 1
+			path: app/Http/Controllers/TypePaymentRecordController.php
+
+		-
+			message: '#^Method App\\Http\\Requests\\CityRequest\:\:rules\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Http/Requests/CityRequest.php
+
+		-
+			message: '#^Method App\\Http\\Requests\\DepartmentRequest\:\:rules\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Http/Requests/DepartmentRequest.php
+
+		-
+			message: '#^Method App\\Http\\Requests\\FrecuenciasRequest\:\:rules\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Http/Requests/FrecuenciasRequest.php
+
+		-
+			message: '#^Method App\\Http\\Requests\\GrupoUsuarioRequest\:\:rules\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Http/Requests/GrupoUsuarioRequest.php
+
+		-
+			message: '#^Method App\\Http\\Requests\\ProfileRequest\:\:rules\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Http/Requests/ProfileRequest.php
+
+		-
+			message: '#^Method App\\Http\\Requests\\StoreActionRequest\:\:rules\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Http/Requests/StoreActionRequest.php
+
+		-
+			message: '#^Method App\\Http\\Requests\\StoreBankAccountTypeRequest\:\:rules\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Http/Requests/StoreBankAccountTypeRequest.php
+
+		-
+			message: '#^Method App\\Http\\Requests\\StoreBankRequest\:\:rules\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Http/Requests/StoreBankRequest.php
+
+		-
+			message: '#^Method App\\Http\\Requests\\StoreCountryHolidayRequest\:\:rules\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Http/Requests/StoreCountryHolidayRequest.php
+
+		-
+			message: '#^Method App\\Http\\Requests\\StoreDepartmentRequest\:\:rules\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Http/Requests/StoreDepartmentRequest.php
+
+		-
+			message: '#^Method App\\Http\\Requests\\StoreFranquiciaRequest\:\:rules\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Http/Requests/StoreFranquiciaRequest.php
+
+		-
+			message: '#^Method App\\Http\\Requests\\StoreModuleRequest\:\:rules\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Http/Requests/StoreModuleRequest.php
+
+		-
+			message: '#^Method App\\Http\\Requests\\StorePaymentFormRequest\:\:rules\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Http/Requests/StorePaymentFormRequest.php
+
+		-
+			message: '#^Method App\\Http\\Requests\\StorePaymentMethodRequest\:\:rules\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Http/Requests/StorePaymentMethodRequest.php
+
+		-
+			message: '#^Method App\\Http\\Requests\\StorePaymentReportRequest\:\:rules\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Http/Requests/StorePaymentReportRequest.php
+
+		-
+			message: '#^Method App\\Http\\Requests\\StorePaymentReportsMovementsEstatuRequest\:\:rules\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Http/Requests/StorePaymentReportsMovementsEstatuRequest.php
+
+		-
+			message: '#^Method App\\Http\\Requests\\StoreTypePaymentRecordRequest\:\:rules\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Http/Requests/StoreTypePaymentRecordRequest.php
+
+		-
+			message: '#^Method App\\Http\\Requests\\TipoDocumentosRequest\:\:rules\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Http/Requests/TipoDocumentosRequest.php
+
+		-
+			message: '#^Method App\\Http\\Requests\\TipoPrestamoRequest\:\:rules\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Http/Requests/TipoPrestamoRequest.php
+
+		-
+			message: '#^Method App\\Http\\Requests\\UpdateActionRequest\:\:rules\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Http/Requests/UpdateActionRequest.php
+
+		-
+			message: '#^Method App\\Http\\Requests\\UpdateBankAccountTypeRequest\:\:rules\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Http/Requests/UpdateBankAccountTypeRequest.php
+
+		-
+			message: '#^Method App\\Http\\Requests\\UpdateBankRequest\:\:rules\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Http/Requests/UpdateBankRequest.php
+
+		-
+			message: '#^Method App\\Http\\Requests\\UpdateCountryHolidayRequest\:\:rules\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Http/Requests/UpdateCountryHolidayRequest.php
+
+		-
+			message: '#^Method App\\Http\\Requests\\UpdateDepartmentRequest\:\:rules\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Http/Requests/UpdateDepartmentRequest.php
+
+		-
+			message: '#^Method App\\Http\\Requests\\UpdateFranquiciaRequest\:\:rules\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Http/Requests/UpdateFranquiciaRequest.php
+
+		-
+			message: '#^Method App\\Http\\Requests\\UpdatePaymentFormRequest\:\:rules\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Http/Requests/UpdatePaymentFormRequest.php
+
+		-
+			message: '#^Method App\\Http\\Requests\\UpdatePaymentMethodRequest\:\:rules\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Http/Requests/UpdatePaymentMethodRequest.php
+
+		-
+			message: '#^Method App\\Http\\Requests\\UpdatePaymentReportRequest\:\:rules\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Http/Requests/UpdatePaymentReportRequest.php
+
+		-
+			message: '#^Method App\\Http\\Requests\\UpdatePaymentReportsMovementsEstatuRequest\:\:rules\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Http/Requests/UpdatePaymentReportsMovementsEstatuRequest.php
+
+		-
+			message: '#^Method App\\Http\\Requests\\UpdateTypePaymentRecordRequest\:\:rules\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Http/Requests/UpdateTypePaymentRecordRequest.php
+
+		-
+			message: '#^PHPDoc tag @param for parameter \$event with type App\\Listeners\\EnviarCorreo2 is not subtype of native type App\\Events\\EnviarCorreo\.$#'
+			identifier: parameter.phpDocType
+			count: 1
+			path: app/Listeners/EnviaCorreoUsuario.php
+
+		-
+			message: '#^Parameter \$event of method App\\Listeners\\EnviaCorreoUsuario\:\:handle\(\) has invalid type App\\Listeners\\EnviarCorreo2\.$#'
+			identifier: class.notFound
+			count: 1
+			path: app/Listeners/EnviaCorreoUsuario.php
+
+		-
+			message: '#^Method App\\Mail\\RecargoMail\:\:build\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Mail/RecargoMail.php
+
+		-
+			message: '#^Parameter \#1 \$view of method Illuminate\\Mail\\Mailable\:\:view\(\) expects view\-string, string given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Mail/RecargoMail.php
+
+		-
+			message: '#^Property App\\Mail\\RecargoMail\:\:\$prestamoDia has no type specified\.$#'
+			identifier: missingType.property
+			count: 1
+			path: app/Mail/RecargoMail.php
+
+		-
+			message: '#^Class App\\Models\\Action uses generic trait Illuminate\\Database\\Eloquent\\Factories\\HasFactory but does not specify its types\: TFactory$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/Action.php
+
+		-
+			message: '#^Class App\\Models\\Bank uses generic trait Illuminate\\Database\\Eloquent\\Factories\\HasFactory but does not specify its types\: TFactory$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/Bank.php
+
+		-
+			message: '#^Class App\\Models\\BankAccountType uses generic trait Illuminate\\Database\\Eloquent\\Factories\\HasFactory but does not specify its types\: TFactory$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/BankAccountType.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\City\:\:\$updated\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Models/City.php
+
+		-
+			message: '#^Class App\\Models\\City uses generic trait Illuminate\\Database\\Eloquent\\Factories\\HasFactory but does not specify its types\: TFactory$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/City.php
+
+		-
+			message: '#^Method App\\Models\\City\:\:country\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Models/City.php
+
+		-
+			message: '#^Method App\\Models\\City\:\:department\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Models/City.php
+
+		-
+			message: '#^Method App\\Models\\City\:\:lista\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Models/City.php
+
+		-
+			message: '#^Method App\\Models\\City\:\:lista\(\) has parameter \$request with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Models/City.php
+
+		-
+			message: '#^Method App\\Models\\City\:\:scopeWhereCountriesActive\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Models/City.php
+
+		-
+			message: '#^Method App\\Models\\City\:\:scopeWhereCountriesActive\(\) has parameter \$countriesID with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Models/City.php
+
+		-
+			message: '#^Method App\\Models\\City\:\:scopeWhereCountriesActive\(\) has parameter \$query with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Models/City.php
+
+		-
+			message: '#^Relation ''country'' is not found in App\\Models\\City model\.$#'
+			identifier: larastan.relationExistence
+			count: 1
+			path: app/Models/City.php
+
+		-
+			message: '#^Relation ''department'' is not found in App\\Models\\City model\.$#'
+			identifier: larastan.relationExistence
+			count: 1
+			path: app/Models/City.php
+
+		-
+			message: '#^Unsafe usage of new static\(\)\.$#'
+			identifier: new.static
+			count: 2
+			path: app/Models/City.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Clientes\:\:\$InformesPandientesActivos\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Models/Clientes.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Clientes\:\:\$Pretamos\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Models/Clientes.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Clientes\:\:\$city\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Models/Clientes.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Clientes\:\:\$tipo_documento\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Models/Clientes.php
+
+		-
+			message: '#^Class App\\Models\\Clientes uses generic trait Illuminate\\Database\\Eloquent\\Factories\\HasFactory but does not specify its types\: TFactory$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/Clientes.php
+
+		-
+			message: '#^Method App\\Models\\Clientes\:\:InformesPandientesActivos\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Models/Clientes.php
+
+		-
+			message: '#^Method App\\Models\\Clientes\:\:Pretamos\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Models/Clientes.php
+
+		-
+			message: '#^Method App\\Models\\Clientes\:\:city\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Models/Clientes.php
+
+		-
+			message: '#^Method App\\Models\\Clientes\:\:getCountryIdAttribute\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Models/Clientes.php
+
+		-
+			message: '#^Method App\\Models\\Clientes\:\:getFullDocumentAttribute\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Models/Clientes.php
+
+		-
+			message: '#^Method App\\Models\\Clientes\:\:getFullNameAttribute\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Models/Clientes.php
+
+		-
+			message: '#^Method App\\Models\\Clientes\:\:getInformesPendientesAttribute\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Models/Clientes.php
+
+		-
+			message: '#^Method App\\Models\\Clientes\:\:getPrestamosActivosAttribute\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Models/Clientes.php
+
+		-
+			message: '#^Method App\\Models\\Clientes\:\:tipo_documento\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Models/Clientes.php
+
+		-
+			message: '#^Relation ''payment_reports_movement'' is not found in App\\Models\\PaymentReport model\.$#'
+			identifier: larastan.relationExistence
+			count: 1
+			path: app/Models/Clientes.php
+
+		-
+			message: '#^Relation ''prestamos_dias'' is not found in App\\Models\\Prestamos model\.$#'
+			identifier: larastan.relationExistence
+			count: 1
+			path: app/Models/Clientes.php
+
+		-
+			message: '#^Class App\\Models\\ClientesGruposTrabajosUsers uses generic trait Illuminate\\Database\\Eloquent\\Factories\\HasFactory but does not specify its types\: TFactory$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/ClientesGruposTrabajosUsers.php
+
+		-
+			message: '#^Class App\\Models\\ConfigurationItem uses generic trait Illuminate\\Database\\Eloquent\\Factories\\HasFactory but does not specify its types\: TFactory$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/ConfigurationItem.php
+
+		-
+			message: '#^Class App\\Models\\Country uses generic trait Illuminate\\Database\\Eloquent\\Factories\\HasFactory but does not specify its types\: TFactory$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/Country.php
+
+		-
+			message: '#^Method App\\Models\\Country\:\:isSuperUsuario\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Models/Country.php
+
+		-
+			message: '#^Method App\\Models\\Country\:\:scopeWhereAllCountriesAssigned\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Models/Country.php
+
+		-
+			message: '#^Method App\\Models\\Country\:\:scopeWhereAllCountriesAssigned\(\) has parameter \$query with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Models/Country.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CountryHoliday\:\:\$created\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Models/CountryHoliday.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CountryHoliday\:\:\$updated\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Models/CountryHoliday.php
+
+		-
+			message: '#^Class App\\Models\\CountryHoliday uses generic trait Illuminate\\Database\\Eloquent\\Factories\\HasFactory but does not specify its types\: TFactory$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/CountryHoliday.php
+
+		-
+			message: '#^Method App\\Models\\CountryHoliday\:\:country\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Models/CountryHoliday.php
+
+		-
+			message: '#^Method App\\Models\\CountryHoliday\:\:lista\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Models/CountryHoliday.php
+
+		-
+			message: '#^Method App\\Models\\CountryHoliday\:\:lista\(\) has parameter \$request with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Models/CountryHoliday.php
+
+		-
+			message: '#^Method App\\Models\\CountryHoliday\:\:scopeCriterioYear\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Models/CountryHoliday.php
+
+		-
+			message: '#^Method App\\Models\\CountryHoliday\:\:scopeCriterioYear\(\) has parameter \$query with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Models/CountryHoliday.php
+
+		-
+			message: '#^Method App\\Models\\CountryHoliday\:\:scopeWhereCountriesActive\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Models/CountryHoliday.php
+
+		-
+			message: '#^Method App\\Models\\CountryHoliday\:\:scopeWhereCountriesActive\(\) has parameter \$countriesID with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Models/CountryHoliday.php
+
+		-
+			message: '#^Method App\\Models\\CountryHoliday\:\:scopeWhereCountriesActive\(\) has parameter \$query with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Models/CountryHoliday.php
+
+		-
+			message: '#^Method App\\Models\\CountryHoliday\:\:setDateAttribute\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Models/CountryHoliday.php
+
+		-
+			message: '#^Method App\\Models\\CountryHoliday\:\:setDateAttribute\(\) has parameter \$value with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Models/CountryHoliday.php
+
+		-
+			message: '#^Parameter \#2 \$timestamp of function date expects int\|null, int\|false given\.$#'
+			identifier: argument.type
+			count: 2
+			path: app/Models/CountryHoliday.php
+
+		-
+			message: '#^Relation ''country'' is not found in App\\Models\\CountryHoliday model\.$#'
+			identifier: larastan.relationExistence
+			count: 1
+			path: app/Models/CountryHoliday.php
+
+		-
+			message: '#^Unsafe usage of new static\(\)\.$#'
+			identifier: new.static
+			count: 1
+			path: app/Models/CountryHoliday.php
+
+		-
+			message: '#^Class App\\Models\\CustomerMovementHistory uses generic trait Illuminate\\Database\\Eloquent\\Factories\\HasFactory but does not specify its types\: TFactory$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/CustomerMovementHistory.php
+
+		-
+			message: '#^Method App\\Models\\CustomerMovementHistory\:\:type_movement\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Models/CustomerMovementHistory.php
+
+		-
+			message: '#^Class App\\Models\\Department uses generic trait Illuminate\\Database\\Eloquent\\Factories\\HasFactory but does not specify its types\: TFactory$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/Department.php
+
+		-
+			message: '#^Method App\\Models\\Department\:\:country\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Models/Department.php
+
+		-
+			message: '#^Method App\\Models\\Department\:\:lista\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Models/Department.php
+
+		-
+			message: '#^Method App\\Models\\Department\:\:lista\(\) has parameter \$request with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Models/Department.php
+
+		-
+			message: '#^Method App\\Models\\Department\:\:scopeWhereCountriesActive\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Models/Department.php
+
+		-
+			message: '#^Method App\\Models\\Department\:\:scopeWhereCountriesActive\(\) has parameter \$countriesID with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Models/Department.php
+
+		-
+			message: '#^Method App\\Models\\Department\:\:scopeWhereCountriesActive\(\) has parameter \$query with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Models/Department.php
+
+		-
+			message: '#^Relation ''country'' is not found in App\\Models\\Department model\.$#'
+			identifier: larastan.relationExistence
+			count: 1
+			path: app/Models/Department.php
+
+		-
+			message: '#^Unsafe usage of new static\(\)\.$#'
+			identifier: new.static
+			count: 2
+			path: app/Models/Department.php
+
+		-
+			message: '#^Class App\\Models\\Franquicia uses generic trait Illuminate\\Database\\Eloquent\\Factories\\HasFactory but does not specify its types\: TFactory$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/Franquicia.php
+
+		-
+			message: '#^Class App\\Models\\Frecuencias uses generic trait Illuminate\\Database\\Eloquent\\Factories\\HasFactory but does not specify its types\: TFactory$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/Frecuencias.php
+
+		-
+			message: '#^Method App\\Models\\Frecuencias\:\:tipo\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Models/Frecuencias.php
+
+		-
+			message: '#^Class App\\Models\\GruposTrabajo uses generic trait Illuminate\\Database\\Eloquent\\Factories\\HasFactory but does not specify its types\: TFactory$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/GruposTrabajo.php
+
+		-
+			message: '#^Method App\\Models\\GruposTrabajo\:\:ciudad\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Models/GruposTrabajo.php
+
+		-
+			message: '#^Method App\\Models\\GruposTrabajo\:\:grupo_trabajo_user\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Models/GruposTrabajo.php
+
+		-
+			message: '#^Class App\\Models\\GruposTrabajoUser uses generic trait Illuminate\\Database\\Eloquent\\Factories\\HasFactory but does not specify its types\: TFactory$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/GruposTrabajoUser.php
+
+		-
+			message: '#^Method App\\Models\\GruposTrabajoUser\:\:grupo_trabajo\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Models/GruposTrabajoUser.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Modules\:\:\$actions\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Models/Modules.php
+
+		-
+			message: '#^Class App\\Models\\Modules uses generic trait Illuminate\\Database\\Eloquent\\Factories\\HasFactory but does not specify its types\: TFactory$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/Modules.php
+
+		-
+			message: '#^Method App\\Models\\Modules\:\:acciones\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Models/Modules.php
+
+		-
+			message: '#^Method App\\Models\\Modules\:\:actions\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Models/Modules.php
+
+		-
+			message: '#^Method App\\Models\\Modules\:\:children\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Models/Modules.php
+
+		-
+			message: '#^Method App\\Models\\Modules\:\:getDataMeues\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Models/Modules.php
+
+		-
+			message: '#^Method App\\Models\\Modules\:\:getNivelModuloAttribute\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Models/Modules.php
+
+		-
+			message: '#^Method App\\Models\\Modules\:\:lista\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Models/Modules.php
+
+		-
+			message: '#^Method App\\Models\\Modules\:\:lista\(\) has parameter \$request with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Models/Modules.php
+
+		-
+			message: '#^Method App\\Models\\Modules\:\:parents\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Models/Modules.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Support\\Collection\<int,App\\Models\\Modules\>\:\:transform\(\) contains unresolvable type\.$#'
+			identifier: argument.unresolvableType
+			count: 1
+			path: app/Models/Modules.php
+
+		-
+			message: '#^Return type of call to method Illuminate\\Support\\Collection\<int,App\\Models\\Modules\>\:\:transform\(\) contains unresolvable type\.$#'
+			identifier: method.unresolvableReturnType
+			count: 1
+			path: app/Models/Modules.php
+
+		-
+			message: '#^Unsafe usage of new static\(\)\.$#'
+			identifier: new.static
+			count: 1
+			path: app/Models/Modules.php
+
+		-
+			message: '#^Class App\\Models\\ModulesActions uses generic trait Illuminate\\Database\\Eloquent\\Factories\\HasFactory but does not specify its types\: TFactory$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/ModulesActions.php
+
+		-
+			message: '#^Method App\\Models\\ModulesActions\:\:action\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Models/ModulesActions.php
+
+		-
+			message: '#^Method App\\Models\\ModulesActions\:\:module\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Models/ModulesActions.php
+
+		-
+			message: '#^Class App\\Models\\ModulesActionsProfiles uses generic trait Illuminate\\Database\\Eloquent\\Factories\\HasFactory but does not specify its types\: TFactory$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/ModulesActionsProfiles.php
+
+		-
+			message: '#^Method App\\Models\\ModulesActionsProfiles\:\:module_actions\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Models/ModulesActionsProfiles.php
+
+		-
+			message: '#^Class App\\Models\\ModulesRelation uses generic trait Illuminate\\Database\\Eloquent\\Factories\\HasFactory but does not specify its types\: TFactory$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/ModulesRelation.php
+
+		-
+			message: '#^Class App\\Models\\Moneda uses generic trait Illuminate\\Database\\Eloquent\\Factories\\HasFactory but does not specify its types\: TFactory$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/Moneda.php
+
+		-
+			message: '#^Class App\\Models\\PaymentForm uses generic trait Illuminate\\Database\\Eloquent\\Factories\\HasFactory but does not specify its types\: TFactory$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/PaymentForm.php
+
+		-
+			message: '#^Class App\\Models\\PaymentMethod uses generic trait Illuminate\\Database\\Eloquent\\Factories\\HasFactory but does not specify its types\: TFactory$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/PaymentMethod.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\PaymentReport\:\:\$payment_reports_methods\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Models/PaymentReport.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\PaymentReport\:\:\$payment_reports_movement\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Models/PaymentReport.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\PaymentReport\:\:\$prestamoFormated\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Models/PaymentReport.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\PaymentReport\:\:\$selected_payment_reports\.$#'
+			identifier: property.notFound
+			count: 3
+			path: app/Models/PaymentReport.php
+
+		-
+			message: '#^Class App\\Models\\PaymentReport uses generic trait Illuminate\\Database\\Eloquent\\Factories\\HasFactory but does not specify its types\: TFactory$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/PaymentReport.php
+
+		-
+			message: '#^Comparison operation "\>" between int\<1, max\> and 0 is always true\.$#'
+			identifier: greater.alwaysTrue
+			count: 3
+			path: app/Models/PaymentReport.php
+
+		-
+			message: '#^Method App\\Models\\PaymentReport\:\:getClienteAttribute\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Models/PaymentReport.php
+
+		-
+			message: '#^Method App\\Models\\PaymentReport\:\:getClienteAttribute\(\) has parameter \$value with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Models/PaymentReport.php
+
+		-
+			message: '#^Method App\\Models\\PaymentReport\:\:getDestinationTextAttribute\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Models/PaymentReport.php
+
+		-
+			message: '#^Method App\\Models\\PaymentReport\:\:getNumberCuotasAttribute\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Models/PaymentReport.php
+
+		-
+			message: '#^Method App\\Models\\PaymentReport\:\:getStatusDescriptionAttribute\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Models/PaymentReport.php
+
+		-
+			message: '#^Method App\\Models\\PaymentReport\:\:getValueAmountAttribute\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Models/PaymentReport.php
+
+		-
+			message: '#^Method App\\Models\\PaymentReport\:\:lista\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Models/PaymentReport.php
+
+		-
+			message: '#^Method App\\Models\\PaymentReport\:\:lista\(\) has parameter \$request with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Models/PaymentReport.php
+
+		-
+			message: '#^Method App\\Models\\PaymentReport\:\:objectStatusPayment\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Models/PaymentReport.php
+
+		-
+			message: '#^Method App\\Models\\PaymentReport\:\:objectStatusPayment\(\) has parameter \$result with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Models/PaymentReport.php
+
+		-
+			message: '#^Method App\\Models\\PaymentReport\:\:payment_reports_methods\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Models/PaymentReport.php
+
+		-
+			message: '#^Method App\\Models\\PaymentReport\:\:payment_reports_movement\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Models/PaymentReport.php
+
+		-
+			message: '#^Method App\\Models\\PaymentReport\:\:payment_reports_movement_first\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Models/PaymentReport.php
+
+		-
+			message: '#^Method App\\Models\\PaymentReport\:\:payment_reports_movement_first_bad\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Models/PaymentReport.php
+
+		-
+			message: '#^Method App\\Models\\PaymentReport\:\:payment_reports_movements_estatus\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Models/PaymentReport.php
+
+		-
+			message: '#^Method App\\Models\\PaymentReport\:\:scopeMovimientos\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Models/PaymentReport.php
+
+		-
+			message: '#^Method App\\Models\\PaymentReport\:\:scopePaymentReportActivo\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Models/PaymentReport.php
+
+		-
+			message: '#^Method App\\Models\\PaymentReport\:\:scopePaymentReportActivo\(\) has parameter \$cliente with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Models/PaymentReport.php
+
+		-
+			message: '#^Method App\\Models\\PaymentReport\:\:scopePaymentReportActivo\(\) has parameter \$query with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Models/PaymentReport.php
+
+		-
+			message: '#^Method App\\Models\\PaymentReport\:\:selected_payment_reports\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Models/PaymentReport.php
+
+		-
+			message: '#^Method App\\Models\\PaymentReport\:\:setClienteAttribute\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Models/PaymentReport.php
+
+		-
+			message: '#^Method App\\Models\\PaymentReport\:\:setClienteAttribute\(\) has parameter \$value with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Models/PaymentReport.php
+
+		-
+			message: '#^Parameter \#1 \$json of function json_decode expects string, string\|false given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Models/PaymentReport.php
+
+		-
+			message: '#^Property App\\Models\\PaymentReport\:\:\$array_estatus has no type specified\.$#'
+			identifier: missingType.property
+			count: 1
+			path: app/Models/PaymentReport.php
+
+		-
+			message: '#^Property App\\Models\\PaymentReport\:\:\$array_estatus_fcolor has no type specified\.$#'
+			identifier: missingType.property
+			count: 1
+			path: app/Models/PaymentReport.php
+
+		-
+			message: '#^Relation ''payment_reports_movement_first'' is not found in App\\Models\\PaymentReport model\.$#'
+			identifier: larastan.relationExistence
+			count: 1
+			path: app/Models/PaymentReport.php
+
+		-
+			message: '#^Unsafe usage of new static\(\)\.$#'
+			identifier: new.static
+			count: 1
+			path: app/Models/PaymentReport.php
+
+		-
+			message: '#^Variable \$position might not be defined\.$#'
+			identifier: variable.undefined
+			count: 1
+			path: app/Models/PaymentReport.php
+
+		-
+			message: '#^Class App\\Models\\PaymentReportsMovement uses generic trait Illuminate\\Database\\Eloquent\\Factories\\HasFactory but does not specify its types\: TFactory$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/PaymentReportsMovement.php
+
+		-
+			message: '#^Method App\\Models\\PaymentReportsMovement\:\:estatus_description\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Models/PaymentReportsMovement.php
+
+		-
+			message: '#^Method App\\Models\\PaymentReportsMovement\:\:estatus_description_await\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Models/PaymentReportsMovement.php
+
+		-
+			message: '#^Method App\\Models\\PaymentReportsMovement\:\:support_images\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Models/PaymentReportsMovement.php
+
+		-
+			message: '#^Class App\\Models\\PaymentReportsMovementsEstatu uses generic trait Illuminate\\Database\\Eloquent\\Factories\\HasFactory but does not specify its types\: TFactory$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/PaymentReportsMovementsEstatu.php
+
+		-
+			message: '#^Class App\\Models\\PaymentReportsSupportMovement uses generic trait Illuminate\\Database\\Eloquent\\Factories\\HasFactory but does not specify its types\: TFactory$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/PaymentReportsSupportMovement.php
+
+		-
+			message: '#^Class App\\Models\\Prestamos uses generic trait Illuminate\\Database\\Eloquent\\Factories\\HasFactory but does not specify its types\: TFactory$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/Prestamos.php
+
+		-
+			message: '#^Comparison operation "\>" between int\<1, max\> and 0 is always true\.$#'
+			identifier: greater.alwaysTrue
+			count: 2
+			path: app/Models/Prestamos.php
+
+		-
+			message: '#^Method App\\Models\\Prestamos\:\:country\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Models/Prestamos.php
+
+		-
+			message: '#^Method App\\Models\\Prestamos\:\:datoCliente\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Models/Prestamos.php
+
+		-
+			message: '#^Method App\\Models\\Prestamos\:\:getClienteAttribute\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Models/Prestamos.php
+
+		-
+			message: '#^Method App\\Models\\Prestamos\:\:getDateFirstPayAttribute\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Models/Prestamos.php
+
+		-
+			message: '#^Method App\\Models\\Prestamos\:\:getDateFirstPayAttribute\(\) has parameter \$value with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Models/Prestamos.php
+
+		-
+			message: '#^Method App\\Models\\Prestamos\:\:getDateLastPayAttribute\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Models/Prestamos.php
+
+		-
+			message: '#^Method App\\Models\\Prestamos\:\:getDateLastPayAttribute\(\) has parameter \$value with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Models/Prestamos.php
+
+		-
+			message: '#^Method App\\Models\\Prestamos\:\:lista\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Models/Prestamos.php
+
+		-
+			message: '#^Method App\\Models\\Prestamos\:\:lista\(\) has parameter \$request with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Models/Prestamos.php
+
+		-
+			message: '#^Method App\\Models\\Prestamos\:\:p_estatus\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Models/Prestamos.php
+
+		-
+			message: '#^Method App\\Models\\Prestamos\:\:prestamos_dias\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Models/Prestamos.php
+
+		-
+			message: '#^Method App\\Models\\Prestamos\:\:scopeCliente\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Models/Prestamos.php
+
+		-
+			message: '#^Method App\\Models\\Prestamos\:\:scopeCliente\(\) has parameter \$id with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Models/Prestamos.php
+
+		-
+			message: '#^Method App\\Models\\Prestamos\:\:scopeCliente\(\) has parameter \$query with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Models/Prestamos.php
+
+		-
+			message: '#^Method App\\Models\\Prestamos\:\:scopePrestamoActivo\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Models/Prestamos.php
+
+		-
+			message: '#^Method App\\Models\\Prestamos\:\:scopePrestamoActivo\(\) has parameter \$cliente with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Models/Prestamos.php
+
+		-
+			message: '#^Method App\\Models\\Prestamos\:\:scopePrestamoActivo\(\) has parameter \$query with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Models/Prestamos.php
+
+		-
+			message: '#^Method App\\Models\\Prestamos\:\:setClienteAttribute\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Models/Prestamos.php
+
+		-
+			message: '#^Method App\\Models\\Prestamos\:\:setClienteAttribute\(\) has parameter \$value with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Models/Prestamos.php
+
+		-
+			message: '#^Method App\\Models\\Prestamos\:\:setFormAttribute\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Models/Prestamos.php
+
+		-
+			message: '#^Method App\\Models\\Prestamos\:\:setFormAttribute\(\) has parameter \$value with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Models/Prestamos.php
+
+		-
+			message: '#^Class App\\Models\\PrestamosDias uses generic trait Illuminate\\Database\\Eloquent\\Factories\\HasFactory but does not specify its types\: TFactory$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/PrestamosDias.php
+
+		-
+			message: '#^Method App\\Models\\PrestamosDias\:\:Prestamo\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Models/PrestamosDias.php
+
+		-
+			message: '#^Method App\\Models\\PrestamosDias\:\:pendientesPago\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Models/PrestamosDias.php
+
+		-
+			message: '#^Relation ''paymentReport'' is not found in App\\Models\\SelectedPaymentReport model\.$#'
+			identifier: larastan.relationExistence
+			count: 1
+			path: app/Models/PrestamosDias.php
+
+		-
+			message: '#^Class App\\Models\\PrestamosEstatu uses generic trait Illuminate\\Database\\Eloquent\\Factories\\HasFactory but does not specify its types\: TFactory$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/PrestamosEstatu.php
+
+		-
+			message: '#^Class App\\Models\\PrestamosTarifa uses generic trait Illuminate\\Database\\Eloquent\\Factories\\HasFactory but does not specify its types\: TFactory$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/PrestamosTarifa.php
+
+		-
+			message: '#^Class App\\Models\\Profiles uses generic trait Illuminate\\Database\\Eloquent\\Factories\\HasFactory but does not specify its types\: TFactory$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/Profiles.php
+
+		-
+			message: '#^Method App\\Models\\Profiles\:\:acciones\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Models/Profiles.php
+
+		-
+			message: '#^Method App\\Models\\Profiles\:\:lista\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Models/Profiles.php
+
+		-
+			message: '#^Method App\\Models\\Profiles\:\:lista\(\) has parameter \$request with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Models/Profiles.php
+
+		-
+			message: '#^Method App\\Models\\Profiles\:\:modules_actions_profiles\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Models/Profiles.php
+
+		-
+			message: '#^Unsafe usage of new static\(\)\.$#'
+			identifier: new.static
+			count: 1
+			path: app/Models/Profiles.php
+
+		-
+			message: '#^Class App\\Models\\ProfilesUsers uses generic trait Illuminate\\Database\\Eloquent\\Factories\\HasFactory but does not specify its types\: TFactory$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/ProfilesUsers.php
+
+		-
+			message: '#^Method App\\Models\\ProfilesUsers\:\:profile\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Models/ProfilesUsers.php
+
+		-
+			message: '#^Method App\\Models\\ProfilesUsers\:\:scopeWhereIsSU\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Models/ProfilesUsers.php
+
+		-
+			message: '#^Method App\\Models\\ProfilesUsers\:\:scopeWhereIsSU\(\) has parameter \$query with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Models/ProfilesUsers.php
+
+		-
+			message: '#^Class App\\Models\\ScheduledTaskLog uses generic trait Illuminate\\Database\\Eloquent\\Factories\\HasFactory but does not specify its types\: TFactory$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/ScheduledTaskLog.php
+
+		-
+			message: '#^PHPDoc type array of property App\\Models\\ScheduledTaskLog\:\:\$casts is not covariant with PHPDoc type array\<string, string\> of overridden property Illuminate\\Database\\Eloquent\\Model\:\:\$casts\.$#'
+			identifier: property.phpDocType
+			count: 1
+			path: app/Models/ScheduledTaskLog.php
+
+		-
+			message: '#^PHPDoc type array of property App\\Models\\ScheduledTaskLog\:\:\$fillable is not covariant with PHPDoc type list\<string\> of overridden property Illuminate\\Database\\Eloquent\\Model\:\:\$fillable\.$#'
+			identifier: property.phpDocType
+			count: 1
+			path: app/Models/ScheduledTaskLog.php
+
+		-
+			message: '#^Property App\\Models\\ScheduledTaskLog\:\:\$casts type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Models/ScheduledTaskLog.php
+
+		-
+			message: '#^Property App\\Models\\ScheduledTaskLog\:\:\$fillable type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Models/ScheduledTaskLog.php
+
+		-
+			message: '#^Class App\\Models\\SelectedPaymentReport uses generic trait Illuminate\\Database\\Eloquent\\Factories\\HasFactory but does not specify its types\: TFactory$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/SelectedPaymentReport.php
+
+		-
+			message: '#^Method App\\Models\\SelectedPaymentReport\:\:PrestamosDias\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Models/SelectedPaymentReport.php
+
+		-
+			message: '#^Method App\\Models\\SelectedPaymentReport\:\:paymentReport\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Models/SelectedPaymentReport.php
+
+		-
+			message: '#^Class App\\Models\\SummaryCustomerMovement uses generic trait Illuminate\\Database\\Eloquent\\Factories\\HasFactory but does not specify its types\: TFactory$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/SummaryCustomerMovement.php
+
+		-
+			message: '#^Class App\\Models\\SupportPaymentReport uses generic trait Illuminate\\Database\\Eloquent\\Factories\\HasFactory but does not specify its types\: TFactory$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/SupportPaymentReport.php
+
+		-
+			message: '#^Class App\\Models\\TipoFrecuenciaPrestamo uses generic trait Illuminate\\Database\\Eloquent\\Factories\\HasFactory but does not specify its types\: TFactory$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/TipoFrecuenciaPrestamo.php
+
+		-
+			message: '#^Class App\\Models\\TipoPrestamo uses generic trait Illuminate\\Database\\Eloquent\\Factories\\HasFactory but does not specify its types\: TFactory$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/TipoPrestamo.php
+
+		-
+			message: '#^Method App\\Models\\TipoPrestamo\:\:frecuencias\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Models/TipoPrestamo.php
+
+		-
+			message: '#^Class App\\Models\\TypePaymentRecord uses generic trait Illuminate\\Database\\Eloquent\\Factories\\HasFactory but does not specify its types\: TFactory$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/TypePaymentRecord.php
+
+		-
+			message: '#^Class App\\Models\\TypesMovement uses generic trait Illuminate\\Database\\Eloquent\\Factories\\HasFactory but does not specify its types\: TFactory$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/TypesMovement.php
+
+		-
+			message: '#^Class App\\Models\\UserCountry uses generic trait Illuminate\\Database\\Eloquent\\Factories\\HasFactory but does not specify its types\: TFactory$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/UserCountry.php
+
+		-
+			message: '#^Class App\\Models\\paymentReportsMethod uses generic trait Illuminate\\Database\\Eloquent\\Factories\\HasFactory but does not specify its types\: TFactory$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/paymentReportsMethod.php
+
+		-
+			message: '#^Method App\\Models\\paymentReportsMethod\:\:support_images\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Models/paymentReportsMethod.php
+
+		-
+			message: '#^Class App\\Models\\supportPaymentReportsMethod uses generic trait Illuminate\\Database\\Eloquent\\Factories\\HasFactory but does not specify its types\: TFactory$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/supportPaymentReportsMethod.php
+
+		-
+			message: '#^Class App\\Models\\tiposDocumentos uses generic trait Illuminate\\Database\\Eloquent\\Factories\\HasFactory but does not specify its types\: TFactory$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/tiposDocumentos.php
+
+		-
+			message: '#^Method App\\Models\\tiposDocumentos\:\:country\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Models/tiposDocumentos.php
+
+		-
+			message: '#^Method App\\Models\\tiposDocumentos\:\:listaDocumentos\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Models/tiposDocumentos.php
+
+		-
+			message: '#^Method App\\Models\\tiposDocumentos\:\:listaDocumentos\(\) has parameter \$request with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Models/tiposDocumentos.php
+
+		-
+			message: '#^Relation ''country'' is not found in App\\Models\\tiposDocumentos model\.$#'
+			identifier: larastan.relationExistence
+			count: 2
+			path: app/Models/tiposDocumentos.php
+
+		-
+			message: '#^Unsafe usage of new static\(\)\.$#'
+			identifier: new.static
+			count: 2
+			path: app/Models/tiposDocumentos.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\PaymentReport\|Illuminate\\Database\\Eloquent\\Collection\<int, App\\Models\\PaymentReport\>\:\:\$payment_reports_movement_first\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Services/PaymentReportService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\TypesMovement\|Illuminate\\Database\\Eloquent\\Collection\<int, App\\Models\\TypesMovement\>\:\:\$operation\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Services/PaymentReportService.php
+
+		-
+			message: '#^Call to an undefined method Symfony\\Component\\HttpFoundation\\Request\:\:all\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Services/PaymentReportService.php
+
+		-
+			message: '#^Method App\\Services\\PaymentReportService\:\:changeStatePaymentReport\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Services/PaymentReportService.php
+
+		-
+			message: '#^Method App\\Services\\PaymentReportService\:\:createPaymentReport\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Services/PaymentReportService.php
+
+		-
+			message: '#^Method App\\Services\\PaymentReportService\:\:parseaRequest\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Services/PaymentReportService.php
+
+		-
+			message: '#^Method App\\Services\\PaymentReportService\:\:processBalance\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Services/PaymentReportService.php
+
+		-
+			message: '#^Method App\\Services\\PaymentReportService\:\:processBalance\(\) has parameter \$PaymentReport with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Services/PaymentReportService.php
+
+		-
+			message: '#^Method App\\Services\\PaymentReportService\:\:processBalance\(\) has parameter \$refer_grupos_trabajos_user_id with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Services/PaymentReportService.php
+
+		-
+			message: '#^Method App\\Services\\PaymentReportService\:\:processBalance\(\) has parameter \$tipo_movimiento with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Services/PaymentReportService.php
+
+		-
+			message: '#^Method App\\Services\\PaymentReportService\:\:processPaymentCouotas\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Services/PaymentReportService.php
+
+		-
+			message: '#^Method App\\Services\\PaymentReportService\:\:processPaymentCouotas\(\) has parameter \$cuotas with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Services/PaymentReportService.php
+
+		-
+			message: '#^Method App\\Services\\PaymentReportService\:\:processReportPaymentAproved\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Services/PaymentReportService.php
+
+		-
+			message: '#^Method App\\Services\\PaymentReportService\:\:processSummaryCustomer\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Services/PaymentReportService.php
+
+		-
+			message: '#^Method App\\Services\\PaymentReportService\:\:processSummaryCustomer\(\) has parameter \$CustomerMovementHistory with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Services/PaymentReportService.php
+
+		-
+			message: '#^Method App\\Services\\PaymentReportService\:\:registerPaymentCuotas\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Services/PaymentReportService.php
+
+		-
+			message: '#^Method App\\Services\\PaymentReportService\:\:registerPaymentMehods\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Services/PaymentReportService.php
+
+		-
+			message: '#^Method App\\Services\\PaymentReportService\:\:registerPaymentMovement\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Services/PaymentReportService.php
+
+		-
+			message: '#^Method App\\Services\\PaymentReportService\:\:registerPaymentMovement\(\) has parameter \$motivo with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Services/PaymentReportService.php
+
+		-
+			message: '#^Method App\\Services\\PaymentReportService\:\:registerPaymentMovement\(\) has parameter \$state_selected with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Services/PaymentReportService.php
+
+		-
+			message: '#^Method App\\Services\\PaymentReportService\:\:registerPositiveBalance\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Services/PaymentReportService.php
+
+		-
+			message: '#^Method App\\Services\\PaymentReportService\:\:registerSupportChangeState\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Services/PaymentReportService.php
+
+		-
+			message: '#^Method App\\Services\\PaymentReportService\:\:registerSupportPaymentMehods\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Services/PaymentReportService.php
+
+		-
+			message: '#^Method App\\Services\\PaymentReportService\:\:verifiedCurrentStatus\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: app/Services/PaymentReportService.php
+
+		-
+			message: '#^Property App\\Services\\PaymentReportService\:\:\$PaymentReport has no type specified\.$#'
+			identifier: missingType.property
+			count: 1
+			path: app/Services/PaymentReportService.php
+
+		-
+			message: '#^Property App\\Services\\PaymentReportService\:\:\$PaymentReportsMovement has no type specified\.$#'
+			identifier: missingType.property
+			count: 1
+			path: app/Services/PaymentReportService.php
+
+		-
+			message: '#^Property App\\Services\\PaymentReportService\:\:\$data has no type specified\.$#'
+			identifier: missingType.property
+			count: 1
+			path: app/Services/PaymentReportService.php
+
+		-
+			message: '#^Property App\\Services\\PaymentReportService\:\:\$grupos_trabajos_user_id has no type specified\.$#'
+			identifier: missingType.property
+			count: 1
+			path: app/Services/PaymentReportService.php
+
+		-
+			message: '#^Property App\\Services\\PaymentReportService\:\:\$prestamosIdNotProccess has no type specified\.$#'
+			identifier: missingType.property
+			count: 1
+			path: app/Services/PaymentReportService.php
+
+		-
+			message: '#^Relation ''payment_reports_movement_first'' is not found in App\\Models\\PaymentReport model\.$#'
+			identifier: larastan.relationExistence
+			count: 1
+			path: app/Services/PaymentReportService.php
+
+		-
+			message: '#^Unable to resolve the template type TKey in call to function collect$#'
+			identifier: argument.templateType
+			count: 2
+			path: app/Services/PaymentReportService.php
+
+		-
+			message: '#^Unable to resolve the template type TValue in call to function collect$#'
+			identifier: argument.templateType
+			count: 2
+			path: app/Services/PaymentReportService.php
+
+		-
+			message: '#^Parameter \#1 \$query of static method Illuminate\\Database\\Connection\:\:unprepared\(\) expects literal\-string, string\|false given\.$#'
+			identifier: argument.type
+			count: 1
+			path: database/seeders/LegacyCatalogSeeder.php
+
+		-
+			message: '#^Using nullsafe method call on non\-nullable type Illuminate\\Console\\Command\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 2
+			path: database/seeders/LegacyCatalogSeeder.php

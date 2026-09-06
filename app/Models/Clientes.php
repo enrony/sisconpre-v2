@@ -80,7 +80,7 @@ class Clientes extends Model
 
         if (count($this->Pretamos) > 0) {
             return $this->Pretamos->filter(function ($prestamo) {
-                return  ! $prestamo->pagado && ! $prestamo->anulado && ! $prestamo->perdido;
+                return ! $prestamo->pagado && ! $prestamo->anulado && ! $prestamo->perdido;
             })->count();
         }
 

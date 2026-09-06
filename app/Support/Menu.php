@@ -38,31 +38,32 @@ final class Menu
      */
     private static function branch(Collection $items, ?int $parentId, Authenticatable $user): array
     {
-        return $items
-            ->where('parent_id', $parentId)
-            ->map(function (MenuItem $item) use ($items, $user): ?array {
-                if ($item->permission !== null && $user->cannot($item->permission)) {
-                    return null;
-                }
+        return array_values(
+            $items
+                ->where('parent_id', $parentId)
+                ->map(function (MenuItem $item) use ($items, $user): ?array {
+                    if ($item->permission !== null && $user->cannot($item->permission)) {
+                        return null;
+                    }
 
-                $children = self::branch($items, $item->id, $user);
+                    $children = self::branch($items, $item->id, $user);
 
-                // grupo (sin ruta propia) sin hijos visibles => se oculta
-                if ($children === [] && ($item->route === null || $item->route === '#')) {
-                    return null;
-                }
+                    // grupo (sin ruta propia) sin hijos visibles => se oculta
+                    if ($children === [] && ($item->route === null || $item->route === '#')) {
+                        return null;
+                    }
 
-                return [
-                    'key' => $item->key,
-                    'label' => $item->label,
-                    'icon' => $item->icon,
-                    'url' => self::url($item->route),
-                    'children' => $children,
-                ];
-            })
-            ->filter()
-            ->values()
-            ->all();
+                    return [
+                        'key' => $item->key,
+                        'label' => $item->label,
+                        'icon' => $item->icon,
+                        'url' => self::url($item->route),
+                        'children' => $children,
+                    ];
+                })
+                ->filter()
+                ->all()
+        );
     }
 
     /** Nombre de ruta del legado → URL. `null`/`#` para nodos agrupadores. */

@@ -3,10 +3,12 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
+use Inertia\Response;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 
@@ -19,7 +21,7 @@ class RolesController extends Controller
     /** Roles que no se pueden renombrar ni eliminar. */
     private const PROTEGIDOS = ['super-admin'];
 
-    public function index()
+    public function index(): Response
     {
         $roles = Role::query()
             ->withCount('users')
@@ -48,17 +50,18 @@ class RolesController extends Controller
      */
     private function catalogo(): array
     {
-        return Permission::orderBy('name')->pluck('name')
-            ->groupBy(fn (string $n) => explode('.', $n)[0])
-            ->map(fn ($permisos, $modulo) => [
-                'modulo' => (string) $modulo,
-                'permisos' => $permisos->values()->all(),
-            ])
-            ->values()
-            ->all();
+        return array_values(
+            Permission::orderBy('name')->pluck('name')
+                ->groupBy(fn (string $n) => explode('.', $n)[0])
+                ->map(fn ($permisos, $modulo): array => [
+                    'modulo' => (string) $modulo,
+                    'permisos' => array_values($permisos->all()),
+                ])
+                ->all()
+        );
     }
 
-    public function store(Request $request)
+    public function store(Request $request): RedirectResponse
     {
         $data = $request->validate([
             'id' => ['nullable', 'integer'],
@@ -70,7 +73,8 @@ class RolesController extends Controller
             'permissions.*' => ['string', 'exists:permissions,name'],
         ]);
 
-        $role = Role::findOrNew($data['id'] ?? 0);
+        $id = (int) ($data['id'] ?? 0);
+        $role = $id > 0 ? Role::findOrFail($id) : new Role;
 
         if (in_array($role->name, self::PROTEGIDOS, true) && $role->name !== $data['name']) {
             return Redirect::back()->withErrors(['name' => 'Este rol no se puede renombrar.']);
@@ -88,7 +92,7 @@ class RolesController extends Controller
         return Redirect::route('profile');
     }
 
-    public function destroy(Role $role)
+    public function destroy(Role $role): RedirectResponse
     {
         if (in_array($role->name, self::PROTEGIDOS, true)) {
             return Redirect::back()->withErrors(['role' => 'Este rol no se puede eliminar.']);
