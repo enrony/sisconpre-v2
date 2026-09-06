@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { storeToRefs } from 'pinia';
-import { ElNotification } from 'element-plus';
 import { computed, reactive, watch } from 'vue';
 import { nuevoClienteVacio, usePrestamosStore } from '@/stores/prestamos';
 

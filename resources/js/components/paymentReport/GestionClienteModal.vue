@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { storeToRefs } from 'pinia';
-import { ElNotification } from 'element-plus';
 import { computed } from 'vue';
 import SupportUpload from '@/components/paymentReport/SupportUpload.vue';
 import { formatNumber } from '@/lib/format';
@@ -40,7 +39,9 @@ function requiereSoporte(row: GestionReporteRow): boolean {
     );
 }
 
-function tagType(row: GestionReporteRow): string {
+function tagType(
+    row: GestionReporteRow,
+): 'primary' | 'success' | 'info' | 'warning' | 'danger' {
     const c = row.status_description?.color ?? '';
     if (c.includes('green')) return 'success';
     if (c.includes('red')) return 'danger';
@@ -49,16 +50,19 @@ function tagType(row: GestionReporteRow): string {
 }
 
 async function procesar(row: GestionReporteRow) {
-    if (requiereMotivo(row) && !row.motivoEdit.trim()) {
+    if (requiereMotivo(row as GestionReporteRow) && !row.motivoEdit.trim()) {
         ElNotification.warning('Indique el motivo del cambio de estado.');
         return;
     }
-    if (requiereSoporte(row) && row.soportes.length === 0) {
+    if (
+        requiereSoporte(row as GestionReporteRow) &&
+        row.soportes.length === 0
+    ) {
         ElNotification.warning('Adjunte el soporte del cambio de estado.');
         return;
     }
     try {
-        const res = await store.procesarGestion(row);
+        const res = await store.procesarGestion(row as GestionReporteRow);
         if (res?.success) {
             ElNotification.success(res.message ?? 'Estado actualizado');
         } else if (res) {
@@ -136,7 +140,11 @@ async function procesar(row: GestionReporteRow) {
                     align="center"
                 >
                     <template #default="{ row }">
-                        <el-tag :type="tagType(row)" effect="dark" size="small">
+                        <el-tag
+                            :type="tagType(row as GestionReporteRow)"
+                            effect="dark"
+                            size="small"
+                        >
                             {{ row.status_description?.desc ?? '—' }}
                         </el-tag>
                     </template>
@@ -152,7 +160,9 @@ async function procesar(row: GestionReporteRow) {
                             placeholder="Seleccione"
                         >
                             <el-option
-                                v-for="e in store.estadosParaFila(row)"
+                                v-for="e in store.estadosParaFila(
+                                    row as GestionReporteRow,
+                                )"
                                 :key="e.id"
                                 :label="e.action_description"
                                 :value="e.id"
@@ -164,21 +174,21 @@ async function procesar(row: GestionReporteRow) {
                     <template #default="{ row }">
                         <div class="space-y-1">
                             <el-input
-                                v-if="requiereMotivo(row)"
+                                v-if="requiereMotivo(row as GestionReporteRow)"
                                 v-model="row.motivoEdit"
                                 size="small"
                                 placeholder="Indique el motivo"
                             />
                             <SupportUpload
-                                v-if="requiereSoporte(row)"
+                                v-if="requiereSoporte(row as GestionReporteRow)"
                                 v-model="row.soportes"
                                 multiple
                                 label="Soporte"
                             />
                             <span
                                 v-if="
-                                    !requiereMotivo(row) &&
-                                    !requiereSoporte(row)
+                                    !requiereMotivo(row as GestionReporteRow) &&
+                                    !requiereSoporte(row as GestionReporteRow)
                                 "
                                 class="text-muted-foreground text-xs"
                                 >—</span
@@ -198,7 +208,7 @@ async function procesar(row: GestionReporteRow) {
                             size="small"
                             :loading="row.procesando"
                             :disabled="!row.estatusSelected"
-                            @click="procesar(row)"
+                            @click="procesar(row as GestionReporteRow)"
                         >
                             Procesar
                         </el-button>

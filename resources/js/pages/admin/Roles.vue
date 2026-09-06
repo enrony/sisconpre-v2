@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { Head, Link, usePage } from '@inertiajs/vue3';
-import { ElMessageBox } from 'element-plus';
 import { computed } from 'vue';
 import RoleFormModal from '@/components/admin/RoleFormModal.vue';
 import Heading from '@/components/Heading.vue';
@@ -27,7 +26,7 @@ function eliminar(row: RoleRow) {
         `¿Eliminar el rol "${row.name}"? Los usuarios perderán los permisos que solo este rol otorgaba.`,
         'Confirmar',
         { type: 'warning', confirmButtonText: 'Sí', cancelButtonText: 'No' },
-    ).then(() => store.eliminar(row));
+    ).then(() => store.eliminar(row as RoleRow));
 }
 </script>
 
@@ -102,7 +101,7 @@ function eliminar(row: RoleRow) {
                             <el-button
                                 v-if="puedeEditar"
                                 size="small"
-                                @click="store.abrir(row)"
+                                @click="store.abrir(row as RoleRow)"
                             >
                                 Editar
                             </el-button>
@@ -111,7 +110,7 @@ function eliminar(row: RoleRow) {
                                 size="small"
                                 type="danger"
                                 plain
-                                @click="eliminar(row)"
+                                @click="eliminar(row as RoleRow)"
                             >
                                 Eliminar
                             </el-button>

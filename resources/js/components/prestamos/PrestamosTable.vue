@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { storeToRefs } from 'pinia';
-import { ElNotification } from 'element-plus';
 import CuotasReadonlyGrid from '@/components/prestamos/CuotasReadonlyGrid.vue';
 import PrestamoLegend from '@/components/prestamos/PrestamoLegend.vue';
 import { can } from '@/lib/can';
@@ -25,20 +24,28 @@ function onSortChange({
     prop,
     order,
 }: {
-    prop: string;
+    prop: string | null;
     order: 'ascending' | 'descending' | null;
 }) {
-    store.setSort(prop, order);
+    store.setSort(prop ?? 'id', order);
 }
 
 function onPage(page: number) {
     void store.fetchList(page);
 }
 
-function tagType(row: {
-    p_estatus?: { type_tag?: { type?: string } };
-}): string {
-    return row.p_estatus?.type_tag?.type ?? 'info';
+type TagType = 'primary' | 'success' | 'info' | 'warning' | 'danger';
+const TAG_TYPES: TagType[] = [
+    'primary',
+    'success',
+    'info',
+    'warning',
+    'danger',
+];
+
+function tagType(row: PrestamoRow): TagType {
+    const t = row.p_estatus?.type_tag?.type ?? '';
+    return TAG_TYPES.includes(t as TagType) ? (t as TagType) : 'info';
 }
 </script>
 
@@ -71,9 +78,12 @@ function tagType(row: {
                 sortable="custom"
             >
                 <template #default="{ row }">
-                    <el-tag :type="tagType(row)" effect="dark" size="small">{{
-                        row.id
-                    }}</el-tag>
+                    <el-tag
+                        :type="tagType(row as PrestamoRow)"
+                        effect="dark"
+                        size="small"
+                        >{{ row.id }}</el-tag
+                    >
                     <el-tooltip
                         v-if="row.pause_surcharge"
                         content="Recargo por mora pausado"
@@ -171,7 +181,7 @@ function tagType(row: {
                                 >
                                 <el-dropdown-item
                                     :disabled="!puedeEditar"
-                                    @click="togglePausa(row)"
+                                    @click="togglePausa(row as PrestamoRow)"
                                 >
                                     {{
                                         row.pause_surcharge

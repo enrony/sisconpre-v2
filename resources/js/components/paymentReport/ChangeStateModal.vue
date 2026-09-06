@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { storeToRefs } from 'pinia';
-import { ElNotification } from 'element-plus';
 import { computed, ref, watch } from 'vue';
 import SupportUpload from '@/components/paymentReport/SupportUpload.vue';
 import type { SupportImage } from '@/lib/fileToSupport';

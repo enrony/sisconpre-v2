@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { usePage } from '@inertiajs/vue3';
 import { storeToRefs } from 'pinia';
-import { ElNotification } from 'element-plus';
 import { computed } from 'vue';
 import { useClientesStore } from '@/stores/clientes';
 

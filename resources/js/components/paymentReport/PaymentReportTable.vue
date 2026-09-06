@@ -36,7 +36,9 @@ function clienteNombre(row: InformePagoRow): string {
 }
 
 /** Estado del texto legado (`text-gray-400`…) a tipo de `el-tag`. */
-function tagType(row: InformePagoRow): string {
+function tagType(
+    row: InformePagoRow,
+): 'primary' | 'success' | 'info' | 'warning' | 'danger' {
     const color = row.status_description?.color ?? '';
     if (color.includes('green')) return 'success';
     if (color.includes('red')) return 'danger';
@@ -68,7 +70,9 @@ function onPage(page: number) {
             />
             <el-table-column prop="created" label="Registrado" width="160" />
             <el-table-column label="Cliente" min-width="170">
-                <template #default="{ row }">{{ clienteNombre(row) }}</template>
+                <template #default="{ row }">{{
+                    clienteNombre(row as InformePagoRow)
+                }}</template>
             </el-table-column>
             <el-table-column
                 prop="destination_text"
@@ -90,7 +94,11 @@ function onPage(page: number) {
             />
             <el-table-column label="Estado" width="150" align="center">
                 <template #default="{ row }">
-                    <el-tag :type="tagType(row)" effect="dark" size="small">
+                    <el-tag
+                        :type="tagType(row as InformePagoRow)"
+                        effect="dark"
+                        size="small"
+                    >
                         {{ row.status_description?.desc ?? '—' }}
                     </el-tag>
                 </template>
@@ -109,19 +117,29 @@ function onPage(page: number) {
                         <template #dropdown>
                             <el-dropdown-menu>
                                 <el-dropdown-item
-                                    @click="store.abrirDetalle(row)"
+                                    @click="
+                                        store.abrirDetalle(
+                                            row as InformePagoRow,
+                                        )
+                                    "
                                 >
                                     Ver detalle (#{{ row.id }})
                                 </el-dropdown-item>
                                 <el-dropdown-item
                                     :disabled="!puedeGestionar"
-                                    @click="abrirCambioEstado(row)"
+                                    @click="
+                                        abrirCambioEstado(row as InformePagoRow)
+                                    "
                                 >
                                     Cambiar estado
                                 </el-dropdown-item>
                                 <el-dropdown-item
                                     :disabled="!puedeGestionar"
-                                    @click="store.abrirGestion(row)"
+                                    @click="
+                                        store.abrirGestion(
+                                            row as InformePagoRow,
+                                        )
+                                    "
                                 >
                                     Gestionar informes del cliente
                                 </el-dropdown-item>

@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { storeToRefs } from 'pinia';
-import { ElNotification } from 'element-plus';
 import { computed } from 'vue';
 import SupportUpload from '@/components/paymentReport/SupportUpload.vue';
 import { formatNumber } from '@/lib/format';

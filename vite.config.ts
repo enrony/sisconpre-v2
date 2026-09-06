@@ -4,6 +4,9 @@ import tailwindcss from '@tailwindcss/vite';
 import vue from '@vitejs/plugin-vue';
 import laravel from 'laravel-vite-plugin';
 import { bunny } from 'laravel-vite-plugin/fonts';
+import AutoImport from 'unplugin-auto-import/vite';
+import { ElementPlusResolver } from 'unplugin-vue-components/resolvers';
+import Components from 'unplugin-vue-components/vite';
 import { defineConfig, lazyPlugins } from 'vite-plus';
 
 export default defineConfig({
@@ -19,6 +22,17 @@ export default defineConfig({
         }),
         inertia(),
         tailwindcss(),
+        // Carga bajo demanda de element-plus: solo los componentes/directivas
+        // usados entran al bundle, con su CSS por componente (§9: app.js ~1,2 MB).
+        AutoImport({
+            resolvers: [ElementPlusResolver({ importStyle: 'css' })],
+            dts: 'resources/js/auto-imports.d.ts',
+        }),
+        Components({
+            resolvers: [ElementPlusResolver({ importStyle: 'css' })],
+            dts: 'resources/js/components.d.ts',
+            dirs: [],
+        }),
         vue({
             template: {
                 transformAssetUrls: {
@@ -54,6 +68,8 @@ export default defineConfig({
             'resources/js/components/ui/*',
             'resources/js/routes/**',
             'resources/js/wayfinder/**',
+            'resources/js/auto-imports.d.ts',
+            'resources/js/components.d.ts',
         ],
         options: {
             denyWarnings: true,
@@ -72,6 +88,8 @@ export default defineConfig({
             'composer.json',
             'public/build/**',
             'resources/js/components/ui/*',
+            'resources/js/auto-imports.d.ts',
+            'resources/js/components.d.ts',
             'resources/views/mail/*',
         ],
         sortTailwindcss: {

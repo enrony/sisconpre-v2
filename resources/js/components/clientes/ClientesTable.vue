@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { ElMessageBox } from 'element-plus';
 import { can } from '@/lib/can';
 import { type ClienteRow, useClientesStore } from '@/stores/clientes';
 import type { Paginated } from '@/stores/prestamos';
@@ -17,7 +16,9 @@ function eliminar(row: ClienteRow) {
         `¿Eliminar al cliente "${row.full_name}"?`,
         'Confirmar',
         { type: 'warning', confirmButtonText: 'Sí', cancelButtonText: 'No' },
-    ).then(() => store.eliminar(row, props.paginator?.current_page ?? 1));
+    ).then(() =>
+        store.eliminar(row as ClienteRow, props.paginator?.current_page ?? 1),
+    );
 }
 </script>
 
@@ -53,7 +54,7 @@ function eliminar(row: ClienteRow) {
                         <el-button
                             v-if="puedeEditar"
                             size="small"
-                            @click="store.abrirModal(row)"
+                            @click="store.abrirModal(row as ClienteRow)"
                         >
                             Editar
                         </el-button>
@@ -62,7 +63,7 @@ function eliminar(row: ClienteRow) {
                             size="small"
                             type="danger"
                             plain
-                            @click="eliminar(row)"
+                            @click="eliminar(row as ClienteRow)"
                         >
                             Eliminar
                         </el-button>

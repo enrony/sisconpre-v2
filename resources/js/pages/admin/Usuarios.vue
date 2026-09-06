@@ -111,7 +111,7 @@ function guardarRoles(row: UsuarioRow, roles: string[]) {
                             :disabled="!puedeEditar"
                             :loading="guardando === row.id"
                             placeholder="Sin roles"
-                            @change="guardarRoles(row, $event)"
+                            @change="guardarRoles(row as UsuarioRow, $event)"
                         >
                             <el-option
                                 v-for="r in rolesDisponibles"

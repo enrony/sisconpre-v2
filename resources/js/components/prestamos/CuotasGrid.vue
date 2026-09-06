@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { ElNotification } from 'element-plus';
 import { computed, ref } from 'vue';
 import { formatNumber } from '@/lib/format';
 import type { Cuota } from '@/lib/prestamoSchedule';

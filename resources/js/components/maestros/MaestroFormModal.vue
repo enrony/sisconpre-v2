@@ -124,7 +124,7 @@ function guardar() {
                     />
                     <el-select
                         v-else-if="f.type === 'select'"
-                        v-model="form[f.key]"
+                        v-model="form[f.key] as string | number"
                         class="w-full"
                         filterable
                         clearable

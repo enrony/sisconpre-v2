@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { router, usePage } from '@inertiajs/vue3';
-import { ElMessageBox } from 'element-plus';
 import { computed, onMounted, ref } from 'vue';
 import MaestroFormModal from '@/components/maestros/MaestroFormModal.vue';
 import type {
@@ -134,7 +133,7 @@ function irAPagina(p: number) {
                         <template v-else>
                             {{
                                 lookup(
-                                    row,
+                                    row as MaestroRow,
                                     col.prop,
                                     col.lookupKey!,
                                     col.lookupLabel,
@@ -163,7 +162,7 @@ function irAPagina(p: number) {
                             <el-button
                                 v-if="puedeEditar"
                                 size="small"
-                                @click="editar(row)"
+                                @click="editar(row as MaestroRow)"
                             >
                                 Editar
                             </el-button>
@@ -172,7 +171,7 @@ function irAPagina(p: number) {
                                 size="small"
                                 type="danger"
                                 plain
-                                @click="eliminar(row)"
+                                @click="eliminar(row as MaestroRow)"
                             >
                                 Eliminar
                             </el-button>
