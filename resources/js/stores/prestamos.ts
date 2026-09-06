@@ -36,6 +36,7 @@ export interface PrestamoRow {
     total: string | number;
     p_estatus?: { id: number; type_tag?: { type?: string } };
     prestamos_dias?: CuotaDia[];
+    pause_surcharge?: boolean | number;
 }
 
 export interface Paginated<T> {
@@ -321,6 +322,20 @@ export const usePrestamosStore = defineStore('prestamos', {
             } finally {
                 this.loadingClientes = false;
             }
+        },
+
+        async togglePausaRecargo(
+            id: number,
+        ): Promise<{ success: boolean; message: string }> {
+            const { data } = await http.put(
+                `/prestamos/${id}/pausar-recargo`,
+                {},
+            );
+            if (data.success) {
+                await this.fetchList(this.lista?.current_page ?? 1);
+            }
+
+            return data;
         },
 
         setSort(

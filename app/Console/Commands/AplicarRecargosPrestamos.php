@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Models\CountryHoliday;
 use App\Models\PrestamosDias;
 use Illuminate\Console\Command;
 use Illuminate\Support\Carbon;
@@ -16,15 +17,16 @@ class AplicarRecargosPrestamos extends Command
     {
         $fechaActual = Carbon::today();
 
-        $prestamosDias = PrestamosDias::where('estado', 1)
+        // Nota: el legado usaba 'estado' (columna inexistente) → es 'estatus'.
+        // Se añade el filtro por `pause_surcharge` (préstamo con recargo pausado).
+        $prestamosDias = PrestamosDias::where('estatus', 1)
             ->where('surcharge_applied', false)
             ->where('day_apply_surcharge', '<=', $fechaActual)
             ->where('apply_surcharge', true)
             ->where('pagado', false)
             ->whereHas('Prestamo', function ($query) {
-                $query->where('estado', 1);
+                $query->where('estatus', 1)->where('pause_surcharge', false);
             })
-            // ->with('Prestamo.country')
             ->with('Prestamo')
             ->get();
 

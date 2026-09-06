@@ -200,4 +200,22 @@ class PrestamosController extends Controller
             $prestamos->with(['pendientesPago']);
         }])->select('*', 'created_at as created')->PrestamoActivo($cliente)->get());
     }
+
+    /**
+     * Pausa / reanuda la aplicación del recargo por mora del préstamo.
+     * `pause_surcharge` lo respeta el comando `prestamos:aplicar-recargos`.
+     */
+    public function togglePausaRecargo(Prestamos $prestamo)
+    {
+        $prestamo->pause_surcharge = ! $prestamo->pause_surcharge;
+        $prestamo->save();
+
+        return [
+            'success' => true,
+            'pause_surcharge' => (bool) $prestamo->pause_surcharge,
+            'message' => $prestamo->pause_surcharge
+                ? 'Recargo por mora pausado'
+                : 'Recargo por mora reanudado',
+        ];
+    }
 }

@@ -1,12 +1,25 @@
 <script setup lang="ts">
 import { storeToRefs } from 'pinia';
+import { ElNotification } from 'element-plus';
 import CuotasReadonlyGrid from '@/components/prestamos/CuotasReadonlyGrid.vue';
 import PrestamoLegend from '@/components/prestamos/PrestamoLegend.vue';
-import { usePrestamosStore } from '@/stores/prestamos';
+import { can } from '@/lib/can';
+import { type PrestamoRow, usePrestamosStore } from '@/stores/prestamos';
 import { formatNumber } from '@/lib/format';
 
 const store = usePrestamosStore();
 const { lista, loading } = storeToRefs(store);
+
+const puedeEditar = can('prestamos.editar');
+
+async function togglePausa(row: PrestamoRow) {
+    try {
+        const res = await store.togglePausaRecargo(row.id);
+        ElNotification[res.success ? 'success' : 'error'](res.message);
+    } catch {
+        ElNotification.error('No se pudo cambiar la pausa del recargo');
+    }
+}
 
 function onSortChange({
     prop,
@@ -61,6 +74,12 @@ function tagType(row: {
                     <el-tag :type="tagType(row)" effect="dark" size="small">{{
                         row.id
                     }}</el-tag>
+                    <el-tooltip
+                        v-if="row.pause_surcharge"
+                        content="Recargo por mora pausado"
+                    >
+                        <span class="ml-1 text-yellow-600">⏸</span>
+                    </el-tooltip>
                 </template>
             </el-table-column>
             <el-table-column
@@ -150,9 +169,16 @@ function tagType(row: {
                                 <el-dropdown-item disabled
                                     >Novedades</el-dropdown-item
                                 >
-                                <el-dropdown-item disabled
-                                    >Pausar</el-dropdown-item
+                                <el-dropdown-item
+                                    :disabled="!puedeEditar"
+                                    @click="togglePausa(row)"
                                 >
+                                    {{
+                                        row.pause_surcharge
+                                            ? 'Reanudar recargo'
+                                            : 'Pausar recargo'
+                                    }}
+                                </el-dropdown-item>
                             </el-dropdown-menu>
                         </template>
                     </el-dropdown>

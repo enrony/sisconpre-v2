@@ -30,6 +30,8 @@ Route::prefix('/prestamos')->middleware(['auth'])->group(function () {
     Route::get('/obtenerPrestamosActivos/{cliente}', [PrestamosController::class, 'obtenerPrestamosActivos']);
     Route::post('/records', [PrestamosController::class, 'records']);
     Route::get('/recordsEstados', [PrestamosController::class, 'recordsEstados']);
+    Route::put('/{prestamo}/pausar-recargo', [PrestamosController::class, 'togglePausaRecargo'])
+        ->middleware('permission:prestamos.editar');
 });
 
 Route::middleware(['auth'])->get('/clientes', [ClientesController::class, 'listaClientes'])->name('clientes');

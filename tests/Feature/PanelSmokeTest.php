@@ -66,6 +66,26 @@ class PanelSmokeTest extends TestCase
             ->assertSuccessful();
     }
 
+    /** Pausar / reanudar el recargo por mora de un préstamo. */
+    public function test_pausar_recargo_prestamo(): void
+    {
+        $id = DB::table('prestamos')->orderByDesc('id')->value('id');
+
+        $this->actingAs($this->super())->putJson("/prestamos/{$id}/pausar-recargo")
+            ->assertOk()->assertJson(['success' => true, 'pause_surcharge' => true]);
+        $this->assertSame(1, (int) DB::table('prestamos')->where('id', $id)->value('pause_surcharge'));
+
+        $this->actingAs($this->super())->putJson("/prestamos/{$id}/pausar-recargo")
+            ->assertOk()->assertJson(['pause_surcharge' => false]);
+        $this->assertSame(0, (int) DB::table('prestamos')->where('id', $id)->value('pause_surcharge'));
+    }
+
+    /** El comando de recargos corre sin error (bugs `estado`/import del legado). */
+    public function test_comando_aplicar_recargos(): void
+    {
+        $this->artisan('prestamos:aplicar-recargos')->assertOk();
+    }
+
     /** Alta rápida de cliente (usada por el asistente de préstamos). */
     public function test_alta_rapida_cliente(): void
     {
