@@ -261,6 +261,7 @@ class PanelSmokeTest extends TestCase
             '/departamentos',
             '/cities',
             '/grupos_trabajo',
+            '/tipo_prestamo',
         ] as $path) {
             $this->actingAs($this->super())->get($path)->assertSuccessful();
         }
@@ -268,6 +269,7 @@ class PanelSmokeTest extends TestCase
         // endpoints de datos auxiliares para los selects
         $this->actingAs($this->super())->get('/banks/tables')->assertOk()->assertJsonStructure(['CountryAll']);
         $this->actingAs($this->super())->get('/frecuencias/tables')->assertOk()->assertJsonStructure(['TipoFrecuenciaPrestamoAll']);
+        $this->actingAs($this->super())->get('/tipo_prestamo/tables')->assertOk()->assertJsonStructure(['TipoFrecuenciaPrestamoAll']);
         $this->actingAs($this->super())->get('/departamentos/tables')->assertOk()->assertJsonStructure(['CountryAll']);
         $this->actingAs($this->super())->get('/cities/tables')->assertOk()->assertJsonStructure(['CountryAll', 'DepartmentAll']);
         $this->actingAs($this->super())->get('/grupos_trabajo/tables')->assertOk()->assertJsonStructure(['CitiesAll']);
@@ -292,6 +294,37 @@ class PanelSmokeTest extends TestCase
 
         $this->actingAs($super)->delete("/franquicias/{$fr->id}/1")->assertRedirect();
         $this->assertNull(DB::table('franquicias')->where('id', $fr->id)->first());
+    }
+
+    /** Alta + edición + borrado de un tipo de préstamo (maestro con select de frecuencia). */
+    public function test_maestro_crud_tipo_prestamo(): void
+    {
+        $super = $this->super();
+        $freq = DB::table('tipo_frecuencia_prestamos')->value('id');
+
+        $this->actingAs($super)->put('/tipo_prestamo', [
+            'id' => 0,
+            'descripcion' => 'QA Tipo',
+            'cantidad' => 10,
+            'tipo_frecuencia_prestamo_id' => $freq,
+            'paginaActual' => 1,
+        ])->assertRedirect();
+
+        $tp = DB::table('tipo_prestamos')->where('descripcion', 'QA Tipo')->first();
+        $this->assertNotNull($tp);
+        $this->assertSame(10, (int) $tp->cantidad);
+
+        $this->actingAs($super)->put('/tipo_prestamo', [
+            'id' => $tp->id,
+            'descripcion' => 'QA Tipo',
+            'cantidad' => 15,
+            'tipo_frecuencia_prestamo_id' => $freq,
+            'paginaActual' => 1,
+        ])->assertRedirect();
+        $this->assertSame(15, (int) DB::table('tipo_prestamos')->where('id', $tp->id)->value('cantidad'));
+
+        $this->actingAs($super)->delete("/tipo_prestamo/{$tp->id}/1")->assertRedirect();
+        $this->assertNull(DB::table('tipo_prestamos')->where('id', $tp->id)->first());
     }
 
     /** Pantalla de Clientes: índice + alta / edición / baja lógica (PUT|DELETE /clientes). */
