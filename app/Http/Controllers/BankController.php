@@ -25,7 +25,7 @@ class BankController extends Controller
         return Inertia\Inertia::render(
             'Bank',
             [
-                'lista' => $Bank::selectRaw("{$table}.id, {$table}.description, {$table}.country_id, {$table}.estatus, {$table}.created_at, {$table}.updated_at, lower( description ) as nombre_lower, date_format({$table}.created_at, '%Y-%m-%d %H:%i:%s') as created, date_format({$table}.updated_at, '%Y-%m-%d %H:%i:%s') as updated")
+                'lista' => $Bank::selectRaw("{$table}.id, {$table}.code, {$table}.description, {$table}.country_id, {$table}.estatus, {$table}.created_at, {$table}.updated_at, lower( description ) as nombre_lower, date_format({$table}.created_at, '%Y-%m-%d %H:%i:%s') as created, date_format({$table}.updated_at, '%Y-%m-%d %H:%i:%s') as updated")
                     ->when($request->term, function ($query, $term) use ($table) {
                         $query->where("{$table}.description", 'LIKE', '%'.$term.'%');
                     })->where("{$table}.estatus", 1)

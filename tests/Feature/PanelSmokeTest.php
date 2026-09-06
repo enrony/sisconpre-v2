@@ -209,9 +209,16 @@ class PanelSmokeTest extends TestCase
             '/franquicias',
             '/bank_account_types',
             '/type_payment_record',
+            '/banks',
+            '/tipo_documentos',
+            '/frecuencias',
         ] as $path) {
             $this->actingAs($this->super())->get($path)->assertSuccessful();
         }
+
+        // endpoints de datos auxiliares para los selects
+        $this->actingAs($this->super())->get('/banks/tables')->assertOk()->assertJsonStructure(['CountryAll']);
+        $this->actingAs($this->super())->get('/frecuencias/tables')->assertOk()->assertJsonStructure(['TipoFrecuenciaPrestamoAll']);
     }
 
     /** Alta + edición + borrado de un maestro (Franquicia) por el flujo real. */

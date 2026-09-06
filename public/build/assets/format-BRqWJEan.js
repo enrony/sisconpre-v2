@@ -1,0 +1,1 @@
+var e=new Intl.NumberFormat(`es-CO`,{minimumFractionDigits:0,maximumFractionDigits:2});function t(t){let n=typeof t==`string`?Number(t):t??0;return Number.isFinite(n)?e.format(n):`0`}export{t};

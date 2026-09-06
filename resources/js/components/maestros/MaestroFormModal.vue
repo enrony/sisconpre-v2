@@ -1,14 +1,32 @@
 <script setup lang="ts">
 import { router, usePage } from '@inertiajs/vue3';
 import { computed, reactive, ref, watch } from 'vue';
-import type { MaestroConfig, MaestroRow } from '@/components/maestros/types';
+import type {
+    MaestroConfig,
+    MaestroField,
+    MaestroRow,
+    MaestroTables,
+} from '@/components/maestros/types';
 
 const props = defineProps<{
     config: MaestroConfig;
     open: boolean;
     record: MaestroRow | null;
     currentPage: number;
+    tables?: MaestroTables;
 }>();
+
+function opciones(
+    f: MaestroField,
+): { label: string; value: string | number }[] {
+    if (f.optionsKey) {
+        return (props.tables?.[f.optionsKey] ?? []).map((o) => ({
+            label: String(o[f.optionLabel ?? 'description'] ?? o.id),
+            value: (o[f.optionValue ?? 'id'] ?? '') as string | number,
+        }));
+    }
+    return f.options ?? [];
+}
 
 const emit = defineEmits<{ 'update:open': [boolean]; saved: [] }>();
 
@@ -99,10 +117,11 @@ function guardar() {
                         v-else-if="f.type === 'select'"
                         v-model="form[f.key]"
                         class="w-full"
+                        filterable
                         clearable
                     >
                         <el-option
-                            v-for="o in f.options ?? []"
+                            v-for="o in opciones(f)"
                             :key="String(o.value)"
                             :label="o.label"
                             :value="o.value"

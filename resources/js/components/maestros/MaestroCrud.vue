@@ -1,16 +1,42 @@
 <script setup lang="ts">
 import { router, usePage } from '@inertiajs/vue3';
 import { ElMessageBox } from 'element-plus';
-import { computed, ref } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import MaestroFormModal from '@/components/maestros/MaestroFormModal.vue';
-import type { MaestroConfig, MaestroRow } from '@/components/maestros/types';
+import type {
+    MaestroConfig,
+    MaestroRow,
+    MaestroTables,
+} from '@/components/maestros/types';
 import Heading from '@/components/Heading.vue';
 import { can } from '@/lib/can';
+import http from '@/lib/http';
 import type { Paginated } from '@/stores/prestamos';
 
 const props = defineProps<{ config: MaestroConfig }>();
 
 const page = usePage();
+const tables = ref<MaestroTables>({});
+
+onMounted(async () => {
+    if (props.config.tablesUrl) {
+        const { data } = await http.get(props.config.tablesUrl);
+        tables.value = data ?? {};
+    }
+});
+
+function lookup(
+    row: MaestroRow,
+    prop: string,
+    lookupKey: string,
+    lookupLabel = 'description',
+): unknown {
+    const id = row[prop];
+    const found = (tables.value[lookupKey] ?? []).find(
+        (o) => String(o.id) === String(id),
+    );
+    return found ? (found[lookupLabel] ?? id) : id;
+}
 
 const paginator = computed(
     () =>
@@ -95,8 +121,23 @@ function irAPagina(p: number) {
                     :width="col.width"
                     :align="col.align ?? 'left'"
                 >
-                    <template v-if="col.boolean" #default="{ row }">
-                        {{ row[col.prop] ? 'Sí' : 'No' }}
+                    <template
+                        v-if="col.boolean || col.lookupKey"
+                        #default="{ row }"
+                    >
+                        <template v-if="col.boolean">
+                            {{ row[col.prop] ? 'Sí' : 'No' }}
+                        </template>
+                        <template v-else>
+                            {{
+                                lookup(
+                                    row,
+                                    col.prop,
+                                    col.lookupKey!,
+                                    col.lookupLabel,
+                                )
+                            }}
+                        </template>
                     </template>
                 </el-table-column>
                 <el-table-column
@@ -154,6 +195,7 @@ function irAPagina(p: number) {
             :config="config"
             :record="editing"
             :current-page="currentPage"
+            :tables="tables"
         />
     </div>
 </template>
