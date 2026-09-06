@@ -349,4 +349,22 @@ class PanelSmokeTest extends TestCase
         // revertir
         $this->actingAs($super)->put("/profile/usuarios/{$u->id}", ['roles' => $antes])->assertRedirect();
     }
+
+    /** Ajustes: perfil (Fortify) resuelve y el nombre se actualiza. */
+    public function test_settings_perfil(): void
+    {
+        $super = $this->super();
+
+        $this->actingAs($super)->get('/settings/profile')->assertSuccessful();
+        $this->actingAs($super)->get('/settings/appearance')->assertSuccessful();
+
+        $orig = $super->name;
+        $this->actingAs($super)->patch('/settings/profile', [
+            'name' => 'QA Nombre',
+            'email' => $super->email,
+        ])->assertRedirect();
+        $this->assertSame('QA Nombre', DB::table('users')->where('id', $super->id)->value('name'));
+
+        DB::table('users')->where('id', $super->id)->update(['name' => $orig]);
+    }
 }

@@ -219,7 +219,12 @@ Orden por criticidad de negocio:
     - [x] **Usuarios y roles** (`pages/admin/Usuarios.vue`): `GET /profile/usuarios` (paginado + búsqueda), `el-select` múltiple de roles por fila que guarda al vuelo con `PUT /profile/usuarios/{user}` → `syncRoles`. **Verificado en navegador** + feature test `test_admin_usuarios`.
     - [x] **Fase 9 (de paso)**: `routes/Profile.php` apuntaba a la pantalla legada (`App\Http\Controllers\ProfileController` + `Profiles.vue`); ahora apunta a `App\Http\Controllers\Admin\{Roles,Users}Controller`. Los controladores/páginas/modelos legados (`ProfileController`, `ActionController`, `ModulesController`, `Modules`, `Profiles`, …) quedan como **código muerto a borrar** junto con las tablas de §11.
     - [ ] **Editor de menú (`menu_items`)** _(pendiente)_: el árbol de navegación se siembra de `rbac:sync-from-legacy` y cambia poco. Un editor de árbol (reordenar, anidar, icono, permiso por ítem) es fiddly y de bajo valor ahora — se hará si el negocio necesita tocar el menú sin deploy. `routes/modules.php` sigue apuntando al `ModulesController` legado (sin UI nueva).
-6. [ ] **Perfil de usuario + 2FA** (páginas de Fortify del starter kit; **sin Teams**)
+6. 🟡 **Perfil de usuario + 2FA** — el starter kit ya trae el flujo completo (perfil, contraseña, **2FA TOTP con confirmación**, **passkeys**, apariencia, borrar cuenta). El trabajo de la migración fue **traducir todo a español** y verificar:
+    - [x] `layouts/settings/Layout.vue`, `pages/settings/{Profile,Security,Appearance}.vue` + `components/{ManageTwoFactor,ManagePasskeys,PasskeyItem,PasskeyRegister,TwoFactorRecoveryCodes,TwoFactorSetupModal,DeleteUser,AppearanceTabs,UserMenuContent}.vue` traducidos.
+    - [x] Lado de login del 2FA: `pages/auth/{TwoFactorChallenge,ConfirmPassword}.vue` traducidos (el resto de páginas de auth —Login/Register/Forgot/Reset/VerifyEmail— quedan para un pase de i18n de auth, Fase 9).
+    - [x] **Verificado en navegador** (`/settings/profile` en español; nav Perfil/Seguridad/Apariencia) + feature test `test_settings_perfil` (índice resuelve + `PATCH` de nombre).
+    - ⚠️ **A decidir con el negocio**: `DeleteUser` (auto-baja de cuenta con borrado en cascada) sigue visible en el perfil — para un back-office quizá convenga quitarlo o gatearlo por permiso.
+    - Sin Teams (el starter kit Vue no los trae).
 
 Por cada SFC: migrar a Vue 3 (filtros fuera, `.sync` → `v-model:arg`, bus de eventos, `v-model`), ajustar
 `el-*` a `element-plus` (props/slots/nombres), revisar store Pinia, probar contra datos reales importados.
