@@ -55,6 +55,53 @@ export const DESTINOS = [
     { value: 2, label: 'Saldo a favor' },
 ];
 
+export interface PaymentMethodOption {
+    id: number;
+    description: string;
+    bank: boolean;
+    franchise: boolean;
+    reference: boolean;
+}
+
+export interface CuotaPendiente {
+    id: number;
+    date: string;
+    cuota: string | number;
+    apply: boolean;
+    pagado: boolean;
+}
+
+export interface PrestamoActivo {
+    id: number;
+    monto_prestamo: string | number;
+    cuota_establecida: string | number;
+    prestamos_dias: CuotaPendiente[];
+}
+
+interface PagoRow {
+    payment_method_id: number | null;
+    valor_importe: number;
+    bank_id: number | null;
+    franquicia_id: number | null;
+    referencia: string | null;
+}
+
+const nuevoPago = (): PagoRow => ({
+    payment_method_id: null,
+    valor_importe: 0,
+    bank_id: null,
+    franquicia_id: null,
+    referencia: null,
+});
+
+interface ClienteFull {
+    id: number;
+    documento: string;
+    nombre: string;
+    apellido?: string | null;
+    country_id?: string;
+}
+
 export const usePaymentReportStore = defineStore('paymentReport', {
     state: () => ({
         lista: null as Paginated<InformePagoRow> | null,
@@ -63,7 +110,43 @@ export const usePaymentReportStore = defineStore('paymentReport', {
         loading: false,
         loadingClientes: false,
         filtro: emptyFiltro(),
+
+        // --- Informar un pago ---
+        informarOpen: false,
+        informarSubmitting: false,
+        clientesAll: [] as ClienteFull[],
+        paymentMethods: [] as PaymentMethodOption[],
+        banks: [] as { id: number; description: string }[],
+        franquicias: [] as { id: number; description: string }[],
+        prestamosActivos: [] as PrestamoActivo[],
+        loadingActivos: false,
+        informar: {
+            clienteId: null as number | null,
+            tipoPago: 1,
+            cuotas: [] as { id: number; cuota: number }[],
+            dataPayments: [nuevoPago()],
+        },
     }),
+
+    getters: {
+        totalCuotas(state): number {
+            return state.informar.cuotas.reduce(
+                (a, c) => a + Number(c.cuota),
+                0,
+            );
+        },
+        totalPagos(state): number {
+            return state.informar.dataPayments.reduce(
+                (a, p) => a + Number(p.valor_importe || 0),
+                0,
+            );
+        },
+        clienteInformar(state): ClienteFull | undefined {
+            return state.clientesAll.find(
+                (c) => c.id === state.informar.clienteId,
+            );
+        },
+    },
 
     actions: {
         queryString(page = 1): string {
@@ -156,6 +239,109 @@ export const usePaymentReportStore = defineStore('paymentReport', {
             );
 
             return data;
+        },
+
+        // --------------------------------------------------------------
+        //  Informar un pago
+        // --------------------------------------------------------------
+
+        async abrirInformar(): Promise<void> {
+            this.informar = {
+                clienteId: null,
+                tipoPago: 1,
+                cuotas: [],
+                dataPayments: [nuevoPago()],
+            };
+            this.prestamosActivos = [];
+            this.informarOpen = true;
+
+            const [pm, bk, fr, cl] = await Promise.all([
+                http.get('/payment_methods/tables'),
+                http.get('/banks/tables'),
+                http.get('/franquicias/tables'),
+                http.get('/clientes/lista-clientes-json-basic'),
+            ]);
+            this.paymentMethods = pm.data.PaymentMethod ?? [];
+            this.banks = bk.data.Bank ?? [];
+            this.franquicias = fr.data.lista ?? [];
+            this.clientesAll = cl.data.clien ?? [];
+        },
+
+        cerrarInformar(): void {
+            this.informarOpen = false;
+        },
+
+        async cargarActivos(): Promise<void> {
+            this.informar.cuotas = [];
+            if (!this.informar.clienteId) {
+                this.prestamosActivos = [];
+
+                return;
+            }
+            this.loadingActivos = true;
+            try {
+                const { data } = await http.get(
+                    `/prestamos/obtenerPrestamosActivos/${this.informar.clienteId}`,
+                );
+                this.prestamosActivos = Array.isArray(data)
+                    ? data
+                    : (data.data ?? []);
+            } finally {
+                this.loadingActivos = false;
+            }
+        },
+
+        toggleCuota(c: CuotaPendiente): void {
+            const i = this.informar.cuotas.findIndex((x) => x.id === c.id);
+            if (i >= 0) {
+                this.informar.cuotas.splice(i, 1);
+            } else {
+                this.informar.cuotas.push({ id: c.id, cuota: Number(c.cuota) });
+            }
+        },
+
+        cuotaSeleccionada(id: number): boolean {
+            return this.informar.cuotas.some((c) => c.id === id);
+        },
+
+        addPago(): void {
+            this.informar.dataPayments.push(nuevoPago());
+        },
+
+        removePago(i: number): void {
+            this.informar.dataPayments.splice(i, 1);
+            if (this.informar.dataPayments.length === 0) {
+                this.informar.dataPayments.push(nuevoPago());
+            }
+        },
+
+        async submitInformar(): Promise<{ success: boolean; message: string }> {
+            this.informarSubmitting = true;
+            try {
+                const cliente = this.clienteInformar;
+                const form = new FormData();
+                form.append(
+                    'data',
+                    JSON.stringify({
+                        cliente,
+                        tipoPago: this.informar.tipoPago,
+                        cuotas:
+                            this.informar.tipoPago === 1
+                                ? this.informar.cuotas
+                                : [],
+                        dataPayments: this.informar.dataPayments.map((p) => ({
+                            ...p,
+                            support_image: [],
+                        })),
+                    }),
+                );
+
+                const { data } = await http.post('/payment_report/', form);
+
+                return data;
+            } finally {
+                this.informarSubmitting = false;
+            }
         },
     },
 });

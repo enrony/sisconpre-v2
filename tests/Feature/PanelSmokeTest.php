@@ -110,6 +110,50 @@ class PanelSmokeTest extends TestCase
         DB::table('payment_reports_movements')->where('payment_report_id', $pr->id)->where('motivo', 'QA feature test')->delete();
     }
 
+    /** "Informar un pago": crea el informe con cuotas seleccionadas + método + saldo a favor. */
+    public function test_informar_un_pago(): void
+    {
+        $cliente = DB::table('clientes')->first();
+        $this->assertNotNull($cliente);
+
+        $cuotas = DB::table('prestamos_dias as d')
+            ->join('prestamos as p', 'p.id', '=', 'd.prestamo_id')
+            ->where('p.cliente_id', $cliente->id)
+            ->where('d.apply', true)->where('d.pagado', false)
+            ->orderBy('d.id')->limit(2)
+            ->get(['d.id', 'd.cuota']);
+        $this->assertCount(2, $cuotas);
+
+        $sumaCuotas = $cuotas->sum(fn ($c) => (float) $c->cuota);
+        $before = DB::table('payment_reports')->count();
+
+        $res = $this->actingAs($this->super())->postJson('/payment_report/', [
+            'data' => json_encode([
+                'cliente' => (array) $cliente,
+                'tipoPago' => 1,
+                'cuotas' => $cuotas->map(fn ($c) => ['id' => $c->id, 'cuota' => (float) $c->cuota])->all(),
+                'dataPayments' => [[
+                    'payment_method_id' => DB::table('payment_methods')->value('id'),
+                    'valor_importe' => $sumaCuotas + 3000,
+                    'bank_id' => null, 'franquicia_id' => null, 'referencia' => null, 'support_image' => [],
+                ]],
+            ]),
+        ]);
+
+        $res->assertOk()->assertJson(['success' => true]);
+        $pr = DB::table('payment_reports')->orderByDesc('id')->first();
+        $this->assertSame($before + 1, DB::table('payment_reports')->count());
+        $this->assertSame(3000.0, (float) $pr->importe); // saldo a favor
+        $this->assertSame(2, DB::table('selected_payment_reports')->where('payment_report_id', $pr->id)->count());
+        $this->assertSame(1, DB::table('payment_reports_methods')->where('payment_report_id', $pr->id)->count());
+
+        // revertir
+        DB::table('selected_payment_reports')->where('payment_report_id', $pr->id)->delete();
+        DB::table('payment_reports_methods')->where('payment_report_id', $pr->id)->delete();
+        DB::table('payment_reports_movements')->where('payment_report_id', $pr->id)->delete();
+        DB::table('payment_reports')->where('id', $pr->id)->delete();
+    }
+
     /** Las pantallas de maestros (CRUD genérico) resuelven. */
     public function test_maestros_resuelven(): void
     {

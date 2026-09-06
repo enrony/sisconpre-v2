@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Head } from '@inertiajs/vue3';
 import { onMounted } from 'vue';
+import InformarPagoModal from '@/components/paymentReport/InformarPagoModal.vue';
 import PaymentReportFilters from '@/components/paymentReport/PaymentReportFilters.vue';
 import PaymentReportTable from '@/components/paymentReport/PaymentReportTable.vue';
 import Heading from '@/components/Heading.vue';
@@ -25,9 +26,12 @@ onMounted(() => {
                 description="Pagos reportados por los clientes"
             />
             <el-button
-                v-if="can('payment_report.registrar')"
+                v-if="
+                    can('payment_report.registrar') ||
+                    can('payment_report.gestionar-informe-de-pago')
+                "
                 type="primary"
-                disabled
+                @click="store.abrirInformar()"
             >
                 Informar un pago
             </el-button>
@@ -39,5 +43,7 @@ onMounted(() => {
             </div>
             <PaymentReportTable />
         </div>
+
+        <InformarPagoModal />
     </div>
 </template>
