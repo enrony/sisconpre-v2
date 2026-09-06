@@ -60,6 +60,20 @@ return [
             'report' => false,
         ],
 
+        // Soportes (imágenes) de informes de pago. En Fase 8 se moverán a S3
+        // cambiando `driver`/credenciales sin tocar el resto del código.
+        'supports_change_estatus_report' => [
+            'driver' => 'local',
+            'root' => storage_path('app/supports/change_estatus_report'),
+            'throw' => false,
+        ],
+
+        'supports_prestamo' => [
+            'driver' => 'local',
+            'root' => storage_path('app/supports/prestamo'),
+            'throw' => false,
+        ],
+
     ],
 
     /*

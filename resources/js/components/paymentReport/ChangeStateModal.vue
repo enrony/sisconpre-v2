@@ -2,6 +2,8 @@
 import { storeToRefs } from 'pinia';
 import { ElNotification } from 'element-plus';
 import { computed, ref, watch } from 'vue';
+import SupportUpload from '@/components/paymentReport/SupportUpload.vue';
+import type { SupportImage } from '@/lib/fileToSupport';
 import {
     type EstadoMovimiento,
     type InformePagoRow,
@@ -28,12 +30,14 @@ const opciones = computed<EstadoMovimiento[]>(() =>
 
 const seleccion = ref<number | null>(null);
 const motivo = ref('');
+const soportes = ref<SupportImage[]>([]);
 const procesando = ref(false);
 
 const estadoElegido = computed(() =>
     estados.value.find((e) => e.id === seleccion.value),
 );
 const requiereMotivo = computed(() => Boolean(estadoElegido.value?.motivo));
+const requiereSoporte = computed(() => Boolean(estadoElegido.value?.soporte));
 
 watch(
     () => props.open,
@@ -41,6 +45,7 @@ watch(
         if (v) {
             seleccion.value = null;
             motivo.value = '';
+            soportes.value = [];
         }
     },
 );
@@ -55,6 +60,10 @@ async function procesar() {
         ElNotification.warning('Indique el motivo del cambio de estado.');
         return;
     }
+    if (requiereSoporte.value && soportes.value.length === 0) {
+        ElNotification.warning('Adjunte el soporte del cambio de estado.');
+        return;
+    }
 
     procesando.value = true;
     try {
@@ -63,6 +72,7 @@ async function procesar() {
             estatusActual: estadoActualId.value,
             estatusSelected: seleccion.value,
             motivo: requiereMotivo.value ? motivo.value.trim() : null,
+            supportImage: soportes.value,
         });
 
         if (res.success) {
@@ -130,6 +140,13 @@ async function procesar() {
                         :rows="3"
                         placeholder="Indique el motivo"
                     />
+                </div>
+
+                <div v-if="requiereSoporte">
+                    <label class="text-muted-foreground text-xs font-semibold"
+                        >Soporte</label
+                    >
+                    <SupportUpload v-model="soportes" multiple />
                 </div>
             </template>
         </div>

@@ -106,7 +106,7 @@ class PaymentReportService
     public function registerSupportChangeState()
     {
         if (
-            count($this->data['support_image']) > 0
+            ! empty($this->data['support_image'])
         ) {
             $listaPaymentReportsSupportMovement = [];
             collect($this->data['support_image'])->map(function ($lista) use (&$listaPaymentReportsSupportMovement) {
@@ -122,8 +122,6 @@ class PaymentReportService
                 $full_name = "{$name}.".$lista['extension'];
                 Storage::disk('supports_change_estatus_report')->put($full_name, $image);
 
-                $storagePath = Storage::disk('supports_change_estatus_report')->getDriver()->getAdapter()->getPathPrefix();
-
                 $lista['soporte'] = "{$full_name}";
                 $PaymentReportsSupportMovement->fill($lista);
                 array_push($listaPaymentReportsSupportMovement, $PaymentReportsSupportMovement);
@@ -137,9 +135,8 @@ class PaymentReportService
     {
         foreach ($this->PaymentReport->payment_reports_methods as $key => $payment_reports_methods) {
             if (
-                isset($this->data['dataPayments']) &&
                 isset($this->data['dataPayments'][$key]) &&
-                count($this->data['dataPayments'][$key]['support_image']) > 0
+                ! empty($this->data['dataPayments'][$key]['support_image'])
             ) {
                 $listasupportPaymentReportsMethod = [];
                 collect($this->data['dataPayments'][$key]['support_image'])->map(function ($lista) use (&$listasupportPaymentReportsMethod, $payment_reports_methods) {
@@ -152,12 +149,8 @@ class PaymentReportService
 
                     $name = $this->PaymentReport->id.'/'.$payment_reports_methods->id.'/'.Str::random(40);
 
-                    // Storage::disk('local')->put("{$name}.".$lista['extension'], $image);
                     $full_name = "{$name}.".$lista['extension'];
-                    // Storage::disk('public')->put($full_name, $image);
                     Storage::disk('supports_prestamo')->put($full_name, $image);
-
-                    $storagePath = Storage::disk('supports_prestamo')->getDriver()->getAdapter()->getPathPrefix();
 
                     $lista['support'] = "{$full_name}";
                     $supportPaymentReportsMethod->fill($lista);

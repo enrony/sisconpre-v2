@@ -2,6 +2,7 @@
 import { storeToRefs } from 'pinia';
 import { ElNotification } from 'element-plus';
 import { computed } from 'vue';
+import SupportUpload from '@/components/paymentReport/SupportUpload.vue';
 import { formatNumber } from '@/lib/format';
 import { usePaymentReportStore } from '@/stores/paymentReport';
 
@@ -217,6 +218,12 @@ async function registrar() {
                             >Referencia</label
                         >
                         <el-input v-model="pago.referencia" size="small" />
+                    </div>
+                    <div>
+                        <label class="text-muted-foreground text-xs"
+                            >Soporte</label
+                        >
+                        <SupportUpload v-model="pago.support_image" multiple />
                     </div>
                     <div>
                         <el-button

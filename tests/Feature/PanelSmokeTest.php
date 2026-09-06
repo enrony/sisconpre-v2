@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 /**
@@ -199,6 +200,47 @@ class PanelSmokeTest extends TestCase
         // revertir
         DB::table('payment_reports')->where('id', $pr->id)->update(['payment_reports_movements_estatus_id' => null]);
         DB::table('payment_reports_movements')->where('payment_report_id', $pr->id)->where('motivo', 'QA feature test')->delete();
+    }
+
+    /** Cambio de estado con soporte: guarda el archivo y la fila de soporte. */
+    public function test_cambio_de_estado_con_soporte(): void
+    {
+        Storage::fake('supports_change_estatus_report');
+
+        $pr = DB::table('payment_reports')
+            ->where(fn ($q) => $q->whereNull('payment_reports_movements_estatus_id')->orWhere('payment_reports_movements_estatus_id', 1))
+            ->orderByDesc('id')
+            ->first();
+        $this->assertNotNull($pr);
+
+        // PNG 1x1 transparente
+        $png = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=';
+
+        $res = $this->actingAs($this->super())->postJson('/payment_report/change_estatus_report', [
+            'data' => json_encode([
+                'id' => $pr->id,
+                'estatus_actual' => 1,
+                'estatus_selected' => 4,
+                'motivo' => 'QA soporte',
+                'support_image' => [['name' => 'sop.png', 'extension' => 'png', 'base64' => $png]],
+            ]),
+        ]);
+        $res->assertOk()->assertJson(['success' => true]);
+
+        $mov = DB::table('payment_reports_movements')
+            ->where('payment_report_id', $pr->id)->where('motivo', 'QA soporte')
+            ->orderByDesc('id')->first();
+        $this->assertNotNull($mov);
+
+        $sop = DB::table('payment_reports_support_movements')
+            ->where('payment_reports_movement_id', $mov->id)->first();
+        $this->assertNotNull($sop, 'no se registró la fila de soporte');
+        Storage::disk('supports_change_estatus_report')->assertExists($sop->soporte);
+
+        // revertir
+        DB::table('payment_reports_support_movements')->where('payment_reports_movement_id', $mov->id)->delete();
+        DB::table('payment_reports_movements')->where('payment_report_id', $pr->id)->where('motivo', 'QA soporte')->delete();
+        DB::table('payment_reports')->where('id', $pr->id)->update(['payment_reports_movements_estatus_id' => null]);
     }
 
     /** "Informar un pago": crea el informe con cuotas seleccionadas + método + saldo a favor. */

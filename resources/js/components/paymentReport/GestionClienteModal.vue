@@ -2,6 +2,7 @@
 import { storeToRefs } from 'pinia';
 import { ElNotification } from 'element-plus';
 import { computed } from 'vue';
+import SupportUpload from '@/components/paymentReport/SupportUpload.vue';
 import { formatNumber } from '@/lib/format';
 import {
     type GestionReporteRow,
@@ -33,6 +34,12 @@ function requiereMotivo(row: GestionReporteRow): boolean {
     );
 }
 
+function requiereSoporte(row: GestionReporteRow): boolean {
+    return Boolean(
+        estados.value.find((e) => e.id === row.estatusSelected)?.soporte,
+    );
+}
+
 function tagType(row: GestionReporteRow): string {
     const c = row.status_description?.color ?? '';
     if (c.includes('green')) return 'success';
@@ -44,6 +51,10 @@ function tagType(row: GestionReporteRow): string {
 async function procesar(row: GestionReporteRow) {
     if (requiereMotivo(row) && !row.motivoEdit.trim()) {
         ElNotification.warning('Indique el motivo del cambio de estado.');
+        return;
+    }
+    if (requiereSoporte(row) && row.soportes.length === 0) {
+        ElNotification.warning('Adjunte el soporte del cambio de estado.');
         return;
     }
     try {
@@ -149,17 +160,30 @@ async function procesar(row: GestionReporteRow) {
                         </el-select>
                     </template>
                 </el-table-column>
-                <el-table-column label="Motivo" min-width="180">
+                <el-table-column label="Motivo / soporte" min-width="200">
                     <template #default="{ row }">
-                        <el-input
-                            v-if="requiereMotivo(row)"
-                            v-model="row.motivoEdit"
-                            size="small"
-                            placeholder="Indique el motivo"
-                        />
-                        <span v-else class="text-muted-foreground text-xs"
-                            >—</span
-                        >
+                        <div class="space-y-1">
+                            <el-input
+                                v-if="requiereMotivo(row)"
+                                v-model="row.motivoEdit"
+                                size="small"
+                                placeholder="Indique el motivo"
+                            />
+                            <SupportUpload
+                                v-if="requiereSoporte(row)"
+                                v-model="row.soportes"
+                                multiple
+                                label="Soporte"
+                            />
+                            <span
+                                v-if="
+                                    !requiereMotivo(row) &&
+                                    !requiereSoporte(row)
+                                "
+                                class="text-muted-foreground text-xs"
+                                >—</span
+                            >
+                        </div>
                     </template>
                 </el-table-column>
                 <el-table-column

@@ -1,4 +1,5 @@
 import { defineStore } from 'pinia';
+import type { SupportImage } from '@/lib/fileToSupport';
 import http from '@/lib/http';
 import type { CuotaDia, Paginated } from '@/stores/prestamos';
 
@@ -33,6 +34,7 @@ export interface GestionReporteRow {
     // estado local de edición
     estatusSelected: number | null;
     motivoEdit: string;
+    soportes: SupportImage[];
     procesando: boolean;
 }
 
@@ -125,6 +127,7 @@ interface PagoRow {
     bank_id: number | null;
     franquicia_id: number | null;
     referencia: string | null;
+    support_image: SupportImage[];
 }
 
 const nuevoPago = (): PagoRow => ({
@@ -133,6 +136,7 @@ const nuevoPago = (): PagoRow => ({
     bank_id: null,
     franquicia_id: null,
     referencia: null,
+    support_image: [],
 });
 
 interface ClienteFull {
@@ -315,6 +319,7 @@ export const usePaymentReportStore = defineStore('paymentReport', {
                     ...r,
                     estatusSelected: null,
                     motivoEdit: '',
+                    soportes: [],
                     procesando: false,
                 }));
             } finally {
@@ -342,6 +347,7 @@ export const usePaymentReportStore = defineStore('paymentReport', {
                         row.status_description?.id ?? row.estatus ?? 0,
                     estatusSelected: row.estatusSelected,
                     motivo: row.motivoEdit || null,
+                    supportImage: row.soportes,
                 });
                 if (res.success) {
                     const nuevo = this.estados.find(
@@ -381,6 +387,7 @@ export const usePaymentReportStore = defineStore('paymentReport', {
             estatusActual: number;
             estatusSelected: number;
             motivo: string | null;
+            supportImage?: SupportImage[];
         }): Promise<{ success: boolean; message: string }> {
             const form = new FormData();
             form.append(
@@ -390,7 +397,7 @@ export const usePaymentReportStore = defineStore('paymentReport', {
                     estatus_actual: payload.estatusActual,
                     estatus_selected: payload.estatusSelected,
                     motivo: payload.motivo,
-                    support_image: [],
+                    support_image: payload.supportImage ?? [],
                 }),
             );
 
@@ -492,7 +499,7 @@ export const usePaymentReportStore = defineStore('paymentReport', {
                                 : [],
                         dataPayments: this.informar.dataPayments.map((p) => ({
                             ...p,
-                            support_image: [],
+                            support_image: p.support_image ?? [],
                         })),
                     }),
                 );
