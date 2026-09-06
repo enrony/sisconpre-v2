@@ -45,7 +45,8 @@ class NotificarRecargosPrestamos extends Command
             $prestamosDias = PrestamosDias::where('is_surcharge', true)
                 ->where('notified_surcharge', false)
                 ->whereHas('Prestamo', function ($query) {
-                    $query->where('estado', 1);
+                    // Legado: usaba la columna inexistente `estado` (es `estatus`).
+                    $query->where('estatus', 1);
                 })
                 ->with(['Prestamo.datoCliente' => function ($query) {
                     $query->select('id', 'nombre', 'apellido', 'email')
@@ -66,7 +67,13 @@ class NotificarRecargosPrestamos extends Command
 
                         if ($cliente) {
                             try {
-                                Mail::to($cliente->email)->send(new RecargoMail($prestamoDia));
+                                $mailerName = config('mail.notifications_mailer');
+                                $mail = new RecargoMail($prestamoDia);
+                                if ($mailerName === 'smtp2') {
+                                    $from = config('mail.from2');
+                                    $mail->from($from['address'], $from['name']);
+                                }
+                                Mail::mailer($mailerName)->to($cliente->email)->send($mail);
                                 $prestamoDia->notified_surcharge = true;
                                 $prestamoDia->date_surcharge_notified = Carbon::now();
                                 $prestamoDia->error_sending_notification = 0;

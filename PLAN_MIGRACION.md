@@ -241,13 +241,14 @@ Por cada SFC: migrar a Vue 3 (filtros fuera, `.sync` → `v-model:arg`, bus de e
 - [ ] Comparación de salidas nuevo vs sistema viejo con un set de casos reales documentado.
 - [x] **Fase 9 — pruebas _stock_ del starter kit arregladas**: `phpunit.xml` pasa de `sqlite :memory:` (no hay `pdo_sqlite` en el PHP local) a `DB_CONNECTION=mysql` + `DB_DATABASE=prestamos_gilen_test` (BD desechable, hay que crearla una vez). Las 12 pruebas con `RefreshDatabase` (`Auth/*`, `Settings/*`, `Dashboard`, `Example`) corren sobre esa BD; las suites propias siguen apuntando a `prestamos_gilen` (con datos) desde su `setUp()`. **`php artisan test` → 71/71, 303 asserts** (antes 27 pasaban / 39 erroraban). Las migraciones corren limpias sobre MySQL vacío.
 
-### Fase 8 — Integraciones · 2–3 días
+### Fase 8 — Integraciones · 2–3 días — **✅ COMPLETADA**
 
-- [ ] Storage S3; revisar si el parche histórico de `FilesystemAdapter::putFileAs` sigue haciendo falta en Flysystem 3.
-- [ ] Doble mailer (`MAIL_` / `MAIL_2`) → dos mailers nombrados en `config/mail.php`.
-- [ ] Broadcasting: evaluar si Pusher sigue en uso; si sí, `laravel-echo` vía Vite; si no, quitar.
-- [ ] Cache/colas: **`database` o `redis`** según lo que ofrezca la cuenta Ferozo (el server tiene `redis` en `lsphp83`). Colas: `queue:work` como proceso o cron.
-- [ ] Tareas programadas (`ScheduledTaskLog`) + entrada de cron con ruta `lsphp83` explícita.
+- [x] **Storage S3**: el legado nunca lo usó para los soportes (los discos `supports_prestamo` / `supports_change_estatus_report` eran **locales** servidos por `public/`). En el proyecto nuevo siguen locales (`storage/app/supports/…`, ver §6.2). No hay ningún parche de `FilesystemAdapter::putFileAs` que portar (Flysystem 3 lo maneja). Para migrarlos a S3 basta cambiar su `driver` en `config/filesystems.php` y completar `AWS_*` (añadidos `AWS_URL`/`AWS_ENDPOINT` a `.env.example`).
+- [x] **Doble mailer**: nuevo mailer `smtp2` en `config/mail.php` (lee `MAIL_*_2`) + `mail.from2` + `mail.notifications_mailer` (por defecto = mailer principal). `NotificarRecargosPrestamos` envía `RecargoMail` con `Mail::mailer(config('mail.notifications_mailer'))`; poner `MAIL_NOTIFICATIONS_MAILER=smtp2` en producción enruta los correos a clientes por el SMTP secundario. **Portada la vista `emails/recargo.blade.php`** (faltaba → el comando reventaba). Feature test `MailIntegrationTest` (render de la plantilla + `smtp2` configurado).
+- [x] **Broadcasting**: no se usa (no hay Pusher ni Echo). El evento `EnviarCorreo` + listener `EnviaCorreoUsuario` estaban huérfanos (nunca despachados, duplicaban el correo de verificación de Fortify, con un `broadcastOn()` muerto sin `ShouldBroadcast`) → **borrados**. `BROADCAST_CONNECTION=log`.
+- [x] **Cache/colas**: `database` para ambas (sin servicios extra; no hay jobs — los recargos van por `schedule:run`). `.env.example` documenta la alternativa `redis` (disponible en `lsphp83` de Ferozo) y el `queue:work` para cuando haya colas.
+- [x] **Tareas programadas**: ya portadas en `routes/console.php` (Fase 7): `holiday:cron` anual, `prestamos:aplicar-recargos` diario, `prestamos:notificar-recargos` cada minuto `withoutOverlapping`. `NotificarRecargosPrestamos` usa `ScheduledTaskLog` (`scheduled_tasks_log`) para su propio locking/log; **arreglada la columna `estado`→`estatus`** (mismo bug que su gemelo). El cron de Ferozo (§12) invoca `.../lsphp83/bin/php artisan schedule:run`.
+- [x] **`.env.production.example`**: nueva plantilla sin secretos para el VPS (dominio `prestamos.gilensoft.com`, BD `gilen_prestamos`, `APP_DEBUG=false`, `SESSION_SECURE_COOKIE`, mailer smtp real, etc.).
 
 ### Fase 9 — QA y hardening · 3–5 días
 
@@ -262,7 +263,7 @@ Por cada SFC: migrar a Vue 3 (filtros fuera, `.sync` → `v-model:arg`, bus de e
     - Se **borraron 19 controladores + 20 FormRequests** de scaffold (`make:model -a`) que no tenían ninguna ruta (`Country`, `Moneda`, `ConfigurationItem`, `PrestamosDias/Estatu/Tarifa`, `UserCountry`, `SelectedPaymentReport`, `Summary/CustomerMovementHistory`, `SupportPaymentReport(sMethod)`, `PaymentReports(Method|Movement|SupportMovement)`, `TipoFrecuenciaPrestamo`, `TypesMovement`, `GruposTrabajoUser`, `ClientesGruposTrabajosUsers`) → −153 errores.
     - Se tipó el código propio: `Admin\{Roles,Users}Controller` (tipos de retorno, `Role::findOrFail`/`new Role` en vez de `findOrNew`, `array_values(...)` para `list<>`), `Support\Menu`, un `pint` cosmético en `Clientes`.
     - Los **733 errores restantes** (deuda de tipado del legado: `rules()` sin `list<>`, relaciones sin tipar, controladores que declaran `@return Response` y devuelven Inertia, servicios portados sin tipos) quedan en **`phpstan-baseline.neon`**, incluido desde `phpstan.neon`. Burn-down: al tocar un archivo del baseline, quitar sus entradas y tiparlo.
-- [ ] `.env.production.example` sin secretos.
+- [x] `.env.production.example` sin secretos (ver Fase 8).
 
 ### Fase 10 — Despliegue y cutover en Ferozo · 2–3 días
 

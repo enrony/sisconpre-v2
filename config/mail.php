@@ -18,6 +18,20 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Mailer para notificaciones a clientes
+    |--------------------------------------------------------------------------
+    |
+    | El sistema legado preveía un SMTP aparte para los correos que van a los
+    | clientes (p. ej. `RecargoMail`) distinto del de correos de sistema. Por
+    | defecto usa el mailer principal; en producción se puede apuntar a
+    | `smtp2` con `MAIL_NOTIFICATIONS_MAILER=smtp2`.
+    |
+    */
+
+    'notifications_mailer' => env('MAIL_NOTIFICATIONS_MAILER', env('MAIL_MAILER', 'log')),
+
+    /*
+    |--------------------------------------------------------------------------
     | Mailer Configurations
     |--------------------------------------------------------------------------
     |
@@ -47,6 +61,18 @@ return [
             'password' => env('MAIL_PASSWORD'),
             'timeout' => null,
             'local_domain' => env('MAIL_EHLO_DOMAIN', parse_url((string) env('APP_URL', 'http://localhost'), PHP_URL_HOST)),
+        ],
+
+        // SMTP secundario (portado de `MAIL_*2` del legado). Sin uso salvo que
+        // `MAIL_NOTIFICATIONS_MAILER=smtp2` o se llame `Mail::mailer('smtp2')`.
+        'smtp2' => [
+            'transport' => 'smtp',
+            'scheme' => env('MAIL_SCHEME_2'),
+            'host' => env('MAIL_HOST_2', '127.0.0.1'),
+            'port' => env('MAIL_PORT_2', 2525),
+            'username' => env('MAIL_USERNAME_2'),
+            'password' => env('MAIL_PASSWORD_2'),
+            'timeout' => null,
         ],
 
         'ses' => [
@@ -113,6 +139,15 @@ return [
     'from' => [
         'address' => env('MAIL_FROM_ADDRESS', 'hello@example.com'),
         'name' => env('MAIL_FROM_NAME', env('APP_NAME', 'Laravel')),
+    ],
+
+    /*
+    | Remitente para el SMTP secundario (`smtp2`). Cae al remitente global si
+    | no se define `MAIL_FROM_ADDRESS_2`.
+    */
+    'from2' => [
+        'address' => env('MAIL_FROM_ADDRESS_2', env('MAIL_FROM_ADDRESS', 'hello@example.com')),
+        'name' => env('MAIL_FROM_NAME_2', env('MAIL_FROM_NAME', env('APP_NAME', 'Laravel'))),
     ],
 
 ];
