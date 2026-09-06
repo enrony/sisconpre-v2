@@ -8,6 +8,7 @@ import {
     type Cuota,
     generateSchedule,
     type Holiday,
+    SIGLAS_DIAS,
 } from '@/lib/prestamoSchedule';
 
 export interface CuotaDia {
@@ -376,6 +377,53 @@ export const usePrestamosStore = defineStore('prestamos', {
             this.form.cuota_establecida = res.cuotaEstablecida;
             this.form.pagado = 0;
             this.generado = true;
+        },
+
+        /**
+         * Mueve la fecha de una cuota del calendario generado (asistente de alta).
+         * Port de `changeDate.vue` del legado: valida festivo/domingo según la
+         * configuración del préstamo y que la fecha quede dentro del rango.
+         * NO redistribuye importes. Devuelve un mensaje de error o `null`.
+         */
+        cambiarFechaCuota(index: number, nuevaFecha: string): string | null {
+            const cuota = this.form.list_pays[index];
+            if (!cuota || !nuevaFecha) {
+                return 'Cuota no válida.';
+            }
+
+            const nueva = dayjs(nuevaFecha);
+            const festivos = new Set(this.holidaysDelPais.map((h) => h.date));
+            const esFestivo = festivos.has(nueva.format('YYYY-MM-DD'));
+            const esDomingo = nueva.day() === 0;
+
+            if (esFestivo && !this.form.incluir_festivos) {
+                return 'El préstamo no permite seleccionar un día festivo.';
+            }
+            if (esDomingo && !this.form.incluir_domingos) {
+                return 'El préstamo no permite seleccionar un domingo.';
+            }
+            if (nueva.isBefore(dayjs(this.form.date_first_pay), 'day')) {
+                return 'La fecha no puede ser anterior a la primera cuota.';
+            }
+            if (nueva.isAfter(dayjs(this.form.date_last_pay), 'day')) {
+                return 'La fecha no puede ser posterior a la última cuota.';
+            }
+
+            const hoy = dayjs().startOf('day');
+            const iso = nueva.format('YYYY-MM-DD');
+
+            this.form.list_pays[index] = {
+                ...cuota,
+                date: iso,
+                date_change: true,
+                date_before: cuota.date,
+                festivo: esFestivo,
+                dom: esDomingo,
+                sigla: SIGLAS_DIAS[nueva.day()],
+                diff: hoy.diff(nueva, 'day'),
+            };
+
+            return null;
         },
 
         aplicarRecargo(): void {

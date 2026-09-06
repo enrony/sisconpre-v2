@@ -244,7 +244,10 @@ function siguiente() {
                 </div>
             </div>
 
-            <CuotasGrid :lista="form.list_pays" />
+            <p v-if="generado" class="text-muted-foreground text-xs">
+                Haz clic en una cuota para cambiar su fecha.
+            </p>
+            <CuotasGrid :lista="form.list_pays" :editable="generado" />
 
             <div v-if="generado" class="bg-muted/40 rounded-md border p-3">
                 <el-checkbox v-model="form.apply_surcharge"
