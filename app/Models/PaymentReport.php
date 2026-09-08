@@ -3,9 +3,21 @@
 namespace App\Models;
 
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Http\Request;
 
+/**
+ * Atributos calculados por el builder `lista()` (no son columnas de la tabla):
+ *
+ * @property-read string|null $cliente_nombre
+ * @property-read string|null $cliente_apellido
+ * @property-read string|null $cliente_documento
+ * @property-read string|null $value_amount_sum
+ * @property-read int $selected_payment_reports_count
+ */
 class PaymentReport extends Model
 {
     use HasFactory;
@@ -111,7 +123,10 @@ class PaymentReport extends Model
         return $this->hasMany(PaymentReportsMovement::class, 'payment_report_id')->latest();
     }
 
-    public function payment_reports_movement_first()
+    /**
+     * @return HasOne<PaymentReportsMovement, $this>
+     */
+    public function payment_reports_movement_first(): HasOne
     { // No quitar el latest
         return $this->hasOne(PaymentReportsMovement::class, 'payment_report_id')
             ->latest();
@@ -159,147 +174,63 @@ class PaymentReport extends Model
             });
     }
 
-    // public static function lista($request)
-    // {
-    //     $table = "payment_reports";
-    //     $arrayIDPrestamos = [];
-    //     $estadosFiltrar = $request->filled('estados') ? explode(',', $request->input('estados')) : null;
-
-    //     $query1 = (new static)::selectRaw("{$table}.*, date_format({$table}.created_at, '%Y-%m-%d %H:%i:%s') as created, date_format({$table}.updated_at, '%Y-%m-%d %H:%i:%s') as updated")
-    //         ->when($request->term, function ($query, $term) use ($table) {
-    //             $query->where("{$table}.description", 'LIKE', '%' . $term . '%');
-    //         })->where("{$table}.estatus", 1)
-    //         ->with(['payment_reports_movement_first' => function ($query) use ($estadosFiltrar) {
-    //             $query->latest(); // Primero ordenar por el más reciente
-    //             $query->take(1); // Luego tomar solo el primero (el más reciente)
-    //             if ($estadosFiltrar) {
-    //                 $query->whereIn('estatus', $estadosFiltrar); // Filtrar los resultados *después* de tomar el último
-    //             }
-    //         }])
-    //         ->when($request->filled(['fecha_registro1', 'fecha_registro2']), function ($query) use ($request, $table) {
-    //             $fechaInicio = Carbon::parse($request->fecha_registro1)->startOfDay();
-    //             $fechaFin = Carbon::parse($request->fecha_registro2)->endOfDay();
-    //             $query->whereBetween("{$table}.created_at", [$fechaInicio, $fechaFin]);
-    //         })
-    //         ->latest("{$table}.created_at")->get()->map(function ($item) use ($arrayIDPrestamos, $estadosFiltrar) {
-    //             // $item->payment_reports_movement_first ahora debería ser el último movimiento,
-    //             // y será null si no existe ningún movimiento que cumpla con el filtro (si se aplicó)
-    //             if (!($estadosFiltrar && $item->payment_reports_movement_first === null)) {
-    //                 // Si se aplicó el filtro de estados y no se encontró ningún movimiento,
-    //                 // puedes optar por filtrar el payment_report completo aquí si es necesario.
-    //                 //return null; // O realiza alguna otra lógica para excluir este payment_report
-
-    //                 $prestamoFormated = [];
-
-    //                 if (count($item->selected_payment_reports) > 0) {
-    //                     foreach ($item->selected_payment_reports as $selected_payment_report) {
-
-    //                         $idPrestamo = $selected_payment_report->PrestamosDias->prestamo_id;
-
-    //                         if (!in_array($idPrestamo, $arrayIDPrestamos)) {
-
-    //                             array_push($arrayIDPrestamos, $idPrestamo);
-
-    //                             $valor = json_decode(json_encode($selected_payment_report->PrestamosDias->Prestamo));
-    //                             $position = count($prestamoFormated);
-
-    //                             $prestamoFormated[$position] = $valor;
-    //                             $prestamoFormated[$position]->prestamosss_dias = [];
-    //                         }
-
-    //                         $nuevo = $selected_payment_report->PrestamosDias;
-
-    //                         $prestamoFormated[$position]->prestamosss_dias[] = $nuevo;
-    //                     }
-    //                 }
-
-    //                 $item->prestamoFormated = $prestamoFormated;
-
-    //                 return $item;
-    //             }
-    //         });
-
-    //     $queryAll = collect($query1);
-
-    //     return $queryAll;
-    // }
-    public static function lista($request)
+    /**
+     * Builder del listado de informes de pago (consola de gestión), listo para
+     * paginar. Devuelve SOLO lo que consume `PaymentReportTable.vue`: id, cliente
+     * (nombre/apellido/documento extraídos del JSON, sin arrastrar el snapshot
+     * anidado del cliente), destino, monto (Σ de métodos), nº de cuotas y el
+     * último estado. El árbol de préstamos/cuotas se pide aparte por `record($id)`.
+     *
+     * El segundo parámetro se mantiene por compatibilidad con las llamadas
+     * existentes (`PaymentReport::lista($request, $PaymentReport)`).
+     *
+     * @return Builder<static>
+     */
+    public static function lista(Request $request, ?self $PaymentReport = null)
     {
         $table = 'payment_reports';
 
-        $arrayIDPrestamos = [];
+        $csvIds = static fn (mixed $csv): array => array_values(array_filter(
+            explode(',', (string) $csv),
+            static fn (string $v): bool => $v !== '',
+        ));
 
-        $query1 = (new static)::selectRaw("{$table}.*, date_format({$table}.created_at, '%Y-%m-%d %H:%i:%s') as created, date_format({$table}.updated_at, '%Y-%m-%d %H:%i:%s') as updated")
-            ->when($request->term, function ($query, $term) use ($table) {
-                $query->where("{$table}.description", 'LIKE', '%'.$term.'%');
-            })->where("{$table}.estatus", 1)
-            ->with(['payment_reports_movement_first'])
-
+        return static::query()
+            ->select([
+                "{$table}.id",
+                "{$table}.cliente_id",
+                "{$table}.destination",
+                "{$table}.approved",
+                "{$table}.payment_report_id",
+                "{$table}.motivo",
+                "{$table}.importe",
+                "{$table}.estatus",
+                "{$table}.payment_reports_movements_estatus_id",
+                "{$table}.created_at",
+                "{$table}.updated_at",
+            ])
+            ->selectRaw("json_unquote(json_extract({$table}.cliente, '$.nombre')) as cliente_nombre")
+            ->selectRaw("json_unquote(json_extract({$table}.cliente, '$.apellido')) as cliente_apellido")
+            ->selectRaw("json_unquote(json_extract({$table}.cliente, '$.documento')) as cliente_documento")
+            ->where("{$table}.estatus", 1)
             ->when($request->filled(['fecha_registro1', 'fecha_registro2']), function ($query) use ($request, $table) {
-                $fechaInicio = Carbon::parse($request->fecha_registro1)->startOfDay();
-                $fechaFin = Carbon::parse($request->fecha_registro2)->endOfDay();
-                $query->whereBetween("{$table}.created_at", [$fechaInicio, $fechaFin]);
+                $query->whereBetween("{$table}.created_at", [
+                    Carbon::parse($request->fecha_registro1)->startOfDay(),
+                    Carbon::parse($request->fecha_registro2)->endOfDay(),
+                ]);
             })
-            ->when($request->filled(['clientes']), function ($query) use ($request, $table) {
-                $clientes = explode(',', $request->clientes);
-                if (count($clientes) > 0) {
-                    $query->whereIn("{$table}.cliente_id", $clientes);
-                }
+            ->when($request->filled('clientes'), function ($query) use ($request, $table, $csvIds) {
+                $query->whereIn("{$table}.cliente_id", $csvIds($request->clientes));
             })
-            ->when($request->filled(['estados']), function ($query) use ($request, $table) {
-                $estados = explode(',', $request->estados);
-                if (count($estados) > 0) {
-                    $query->whereIn("{$table}.payment_reports_movements_estatus_id", $estados);
-                }
+            ->when($request->filled('estados'), function ($query) use ($request, $table, $csvIds) {
+                $query->whereIn("{$table}.payment_reports_movements_estatus_id", $csvIds($request->estados));
             })
-            ->when($request->filled(['destinoPago']), function ($query) use ($request, $table) {
-                $destinoPago = explode(',', $request->destinoPago);
-                if (count($destinoPago) > 0) {
-                    $query->whereIn("{$table}.destination", $destinoPago);
-                }
+            ->when($request->filled('destinoPago'), function ($query) use ($request, $table, $csvIds) {
+                $query->whereIn("{$table}.destination", $csvIds($request->destinoPago));
             })
-            ->latest("{$table}.created_at")->get()->map(function ($item) use ($arrayIDPrestamos) {
-
-                $prestamoFormated = [];
-
-                if (count($item->selected_payment_reports) > 0) {
-                    foreach ($item->selected_payment_reports as $selected_payment_report) {
-
-                        $idPrestamo = $selected_payment_report->PrestamosDias->prestamo_id;
-
-                        if (! in_array($idPrestamo, $arrayIDPrestamos)) {
-
-                            array_push($arrayIDPrestamos, $idPrestamo);
-
-                            $valor = json_decode(json_encode($selected_payment_report->PrestamosDias->Prestamo));
-                            $position = count($prestamoFormated);
-
-                            $prestamoFormated[$position] = $valor;
-                            $prestamoFormated[$position]->prestamosss_dias = [];
-                        }
-
-                        $nuevo = $selected_payment_report->PrestamosDias;
-
-                        $prestamoFormated[$position]->prestamosss_dias[] = $nuevo;
-                    }
-                }
-
-                $item->prestamoFormated = $prestamoFormated;
-
-                return $item;
-            });
-
-        // if($request->filled('estados')){
-        //     $query1 = $query1->filter(function ($item) use ($request) {
-        //         return (
-        //             $item->payment_reports_movement_first &&
-        //             in_array($item->payment_reports_movement_first->estatus, explode(',', $request->input('estados'))));
-        //     });
-
-        // }
-
-        $queryAll = collect($query1);
-
-        return $queryAll;
+            ->withCount('selected_payment_reports')
+            ->withSum('payment_reports_methods as value_amount_sum', 'importe')
+            ->with('payment_reports_movement_first.estatus_description')
+            ->latest("{$table}.created_at");
     }
 }

@@ -1741,36 +1741,6 @@ parameters:
 			path: app/Http/Controllers/PaymentReportController.php
 
 		-
-			message: '#^Method App\\Http\\Controllers\\PaymentReportController\:\:paginate\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: app/Http/Controllers/PaymentReportController.php
-
-		-
-			message: '#^Method App\\Http\\Controllers\\PaymentReportController\:\:paginate\(\) has parameter \$options with no type specified\.$#'
-			identifier: missingType.parameter
-			count: 1
-			path: app/Http/Controllers/PaymentReportController.php
-
-		-
-			message: '#^Method App\\Http\\Controllers\\PaymentReportController\:\:paginate\(\) has parameter \$page with no type specified\.$#'
-			identifier: missingType.parameter
-			count: 1
-			path: app/Http/Controllers/PaymentReportController.php
-
-		-
-			message: '#^Method App\\Http\\Controllers\\PaymentReportController\:\:paginate\(\) has parameter \$per_page with no type specified\.$#'
-			identifier: missingType.parameter
-			count: 1
-			path: app/Http/Controllers/PaymentReportController.php
-
-		-
-			message: '#^Method App\\Http\\Controllers\\PaymentReportController\:\:paginate\(\) has parameter \$queryAll with no type specified\.$#'
-			identifier: missingType.parameter
-			count: 1
-			path: app/Http/Controllers/PaymentReportController.php
-
-		-
 			message: '#^Method App\\Http\\Controllers\\PaymentReportController\:\:record\(\) has no return type specified\.$#'
 			identifier: missingType.return
 			count: 1
@@ -1779,12 +1749,6 @@ parameters:
 		-
 			message: '#^Method App\\Http\\Controllers\\PaymentReportController\:\:record\(\) has parameter \$id with no type specified\.$#'
 			identifier: missingType.parameter
-			count: 1
-			path: app/Http/Controllers/PaymentReportController.php
-
-		-
-			message: '#^Method App\\Http\\Controllers\\PaymentReportController\:\:records\(\) has no return type specified\.$#'
-			identifier: missingType.return
 			count: 1
 			path: app/Http/Controllers/PaymentReportController.php
 
@@ -1807,12 +1771,6 @@ parameters:
 			path: app/Http/Controllers/PaymentReportController.php
 
 		-
-			message: '#^Relation ''payment_reports_movement_first'' is not found in App\\Models\\PaymentReport model\.$#'
-			identifier: larastan.relationExistence
-			count: 1
-			path: app/Http/Controllers/PaymentReportController.php
-
-		-
 			message: '#^Relation ''prestamos_dias'' is not found in App\\Models\\Prestamos model\.$#'
 			identifier: larastan.relationExistence
 			count: 1
@@ -1821,12 +1779,6 @@ parameters:
 		-
 			message: '#^Relation ''selected_payment_reports'' is not found in App\\Models\\PaymentReport model\.$#'
 			identifier: larastan.relationExistence
-			count: 1
-			path: app/Http/Controllers/PaymentReportController.php
-
-		-
-			message: '#^Static method App\\Models\\PaymentReport\:\:lista\(\) invoked with 2 parameters, 1 required\.$#'
-			identifier: arguments.count
 			count: 1
 			path: app/Http/Controllers/PaymentReportController.php
 
@@ -3343,27 +3295,15 @@ parameters:
 			path: app/Models/PaymentReport.php
 
 		-
-			message: '#^Access to an undefined property App\\Models\\PaymentReport\:\:\$prestamoFormated\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app/Models/PaymentReport.php
-
-		-
 			message: '#^Access to an undefined property App\\Models\\PaymentReport\:\:\$selected_payment_reports\.$#'
 			identifier: property.notFound
-			count: 3
+			count: 1
 			path: app/Models/PaymentReport.php
 
 		-
 			message: '#^Class App\\Models\\PaymentReport uses generic trait Illuminate\\Database\\Eloquent\\Factories\\HasFactory but does not specify its types\: TFactory$#'
 			identifier: missingType.generics
 			count: 1
-			path: app/Models/PaymentReport.php
-
-		-
-			message: '#^Comparison operation "\>" between int\<1, max\> and 0 is always true\.$#'
-			identifier: greater.alwaysTrue
-			count: 3
 			path: app/Models/PaymentReport.php
 
 		-
@@ -3403,18 +3343,6 @@ parameters:
 			path: app/Models/PaymentReport.php
 
 		-
-			message: '#^Method App\\Models\\PaymentReport\:\:lista\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: app/Models/PaymentReport.php
-
-		-
-			message: '#^Method App\\Models\\PaymentReport\:\:lista\(\) has parameter \$request with no type specified\.$#'
-			identifier: missingType.parameter
-			count: 1
-			path: app/Models/PaymentReport.php
-
-		-
 			message: '#^Method App\\Models\\PaymentReport\:\:objectStatusPayment\(\) has no return type specified\.$#'
 			identifier: missingType.return
 			count: 1
@@ -3434,12 +3362,6 @@ parameters:
 
 		-
 			message: '#^Method App\\Models\\PaymentReport\:\:payment_reports_movement\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: app/Models/PaymentReport.php
-
-		-
-			message: '#^Method App\\Models\\PaymentReport\:\:payment_reports_movement_first\(\) has no return type specified\.$#'
 			identifier: missingType.return
 			count: 1
 			path: app/Models/PaymentReport.php
@@ -3499,12 +3421,6 @@ parameters:
 			path: app/Models/PaymentReport.php
 
 		-
-			message: '#^Parameter \#1 \$json of function json_decode expects string, string\|false given\.$#'
-			identifier: argument.type
-			count: 1
-			path: app/Models/PaymentReport.php
-
-		-
 			message: '#^Property App\\Models\\PaymentReport\:\:\$array_estatus has no type specified\.$#'
 			identifier: missingType.property
 			count: 1
@@ -3517,32 +3433,8 @@ parameters:
 			path: app/Models/PaymentReport.php
 
 		-
-			message: '#^Relation ''payment_reports_movement_first'' is not found in App\\Models\\PaymentReport model\.$#'
-			identifier: larastan.relationExistence
-			count: 1
-			path: app/Models/PaymentReport.php
-
-		-
-			message: '#^Unsafe usage of new static\(\)\.$#'
-			identifier: new.static
-			count: 1
-			path: app/Models/PaymentReport.php
-
-		-
-			message: '#^Variable \$position might not be defined\.$#'
-			identifier: variable.undefined
-			count: 1
-			path: app/Models/PaymentReport.php
-
-		-
 			message: '#^Class App\\Models\\PaymentReportsMovement uses generic trait Illuminate\\Database\\Eloquent\\Factories\\HasFactory but does not specify its types\: TFactory$#'
 			identifier: missingType.generics
-			count: 1
-			path: app/Models/PaymentReportsMovement.php
-
-		-
-			message: '#^Method App\\Models\\PaymentReportsMovement\:\:estatus_description\(\) has no return type specified\.$#'
-			identifier: missingType.return
 			count: 1
 			path: app/Models/PaymentReportsMovement.php
 
@@ -4125,12 +4017,6 @@ parameters:
 		-
 			message: '#^Property App\\Services\\PaymentReportService\:\:\$prestamosIdNotProccess has no type specified\.$#'
 			identifier: missingType.property
-			count: 1
-			path: app/Services/PaymentReportService.php
-
-		-
-			message: '#^Relation ''payment_reports_movement_first'' is not found in App\\Models\\PaymentReport model\.$#'
-			identifier: larastan.relationExistence
 			count: 1
 			path: app/Services/PaymentReportService.php
 

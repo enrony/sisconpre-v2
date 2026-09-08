@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class PaymentReportsMovement extends Model
 {
@@ -16,7 +17,10 @@ class PaymentReportsMovement extends Model
         'motivo',
     ];
 
-    public function estatus_description()
+    /**
+     * @return BelongsTo<PaymentReportsMovementsEstatu, $this>
+     */
+    public function estatus_description(): BelongsTo
     {
         return $this->belongsTo(PaymentReportsMovementsEstatu::class, 'estatus');
     }

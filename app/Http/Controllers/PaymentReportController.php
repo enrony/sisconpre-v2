@@ -7,13 +7,11 @@ use App\Http\Requests\UpdatePaymentReportRequest;
 use App\Models\PaymentReport;
 use App\Models\Prestamos;
 use App\Services\PaymentReportService;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Http\Request;
 use Illuminate\Http\Response;
-use Illuminate\Pagination\LengthAwarePaginator;
-use Illuminate\Pagination\Paginator;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Inertia;
-use Symfony\Component\HttpFoundation\Request;
 
 class PaymentReportController extends Controller
 {
@@ -41,12 +39,72 @@ class PaymentReportController extends Controller
         );
     }
 
-    public function records(Request $request, PaymentReport $PaymentReport)
+    /**
+     * @return array{lista: LengthAwarePaginator<int, array<string, mixed>>}
+     */
+    public function records(Request $request, PaymentReport $PaymentReport): array
     {
-
-        $lista = $this->paginate($PaymentReport::lista($request, $PaymentReport));
+        $lista = $PaymentReport::lista($request, $PaymentReport)
+            ->paginate(100)
+            ->through(fn (PaymentReport $r): array => $this->toRow($r));
 
         return compact('lista');
+    }
+
+    /**
+     * Fila del listado: exactamente lo que consume `PaymentReportTable.vue`.
+     *
+     * @return array<string, mixed>
+     */
+    private function toRow(PaymentReport $r): array
+    {
+        return [
+            'id' => $r->id,
+            'cliente_id' => $r->cliente_id,
+            'cliente' => [
+                'id' => $r->cliente_id,
+                'nombre' => $r->cliente_nombre,
+                'apellido' => $r->cliente_apellido,
+                'documento' => $r->cliente_documento,
+            ],
+            'destination' => $r->destination,
+            'destination_text' => $r->destination == 1 ? 'Pago de cuota(s)' : 'Saldo a favor',
+            'approved' => $r->approved,
+            'payment_report_id' => $r->payment_report_id,
+            'motivo' => $r->motivo,
+            'importe' => $r->importe,
+            'estatus' => $r->estatus,
+            'payment_reports_movements_estatus_id' => $r->payment_reports_movements_estatus_id,
+            'created' => optional($r->created_at)->format('Y-m-d H:i:s'),
+            'updated' => optional($r->updated_at)->format('Y-m-d H:i:s'),
+            'number_cuotas' => (int) $r->selected_payment_reports_count,
+            'value_amount' => (float) ($r->value_amount_sum ?? 0),
+            'status_description' => $this->statusDescription($r),
+            'estatus_selected' => null,
+            'support_image' => [],
+        ];
+    }
+
+    /**
+     * Último estado del informe, con el mismo shape que devolvía el accessor
+     * `status_description` del modelo (id, desc, color, finish_estatus).
+     *
+     * @return array{id:int, desc:string, color:string, finish_estatus:bool}
+     */
+    private function statusDescription(PaymentReport $r): array
+    {
+        $desc = $r->payment_reports_movement_first?->estatus_description;
+
+        if ($desc) {
+            return [
+                'id' => (int) $desc->id,
+                'desc' => (string) $desc->description,
+                'color' => (string) $desc->style,
+                'finish_estatus' => (bool) $desc->finish_estatus,
+            ];
+        }
+
+        return ['id' => 1, 'desc' => 'Pendiente', 'color' => 'text-gray-400', 'finish_estatus' => false];
     }
 
     public function record($id)
@@ -86,25 +144,6 @@ class PaymentReportController extends Controller
 
         // Se preserva la respuesta en array asoc (es igual a hacer un compact pero sin atarse al nombre local)
         return ['Prestamos' => $prestamos];
-    }
-
-    public function paginate($queryAll, $per_page = 15, $page = null, $options = [])
-    {
-
-        $queryAll = $queryAll->map(function ($item) {
-            $item->estatus_selected = null;
-            $item->support_image = [];
-            $item->motivo = null;
-
-            return $item;
-        });
-
-        $collection = new Collection($queryAll);
-        $page = Paginator::resolveCurrentPage() ?: 1;
-        $per_page = 100;
-        $currentPageResults = $collection->slice(($page - 1) * $per_page, $per_page)->values();
-
-        return new LengthAwarePaginator($currentPageResults, count($collection), $per_page);
     }
 
     /**
