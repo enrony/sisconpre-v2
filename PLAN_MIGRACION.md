@@ -119,7 +119,7 @@ repo tiene ~13 migraciones posteriores — se incorporan al portar). Conviven `s
 - [x] Commit + tag en `sisconpre`.
 - [x] Subdominio de producción: **`prestamos.gilensoft.com`**, document root `prestamos_app/public`.
 - [x] Panel Ferozo: BD **`gilen_prestamos`** + usuario creados. Carpeta `~/public_html/prestamos_app` creada (vacía).
-- [ ] Panel Ferozo: **SSL Let's Encrypt + redirección https** para el subdominio (pendiente).
+- [x] Panel Ferozo: **SSL Let's Encrypt** activo (`/login` carga por https). **Redirección http→https** resuelta vía `public/.htaccess` (ver Fase 10).
 - [ ] PAT de GitHub (classic, `repo`+`workflow`) para el clone en el server (pendiente).
 - [ ] Inventario funcional: marcar cada módulo/pantalla como _portar / rehacer / descartar_ (ver §8).
 
@@ -271,9 +271,10 @@ Por cada SFC: migrar a Vue 3 (filtros fuera, `.sync` → `v-model:arg`, bus de e
 - [x] Import de datos: `legacy:import-data` (1463 filas / 27 tablas) + `rbac:sync-from-legacy` (196 permisos, 9 roles, 27 menu_items; `enrony@gmail.com` → Super Usuario + `super-admin`). Coincide con local.
 - [x] Cron: línea `* * * * * .../lsphp83/bin/php .../prestamos_app/artisan schedule:run` en `crontab -u gilen` (`/var/spool/cron/gilen`). El cron del otro proyecto (betplaye/fiebreparley) vive en `/etc/crontab`, independiente, intacto.
 - [x] `https://prestamos.gilensoft.com/login` carga con estilos; `.env` → 403; assets `/build/*` 200 sin *mixed content*.
-- [ ] **Pendiente:** activar **"Redirección https"** en el panel Ferozo para el subdominio (hoy `http://` NO redirige a `https://`; con `SESSION_SECURE_COOKIE=true` una visita por http no recibe cookie).
-- [ ] **Pendiente:** aplicar el último release en el server — `su - gilen -c 'cd /home/gilen/public_html/prestamos_app && git pull && /usr/local/lsws/lsphp83/bin/php artisan route:cache'` (commit `7e70fd0`: raíz redirige a `/dashboard` → invitado a `/login`).
-- [ ] **Pendiente:** smoke test logueado: login como `enrony@gmail.com`, revisar Préstamos / Informes de pago / Maestros / Roles. `config('app.debug') === false`.
+- [x] **Redirección http→https**: resuelta en `public/.htaccess` (`RewriteCond %{HTTPS} !=on` → `RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]`), versionada y aplicada en el server. `http://` ya redirige a `https://` (con `SESSION_SECURE_COOKIE=true` la cookie se emite bien).
+- [x] **Último release aplicado en el server** (`git pull` + `route:cache`); local y `origin/main` sincronizados (`working tree clean`).
+- [x] **`config('app.debug') === false` en producción** verificado por `tinker` (rev. 2026-09-07: `bool(false)`).
+- [ ] **Pendiente:** smoke test logueado: login como `enrony@gmail.com`, revisar Préstamos / Informes de pago / Maestros / Roles.
 - [ ] Cambio de document root / DNS al nuevo. **Rollback** = repuntar al viejo (BD intacta).
 - [ ] Archivar repo `sisconpre`.
 
