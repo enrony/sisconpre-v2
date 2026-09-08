@@ -275,6 +275,8 @@ Por cada SFC: migrar a Vue 3 (filtros fuera, `.sync` → `v-model:arg`, bus de e
 - [x] **Último release aplicado en el server** (`git pull` + `route:cache`); local y `origin/main` sincronizados (`working tree clean`).
 - [x] **`config('app.debug') === false` en producción** verificado por `tinker` (rev. 2026-09-07: `bool(false)`).
 - [ ] **Pendiente:** smoke test logueado: login como `enrony@gmail.com`, revisar Préstamos / Informes de pago / Maestros / Roles.
+  - [x] **Informes de pago lento → optimizado** (commits `209fe87` + `7d507ff`): `GET /payment_report/records` hacía `->get()` de todo + troceo en PHP + `prestamoFormated` (árbol préstamos→cuotas que la grilla no usa) y serializaba la columna `cliente` completa (blobs legados de hasta 2,8 MB). Medido con la data importada: ~150-200 queries / ~980 ms / 14,4 MB de JSON → **4 queries / ~27 ms / ~9 KB**. `lista()` pasa a builder paginado por SQL (columnas mínimas + `json_extract` del nombre del cliente + `withCount`/`withSum`); mismo shape de JSON, sin cambios de front. Nuevo `PaymentReportRecordsTest` fija forma + cotas de rendimiento. **En el server**: tras `git pull` correr `payment-report:compactar-clientes --dry-run` y luego sin flag (recorta las 4 filas `cliente` infladas, ~3,8 MB).
+  - [ ] **Pendiente:** revisar `Préstamos` (`/prestamos`) — su `PrestamosController` tiene el mismo patrón `lista()->get()` + `paginate()` local que troza en PHP; puede estar igual de lento.
 - [ ] Cambio de document root / DNS al nuevo. **Rollback** = repuntar al viejo (BD intacta).
 - [ ] Archivar repo `sisconpre`.
 
