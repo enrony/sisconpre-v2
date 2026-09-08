@@ -265,11 +265,15 @@ Por cada SFC: migrar a Vue 3 (filtros fuera, `.sync` → `v-model:arg`, bus de e
     - Los **733 errores restantes** (deuda de tipado del legado: `rules()` sin `list<>`, relaciones sin tipar, controladores que declaran `@return Response` y devuelven Inertia, servicios portados sin tipos) quedan en **`phpstan-baseline.neon`**, incluido desde `phpstan.neon`. Burn-down: al tocar un archivo del baseline, quitar sus entradas y tiparlo.
 - [x] `.env.production.example` sin secretos (ver Fase 8).
 
-### Fase 10 — Despliegue y cutover en Ferozo · 2–3 días
+### Fase 10 — Despliegue y cutover en Ferozo · 2–3 días — **🟡 CASI COMPLETADA** (rev. 2026-09-07)
 
-- [ ] Preparación única en el server (§12): clone, `composer83 install --no-dev --no-scripts`, `package:discover`, `.env`, `key:generate`, `migrate --force`, mover a `public_html/<app>_app`, `.htaccess` de protección, `storage:link`, `config/route/view:cache`, document root, cron.
-- [ ] Import de datos de producción (dump fresco de la BD viva).
-- [ ] Smoke test: login, préstamos, informe de pago, permisos. `config('app.debug') === false`. `.env` → 403.
+- [x] Preparación única en el server (§12): clone en `/home/gilen/public_html/prestamos_app` (docroot `.../prestamos_app/public`), `composer83 install --no-dev --no-scripts` + `package:discover` manual (`proc_open` deshabilitado), `.env` de producción, `key:generate --force`, `migrate --force`, `db:seed --force` (catálogos), `.htaccess` de protección, `storage:link`, `config:cache`/`route:cache`/`view:cache`. Todo como usuario **`gilen`**.
+- [x] Import de datos: `legacy:import-data` (1463 filas / 27 tablas) + `rbac:sync-from-legacy` (196 permisos, 9 roles, 27 menu_items; `enrony@gmail.com` → Super Usuario + `super-admin`). Coincide con local.
+- [x] Cron: línea `* * * * * .../lsphp83/bin/php .../prestamos_app/artisan schedule:run` en `crontab -u gilen` (`/var/spool/cron/gilen`). El cron del otro proyecto (betplaye/fiebreparley) vive en `/etc/crontab`, independiente, intacto.
+- [x] `https://prestamos.gilensoft.com/login` carga con estilos; `.env` → 403; assets `/build/*` 200 sin *mixed content*.
+- [ ] **Pendiente:** activar **"Redirección https"** en el panel Ferozo para el subdominio (hoy `http://` NO redirige a `https://`; con `SESSION_SECURE_COOKIE=true` una visita por http no recibe cookie).
+- [ ] **Pendiente:** aplicar el último release en el server — `su - gilen -c 'cd /home/gilen/public_html/prestamos_app && git pull && /usr/local/lsws/lsphp83/bin/php artisan route:cache'` (commit `7e70fd0`: raíz redirige a `/dashboard` → invitado a `/login`).
+- [ ] **Pendiente:** smoke test logueado: login como `enrony@gmail.com`, revisar Préstamos / Informes de pago / Maestros / Roles. `config('app.debug') === false`.
 - [ ] Cambio de document root / DNS al nuevo. **Rollback** = repuntar al viejo (BD intacta).
 - [ ] Archivar repo `sisconpre`.
 
