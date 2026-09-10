@@ -3,9 +3,21 @@
 namespace App\Models;
 
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Http\Request;
 
+/**
+ * Atributos calculados por el builder `lista()` (no son columnas):
+ *
+ * @property-read string|null $created
+ * @property-read string|null $cliente_nombre
+ * @property-read string|null $cliente_apellido
+ * @property-read string|null $cliente_documento
+ */
 class Prestamos extends Model
 {
     use HasFactory;
@@ -78,7 +90,10 @@ class Prestamos extends Model
         return $query->with(['datoCliente'])->get();
     }
 
-    public function prestamos_dias()
+    /**
+     * @return HasMany<PrestamosDias, $this>
+     */
+    public function prestamos_dias(): HasMany
     {
         return $this->hasMany(PrestamosDias::class, 'prestamo_id');
     }
@@ -108,46 +123,90 @@ class Prestamos extends Model
         return is_null($this->attributes['cliente']) ? null : json_decode($this->attributes['cliente']);
     }
 
-    public function p_estatus()
+    /**
+     * @return BelongsTo<PrestamosEstatu, $this>
+     */
+    public function p_estatus(): BelongsTo
     {
         return $this->belongsTo(PrestamosEstatu::class, 'estatus');
     }
 
-    public static function lista($request)
+    /** Columnas por las que la grilla puede ordenar → columna real (evita inyección en `orderBy`). */
+    private const ORDENABLES = [
+        'id' => 'prestamos.id',
+        'created' => 'prestamos.created_at',
+        'date_first_pay' => 'prestamos.date_first_pay',
+        'date_last_pay' => 'prestamos.date_last_pay',
+        'monto_prestamo' => 'prestamos.monto_prestamo',
+        'tasa' => 'prestamos.tasa',
+        'utilidad' => 'prestamos.utilidad',
+        'total' => 'prestamos.total',
+    ];
+
+    /**
+     * Builder del listado de préstamos (grilla de la consola), listo para paginar.
+     * Devuelve SOLO lo que consume `PrestamosTable.vue` + nombre/apellido/documento
+     * del cliente vía `json_extract` (sin el snapshot anidado, que en filas legadas
+     * llega a 2,8 MB). `prestamos_dias` (detalle expandible) y `p_estatus` van
+     * eager-loaded — ya sólo para la página vigente, no para toda la tabla.
+     *
+     * El segundo parámetro se mantiene por compatibilidad con la llamada existente.
+     *
+     * @return Builder<static>
+     */
+    public static function lista(Request $request, ?self $prestamos = null)
     {
+        $csvIds = static fn (mixed $csv): array => array_values(array_filter(
+            explode(',', (string) $csv),
+            static fn (string $v): bool => $v !== '',
+        ));
 
-        $sortBy = $request->query('sortColumn', 'created'); // Columna
-        $order = $request->query('sortOrder', 'desc'); // Orden
+        $sortCol = $request->query('sortColumn');
+        $sortBy = is_string($sortCol) ? (self::ORDENABLES[$sortCol] ?? 'prestamos.id') : 'prestamos.id';
 
-        return self::with(['prestamos_dias', 'p_estatus' => function ($p) {
-            $p->select('id', 'type_tag');
-        }])
-            ->select('*', 'created_at as created')
+        $sortDir = $request->query('sortOrder');
+        $order = is_string($sortDir) && strtolower($sortDir) === 'asc' ? 'asc' : 'desc';
+
+        return static::query()
+            ->select([
+                'prestamos.id',
+                'prestamos.cliente_id',
+                'prestamos.monto_prestamo',
+                'prestamos.tasa',
+                'prestamos.utilidad',
+                'prestamos.total',
+                'prestamos.estatus',
+                'prestamos.date_first_pay',
+                'prestamos.date_last_pay',
+                'prestamos.pause_surcharge',
+                'prestamos.created_at',
+            ])
+            ->selectRaw("date_format(prestamos.created_at, '%Y-%m-%d %H:%i:%s') as created")
+            ->selectRaw("json_unquote(json_extract(prestamos.cliente, '$.nombre')) as cliente_nombre")
+            ->selectRaw("json_unquote(json_extract(prestamos.cliente, '$.apellido')) as cliente_apellido")
+            ->selectRaw("json_unquote(json_extract(prestamos.cliente, '$.documento')) as cliente_documento")
+            ->with([
+                'prestamos_dias:id,prestamo_id,cuota,pagado,date,apply,dom,festivo,sigla',
+                'p_estatus:id,type_tag',
+            ])
             ->when($request->filled(['fecha_registro1', 'fecha_registro2']), function ($query) use ($request) {
-                $fechaInicio = Carbon::parse($request->fecha_registro1)->startOfDay();
-                $fechaFin = Carbon::parse($request->fecha_registro2)->endOfDay();
-
-                $query->whereBetween('prestamos.created_at', [$fechaInicio, $fechaFin]);
+                $query->whereBetween('prestamos.created_at', [
+                    Carbon::parse($request->fecha_registro1)->startOfDay(),
+                    Carbon::parse($request->fecha_registro2)->endOfDay(),
+                ]);
             })
             ->when($request->filled(['inicio1', 'inicio2']), function ($query) use ($request) {
-                $query->whereBetween('prestamos.date_first_pay', [$request->inicio1, $request->inicio1]);
+                $query->whereBetween('prestamos.date_first_pay', [$request->inicio1, $request->inicio2]);
             })
             ->when($request->filled(['fin1', 'fin2']), function ($query) use ($request) {
-                $query->whereBetween('prestamos.date_last_pay', [$request->fin1, $request->fin1]);
+                $query->whereBetween('prestamos.date_last_pay', [$request->fin1, $request->fin2]);
             })
-            ->when($request->filled(['clientes']), function ($query) use ($request) {
-                $clientes = explode(',', $request->clientes);
-                if (count($clientes) > 0) {
-                    $query->whereIn('prestamos.cliente_id', $clientes);
-                }
+            ->when($request->filled('clientes'), function ($query) use ($request, $csvIds) {
+                $query->whereIn('prestamos.cliente_id', $csvIds($request->clientes));
             })
-            ->when($request->filled(['estados']), function ($query) use ($request) {
-                $estados = explode(',', $request->estados);
-                if (count($estados) > 0) {
-                    $query->whereIn('prestamos.estatus', $estados);
-                }
+            ->when($request->filled('estados'), function ($query) use ($request, $csvIds) {
+                $query->whereIn('prestamos.estatus', $csvIds($request->estados));
             })
-            ->orderBy($sortBy, $order)
-            ->get();
+            ->orderBy($sortBy, $order);
     }
 }

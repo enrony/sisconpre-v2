@@ -1687,12 +1687,6 @@ parameters:
 			path: app/Http/Controllers/PaymentReportController.php
 
 		-
-			message: '#^Access to an undefined property App\\Models\\Prestamos\:\:\$prestamos_dias\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app/Http/Controllers/PaymentReportController.php
-
-		-
 			message: '#^Method App\\Http\\Controllers\\PaymentReportController\:\:change_estatus_report\(\) should return Illuminate\\Http\\Response but returns array\<string, string\|false\>\.$#'
 			identifier: return.type
 			count: 1
@@ -1767,12 +1761,6 @@ parameters:
 		-
 			message: '#^Method App\\Http\\Controllers\\PaymentReportController\:\:update\(\) should return Illuminate\\Http\\Response but return statement is missing\.$#'
 			identifier: return.missing
-			count: 1
-			path: app/Http/Controllers/PaymentReportController.php
-
-		-
-			message: '#^Relation ''prestamos_dias'' is not found in App\\Models\\Prestamos model\.$#'
-			identifier: larastan.relationExistence
 			count: 1
 			path: app/Http/Controllers/PaymentReportController.php
 
@@ -1855,12 +1843,6 @@ parameters:
 			path: app/Http/Controllers/PrestamosController.php
 
 		-
-			message: '#^Method App\\Http\\Controllers\\PrestamosController\:\:index_old\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: app/Http/Controllers/PrestamosController.php
-
-		-
 			message: '#^Method App\\Http\\Controllers\\PrestamosController\:\:obtenerPrestamosActivos\(\) has no return type specified\.$#'
 			identifier: missingType.return
 			count: 1
@@ -1869,42 +1851,6 @@ parameters:
 		-
 			message: '#^Method App\\Http\\Controllers\\PrestamosController\:\:obtenerPrestamosActivos\(\) has parameter \$cliente with no type specified\.$#'
 			identifier: missingType.parameter
-			count: 1
-			path: app/Http/Controllers/PrestamosController.php
-
-		-
-			message: '#^Method App\\Http\\Controllers\\PrestamosController\:\:paginate\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: app/Http/Controllers/PrestamosController.php
-
-		-
-			message: '#^Method App\\Http\\Controllers\\PrestamosController\:\:paginate\(\) has parameter \$options with no type specified\.$#'
-			identifier: missingType.parameter
-			count: 1
-			path: app/Http/Controllers/PrestamosController.php
-
-		-
-			message: '#^Method App\\Http\\Controllers\\PrestamosController\:\:paginate\(\) has parameter \$page with no type specified\.$#'
-			identifier: missingType.parameter
-			count: 1
-			path: app/Http/Controllers/PrestamosController.php
-
-		-
-			message: '#^Method App\\Http\\Controllers\\PrestamosController\:\:paginate\(\) has parameter \$per_page2 with no type specified\.$#'
-			identifier: missingType.parameter
-			count: 1
-			path: app/Http/Controllers/PrestamosController.php
-
-		-
-			message: '#^Method App\\Http\\Controllers\\PrestamosController\:\:paginate\(\) has parameter \$queryAll with no type specified\.$#'
-			identifier: missingType.parameter
-			count: 1
-			path: app/Http/Controllers/PrestamosController.php
-
-		-
-			message: '#^Method App\\Http\\Controllers\\PrestamosController\:\:records\(\) has no return type specified\.$#'
-			identifier: missingType.return
 			count: 1
 			path: app/Http/Controllers/PrestamosController.php
 
@@ -1953,18 +1899,6 @@ parameters:
 		-
 			message: '#^Method App\\Http\\Controllers\\PrestamosController\:\:update\(\) should return Illuminate\\Http\\Response but return statement is missing\.$#'
 			identifier: return.missing
-			count: 1
-			path: app/Http/Controllers/PrestamosController.php
-
-		-
-			message: '#^Relation ''prestamos_dias'' is not found in App\\Models\\Prestamos model\.$#'
-			identifier: larastan.relationExistence
-			count: 2
-			path: app/Http/Controllers/PrestamosController.php
-
-		-
-			message: '#^Static method App\\Models\\Prestamos\:\:lista\(\) invoked with 2 parameters, 1 required\.$#'
-			identifier: arguments.count
 			count: 1
 			path: app/Http/Controllers/PrestamosController.php
 
@@ -2707,12 +2641,6 @@ parameters:
 			path: app/Mail/RecargoMail.php
 
 		-
-			message: '#^Parameter \#1 \$view of method Illuminate\\Mail\\Mailable\:\:view\(\) expects view\-string, string given\.$#'
-			identifier: argument.type
-			count: 1
-			path: app/Mail/RecargoMail.php
-
-		-
 			message: '#^Property App\\Mail\\RecargoMail\:\:\$prestamoDia has no type specified\.$#'
 			identifier: missingType.property
 			count: 1
@@ -2894,12 +2822,6 @@ parameters:
 
 		-
 			message: '#^Relation ''payment_reports_movement'' is not found in App\\Models\\PaymentReport model\.$#'
-			identifier: larastan.relationExistence
-			count: 1
-			path: app/Models/Clientes.php
-
-		-
-			message: '#^Relation ''prestamos_dias'' is not found in App\\Models\\Prestamos model\.$#'
 			identifier: larastan.relationExistence
 			count: 1
 			path: app/Models/Clientes.php
@@ -3469,12 +3391,6 @@ parameters:
 			path: app/Models/Prestamos.php
 
 		-
-			message: '#^Comparison operation "\>" between int\<1, max\> and 0 is always true\.$#'
-			identifier: greater.alwaysTrue
-			count: 2
-			path: app/Models/Prestamos.php
-
-		-
 			message: '#^Method App\\Models\\Prestamos\:\:country\(\) has no return type specified\.$#'
 			identifier: missingType.return
 			count: 1
@@ -3513,30 +3429,6 @@ parameters:
 		-
 			message: '#^Method App\\Models\\Prestamos\:\:getDateLastPayAttribute\(\) has parameter \$value with no type specified\.$#'
 			identifier: missingType.parameter
-			count: 1
-			path: app/Models/Prestamos.php
-
-		-
-			message: '#^Method App\\Models\\Prestamos\:\:lista\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: app/Models/Prestamos.php
-
-		-
-			message: '#^Method App\\Models\\Prestamos\:\:lista\(\) has parameter \$request with no type specified\.$#'
-			identifier: missingType.parameter
-			count: 1
-			path: app/Models/Prestamos.php
-
-		-
-			message: '#^Method App\\Models\\Prestamos\:\:p_estatus\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: app/Models/Prestamos.php
-
-		-
-			message: '#^Method App\\Models\\Prestamos\:\:prestamos_dias\(\) has no return type specified\.$#'
-			identifier: missingType.return
 			count: 1
 			path: app/Models/Prestamos.php
 

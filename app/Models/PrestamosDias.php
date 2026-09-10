@@ -5,6 +5,14 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * Flags de decoración que algunos controladores adosan en runtime para el front
+ * (no son columnas): `PaymentReportController::record()` marca la cuota
+ * seleccionada en un informe de pago.
+ *
+ * @property bool $p_seleccionado
+ * @property string $textColorCuotas
+ */
 class PrestamosDias extends Model
 {
     use HasFactory;

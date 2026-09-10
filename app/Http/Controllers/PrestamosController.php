@@ -8,11 +8,9 @@ use App\Models\Prestamos;
 use App\Models\PrestamosDias;
 use App\Models\PrestamosEstatu;
 use App\Models\TipoPrestamo;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
-use Illuminate\Pagination\LengthAwarePaginator;
-use Illuminate\Pagination\Paginator;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Redirect;
 use Inertia;
 
@@ -40,26 +38,58 @@ class PrestamosController extends Controller
         return compact('estados');
     }
 
-    public function records(Request $request, Prestamos $Prestamos)
+    /**
+     * @return array{lista: LengthAwarePaginator<int, array<string, mixed>>}
+     */
+    public function records(Request $request, Prestamos $Prestamos): array
     {
-
-        $lista = $this->paginate($Prestamos::lista($request, $Prestamos), 10);
+        $lista = Prestamos::lista($request, $Prestamos)
+            ->paginate(10)
+            ->through(fn (Prestamos $r): array => $this->toRow($r));
 
         return compact('lista');
-
     }
 
-    public function index_old(Request $request, Prestamos $prestamos)
+    /**
+     * Fila del listado: exactamente lo que consume `PrestamosTable.vue`
+     * (incluye `prestamos_dias` para el detalle expandible, ya sólo de la página).
+     *
+     * @return array<string, mixed>
+     */
+    private function toRow(Prestamos $r): array
     {
-        \App::setLocale('es');
-
-        $lista = $prestamos->with(['prestamos_dias'])->select('*', 'created_at as created')->get();
-
-        return Inertia\Inertia::render('Prestamos',
-            [
-                'lista' => $this->paginate($lista, 10),
-                'messages' => __('messages'),
-            ]);
+        return [
+            'id' => $r->id,
+            'cliente_id' => $r->cliente_id,
+            'cliente' => [
+                'nombre' => $r->cliente_nombre,
+                'apellido' => $r->cliente_apellido,
+                'documento' => $r->cliente_documento,
+            ],
+            'created' => $r->created,
+            'date_first_pay' => $r->date_first_pay,
+            'date_last_pay' => $r->date_last_pay,
+            'monto_prestamo' => $r->monto_prestamo,
+            'tasa' => $r->tasa,
+            'utilidad' => $r->utilidad,
+            'total' => $r->total,
+            'estatus' => $r->estatus,
+            'pause_surcharge' => (bool) $r->pause_surcharge,
+            'p_estatus' => $r->p_estatus ? [
+                'id' => $r->p_estatus->id,
+                'type_tag' => $r->p_estatus->type_tag,
+            ] : null,
+            'prestamos_dias' => $r->prestamos_dias->map(fn (PrestamosDias $d): array => [
+                'id' => $d->id,
+                'date' => $d->date,
+                'sigla' => $d->sigla,
+                'cuota' => $d->cuota,
+                'apply' => (bool) $d->apply,
+                'pagado' => (bool) $d->pagado,
+                'dom' => (bool) $d->dom,
+                'festivo' => (bool) $d->festivo,
+            ])->all(),
+        ];
     }
 
     public function transformData($queryAll)
@@ -77,17 +107,6 @@ class PrestamosController extends Controller
 
             return $item;
         });
-    }
-
-    public function paginate($queryAll, $per_page2 = 1000, $page = null, $options = [])
-    {
-
-        $collection = new Collection($queryAll);
-        $page = Paginator::resolveCurrentPage() ?: 1;
-        $per_page = $per_page2;
-        $currentPageResults = $collection->slice(($page - 1) * $per_page, $per_page)->values();
-
-        return new LengthAwarePaginator($currentPageResults, count($collection), $per_page);
     }
 
     /**
