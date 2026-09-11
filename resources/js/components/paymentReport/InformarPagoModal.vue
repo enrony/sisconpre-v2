@@ -298,10 +298,20 @@ async function registrar() {
  * clases con selectores normales.
  */
 .informar-pago-dialog-header {
-    margin-right: 0;
-    padding: 1rem 1.5rem;
+    /*
+     * `.el-dialog` trae su propio padding (16px por defecto) alrededor de
+     * TODO su contenido — header incluido. Con sólo el color de fondo, la
+     * cabecera quedaba "flotando" adentro de ese padding, dejando un marco
+     * blanco alrededor (más visible arriba a la derecha, donde vive la "X"
+     * de cerrar: se posiciona absoluta contra el diálogo entero, no contra
+     * la cabecera). La sangramos hasta el borde real del diálogo.
+     */
+    margin: calc(var(--el-dialog-padding-primary, 16px) * -1)
+        calc(var(--el-dialog-padding-primary, 16px) * -1) 0;
+    padding: 1rem 3rem 1rem 1.5rem;
     background-color: #0073c3;
-    border-radius: var(--radius) var(--radius) 0 0;
+    border-radius: var(--el-dialog-border-radius, var(--radius))
+        var(--el-dialog-border-radius, var(--radius)) 0 0;
 }
 
 .informar-pago-dialog-header .el-dialog__title {
