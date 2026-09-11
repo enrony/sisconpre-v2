@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { router, usePage } from '@inertiajs/vue3';
 import { computed, onMounted, ref } from 'vue';
+import ResponsiveList, {
+    type ListField,
+} from '@/components/data/ResponsiveList.vue';
 import MaestroFormModal from '@/components/maestros/MaestroFormModal.vue';
 import type {
     MaestroConfig,
@@ -43,6 +46,24 @@ const paginator = computed(
             null) as Paginated<MaestroRow> | null,
 );
 const currentPage = computed(() => paginator.value?.current_page ?? 1);
+
+/** Campos de la tarjeta móvil, derivados de `config.columns`. */
+const cardFields = computed<ListField<MaestroRow>[]>(() => [
+    ...props.config.columns.map((col) => ({
+        label: col.label,
+        class:
+            col.align === 'right' ? 'text-right tabular-nums' : 'tabular-nums',
+        value: (row: MaestroRow) =>
+            col.boolean
+                ? row[col.prop]
+                    ? 'Sí'
+                    : 'No'
+                : col.lookupKey
+                  ? lookup(row, col.prop, col.lookupKey, col.lookupLabel)
+                  : row[col.prop],
+    })),
+    { label: 'Modificado', value: (row: MaestroRow) => row.updated },
+]);
 
 const modalOpen = ref(false);
 const editing = ref<MaestroRow | null>(null);
@@ -100,96 +121,138 @@ function irAPagina(p: number) {
             </el-button>
         </div>
 
-        <div class="bg-card rounded-xl border p-4 shadow-sm">
-            <el-table
-                :data="paginator?.data ?? []"
-                stripe
-                border
-                size="small"
-                style="width: 100%"
-                max-height="560"
+        <div
+            class="bg-card rounded-xl border p-4 shadow-sm max-md:border-0 max-md:bg-transparent max-md:p-0 max-md:shadow-none"
+        >
+            <ResponsiveList
+                :rows="paginator?.data ?? []"
+                :fields="cardFields"
+                :title="
+                    (row) =>
+                        String(
+                            row[config.labelProp ?? 'description'] ??
+                                `#${row.id}`,
+                        )
+                "
+                :subtitle="(row) => `#${row.id}`"
+                :empty="`Sin ${config.title.toLowerCase()}.`"
             >
-                <el-table-column
-                    prop="id"
-                    label="#"
-                    width="64"
-                    align="center"
-                />
-                <el-table-column
-                    v-for="col in config.columns"
-                    :key="col.prop"
-                    :prop="col.prop"
-                    :label="col.label"
-                    :width="col.width"
-                    :align="col.align ?? 'left'"
-                >
-                    <template
-                        v-if="col.boolean || col.lookupKey"
-                        #default="{ row }"
-                    >
-                        <template v-if="col.boolean">
-                            {{ row[col.prop] ? 'Sí' : 'No' }}
-                        </template>
-                        <template v-else>
-                            {{
-                                lookup(
-                                    row as MaestroRow,
-                                    col.prop,
-                                    col.lookupKey!,
-                                    col.lookupLabel,
-                                )
-                            }}
-                        </template>
-                    </template>
-                </el-table-column>
-                <el-table-column
-                    prop="updated"
-                    label="Modificado"
-                    width="170"
-                />
-                <el-table-column
-                    v-if="puedeEditar || puedeEliminar"
-                    label="Operaciones"
-                    width="130"
-                    align="center"
-                    fixed="right"
-                >
-                    <template #default="{ row }">
-                        <div
-                            v-if="!row.por_defecto"
-                            class="flex justify-center gap-1"
+                <template #actions="{ row }">
+                    <template v-if="!row.por_defecto">
+                        <el-button
+                            v-if="puedeEditar"
+                            @click="editar(row as MaestroRow)"
                         >
-                            <el-button
-                                v-if="puedeEditar"
-                                size="small"
-                                @click="editar(row as MaestroRow)"
-                            >
-                                Editar
-                            </el-button>
-                            <el-button
-                                v-if="puedeEliminar"
-                                size="small"
-                                type="danger"
-                                plain
-                                @click="eliminar(row as MaestroRow)"
-                            >
-                                Eliminar
-                            </el-button>
-                        </div>
+                            Editar
+                        </el-button>
+                        <el-button
+                            v-if="puedeEliminar"
+                            type="danger"
+                            plain
+                            @click="eliminar(row as MaestroRow)"
+                        >
+                            Eliminar
+                        </el-button>
                     </template>
-                </el-table-column>
-            </el-table>
+                    <span v-else class="text-muted-foreground text-xs">
+                        Registro del sistema
+                    </span>
+                </template>
 
-            <div v-if="paginator" class="mt-4 flex justify-end">
-                <el-pagination
-                    background
-                    layout="total, prev, pager, next"
-                    :total="paginator.total"
-                    :page-size="paginator.per_page"
-                    :current-page="paginator.current_page"
-                    @current-change="irAPagina"
-                />
-            </div>
+                <template #table>
+                    <el-table
+                        :data="paginator?.data ?? []"
+                        stripe
+                        border
+                        size="small"
+                        style="width: 100%"
+                        max-height="560"
+                    >
+                        <el-table-column
+                            prop="id"
+                            label="#"
+                            width="64"
+                            align="center"
+                        />
+                        <el-table-column
+                            v-for="col in config.columns"
+                            :key="col.prop"
+                            :prop="col.prop"
+                            :label="col.label"
+                            :width="col.width"
+                            :align="col.align ?? 'left'"
+                        >
+                            <template
+                                v-if="col.boolean || col.lookupKey"
+                                #default="{ row }"
+                            >
+                                <template v-if="col.boolean">
+                                    {{ row[col.prop] ? 'Sí' : 'No' }}
+                                </template>
+                                <template v-else>
+                                    {{
+                                        lookup(
+                                            row as MaestroRow,
+                                            col.prop,
+                                            col.lookupKey!,
+                                            col.lookupLabel,
+                                        )
+                                    }}
+                                </template>
+                            </template>
+                        </el-table-column>
+                        <el-table-column
+                            prop="updated"
+                            label="Modificado"
+                            width="170"
+                        />
+                        <el-table-column
+                            v-if="puedeEditar || puedeEliminar"
+                            label="Operaciones"
+                            width="130"
+                            align="center"
+                            fixed="right"
+                        >
+                            <template #default="{ row }">
+                                <div
+                                    v-if="!row.por_defecto"
+                                    class="flex justify-center gap-1"
+                                >
+                                    <el-button
+                                        v-if="puedeEditar"
+                                        size="small"
+                                        @click="editar(row as MaestroRow)"
+                                    >
+                                        Editar
+                                    </el-button>
+                                    <el-button
+                                        v-if="puedeEliminar"
+                                        size="small"
+                                        type="danger"
+                                        plain
+                                        @click="eliminar(row as MaestroRow)"
+                                    >
+                                        Eliminar
+                                    </el-button>
+                                </div>
+                            </template>
+                        </el-table-column>
+                    </el-table>
+                </template>
+
+                <template v-if="paginator" #pagination>
+                    <div class="mt-4 flex justify-end">
+                        <el-pagination
+                            background
+                            layout="total, prev, pager, next"
+                            :total="paginator.total"
+                            :page-size="paginator.per_page"
+                            :current-page="paginator.current_page"
+                            @current-change="irAPagina"
+                        />
+                    </div>
+                </template>
+            </ResponsiveList>
         </div>
 
         <MaestroFormModal
