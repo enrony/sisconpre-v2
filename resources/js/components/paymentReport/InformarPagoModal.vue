@@ -57,7 +57,8 @@ async function registrar() {
         title="Informar un pago"
         width="min(900px, 94vw)"
         :close-on-click-modal="false"
-        class="informar-pago-dialog"
+        header-class="informar-pago-dialog-header"
+        body-class="informar-pago-dialog-body"
     >
         <div class="space-y-4">
             <div class="grid grid-cols-1 gap-3 md:grid-cols-2">
@@ -281,33 +282,42 @@ async function registrar() {
     </el-dialog>
 </template>
 
-<style scoped>
+<style>
 /*
  * Cabecera con el azul de marca de GilenSoft (--primary-blue en
  * gilensoft.com). Sólo este diálogo: el resto de la app usa el estilo
  * neutro por defecto de element-plus.
+ *
+ * Sin `scoped`: el `<header>`/`<div class="el-dialog__body">` reales los
+ * renderiza `ElDialogContent` dentro de un `<Teleport>` propio de
+ * element-plus, así que el atributo `data-v-*` de este componente nunca
+ * llega a esos nodos y un `:deep()` con scope no matchea nada (comprobado en
+ * producción: el CSS estaba servido bien pero la regla no aplicaba). En
+ * cambio `header-class`/`body-class` son props documentadas de `el-dialog`
+ * que element-plus aplica directo sobre esos nodos, así que apuntamos a esas
+ * clases con selectores normales.
  */
-.informar-pago-dialog :deep(.el-dialog__header) {
+.informar-pago-dialog-header {
     margin-right: 0;
     padding: 1rem 1.5rem;
     background-color: #0073c3;
     border-radius: var(--radius) var(--radius) 0 0;
 }
 
-.informar-pago-dialog :deep(.el-dialog__title) {
+.informar-pago-dialog-header .el-dialog__title {
     color: #fff;
     font-weight: 600;
 }
 
-.informar-pago-dialog :deep(.el-dialog__headerbtn .el-dialog__close) {
+.informar-pago-dialog-header .el-dialog__headerbtn .el-dialog__close {
     color: rgb(255 255 255 / 85%);
 }
 
-.informar-pago-dialog :deep(.el-dialog__headerbtn:hover .el-dialog__close) {
+.informar-pago-dialog-header .el-dialog__headerbtn:hover .el-dialog__close {
     color: #fff;
 }
 
-.informar-pago-dialog :deep(.el-dialog__body) {
+.informar-pago-dialog-body {
     padding-top: 1.25rem;
 }
 </style>
