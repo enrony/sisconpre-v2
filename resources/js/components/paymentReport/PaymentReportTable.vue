@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { storeToRefs } from 'pinia';
 import { ref } from 'vue';
+import ResponsiveList, {
+    type ListField,
+} from '@/components/data/ResponsiveList.vue';
 import ChangeStateModal from '@/components/paymentReport/ChangeStateModal.vue';
 import DetalleInformeModal from '@/components/paymentReport/DetalleInformeModal.vue';
 import GestionClienteModal from '@/components/paymentReport/GestionClienteModal.vue';
@@ -49,120 +52,181 @@ function tagType(
 function onPage(page: number) {
     void store.fetchList(page);
 }
+
+const fields: ListField<InformePagoRow>[] = [
+    { label: 'Registrado', value: (r) => r.created },
+    { label: 'Destino', value: (r) => r.destination_text },
+    {
+        label: 'Monto',
+        class: 'text-right font-semibold tabular-nums',
+        value: (r) => formatNumber(r.value_amount),
+    },
+    { label: 'Cuotas', class: 'tabular-nums', value: (r) => r.number_cuotas },
+];
 </script>
 
 <template>
-    <div v-loading="loading">
-        <el-table
-            :data="lista?.data ?? []"
-            stripe
-            border
-            size="small"
-            style="width: 100%"
-            max-height="560"
-        >
-            <el-table-column
-                prop="id"
-                label="#"
-                width="70"
-                align="center"
-                fixed
-            />
-            <el-table-column prop="created" label="Registrado" width="160" />
-            <el-table-column label="Cliente" min-width="170">
-                <template #default="{ row }">{{
-                    clienteNombre(row as InformePagoRow)
-                }}</template>
-            </el-table-column>
-            <el-table-column
-                prop="destination_text"
-                label="Destino"
-                width="140"
-            />
-            <el-table-column label="Monto" width="130" align="right">
-                <template #default="{ row }">
-                    <span class="font-semibold text-blue-600">
-                        {{ formatNumber(row.value_amount) }}
-                    </span>
-                </template>
-            </el-table-column>
-            <el-table-column
-                prop="number_cuotas"
-                label="Cuotas"
-                width="90"
-                align="center"
-            />
-            <el-table-column label="Estado" width="150" align="center">
-                <template #default="{ row }">
-                    <el-tag
-                        :type="tagType(row as InformePagoRow)"
-                        effect="dark"
-                        size="small"
-                    >
-                        {{ row.status_description?.desc ?? '—' }}
-                    </el-tag>
-                </template>
-            </el-table-column>
-            <el-table-column
-                label="Acciones"
-                width="120"
-                align="center"
-                fixed="right"
+    <ResponsiveList
+        :rows="lista?.data ?? []"
+        :fields="fields"
+        :title="clienteNombre"
+        :subtitle="(row) => `#${row.id}`"
+        :loading="loading"
+        empty="Sin informes de pago."
+    >
+        <template #badge="{ row }">
+            <el-tag
+                :type="tagType(row as InformePagoRow)"
+                effect="dark"
+                size="small"
             >
-                <template #default="{ row }">
-                    <el-dropdown trigger="click" size="small">
-                        <el-button size="small" type="primary"
-                            >Acciones</el-button
+                {{ row.status_description?.desc ?? '—' }}
+            </el-tag>
+        </template>
+
+        <template #actions="{ row }">
+            <el-button
+                size="default"
+                @click="store.abrirDetalle(row as InformePagoRow)"
+            >
+                Ver detalle
+            </el-button>
+            <el-button
+                size="default"
+                :disabled="!puedeGestionar"
+                @click="abrirCambioEstado(row as InformePagoRow)"
+            >
+                Cambiar estado
+            </el-button>
+            <el-button
+                size="default"
+                :disabled="!puedeGestionar"
+                @click="store.abrirGestion(row as InformePagoRow)"
+            >
+                Gestionar informes del cliente
+            </el-button>
+        </template>
+
+        <template #table>
+            <el-table
+                :data="lista?.data ?? []"
+                stripe
+                border
+                size="small"
+                style="width: 100%"
+                max-height="560"
+            >
+                <el-table-column
+                    prop="id"
+                    label="#"
+                    width="70"
+                    align="center"
+                    fixed
+                />
+                <el-table-column
+                    prop="created"
+                    label="Registrado"
+                    width="160"
+                />
+                <el-table-column label="Cliente" min-width="170">
+                    <template #default="{ row }">{{
+                        clienteNombre(row as InformePagoRow)
+                    }}</template>
+                </el-table-column>
+                <el-table-column
+                    prop="destination_text"
+                    label="Destino"
+                    width="140"
+                />
+                <el-table-column label="Monto" width="130" align="right">
+                    <template #default="{ row }">
+                        <span class="font-semibold text-blue-600">
+                            {{ formatNumber(row.value_amount) }}
+                        </span>
+                    </template>
+                </el-table-column>
+                <el-table-column
+                    prop="number_cuotas"
+                    label="Cuotas"
+                    width="90"
+                    align="center"
+                />
+                <el-table-column label="Estado" width="150" align="center">
+                    <template #default="{ row }">
+                        <el-tag
+                            :type="tagType(row as InformePagoRow)"
+                            effect="dark"
+                            size="small"
                         >
-                        <template #dropdown>
-                            <el-dropdown-menu>
-                                <el-dropdown-item
-                                    @click="
-                                        store.abrirDetalle(
-                                            row as InformePagoRow,
-                                        )
-                                    "
-                                >
-                                    Ver detalle (#{{ row.id }})
-                                </el-dropdown-item>
-                                <el-dropdown-item
-                                    :disabled="!puedeGestionar"
-                                    @click="
-                                        abrirCambioEstado(row as InformePagoRow)
-                                    "
-                                >
-                                    Cambiar estado
-                                </el-dropdown-item>
-                                <el-dropdown-item
-                                    :disabled="!puedeGestionar"
-                                    @click="
-                                        store.abrirGestion(
-                                            row as InformePagoRow,
-                                        )
-                                    "
-                                >
-                                    Gestionar informes del cliente
-                                </el-dropdown-item>
-                            </el-dropdown-menu>
-                        </template>
-                    </el-dropdown>
-                </template>
-            </el-table-column>
-        </el-table>
+                            {{ row.status_description?.desc ?? '—' }}
+                        </el-tag>
+                    </template>
+                </el-table-column>
+                <el-table-column
+                    label="Acciones"
+                    width="120"
+                    align="center"
+                    fixed="right"
+                >
+                    <template #default="{ row }">
+                        <el-dropdown trigger="click" size="small">
+                            <el-button size="small" type="primary"
+                                >Acciones</el-button
+                            >
+                            <template #dropdown>
+                                <el-dropdown-menu>
+                                    <el-dropdown-item
+                                        @click="
+                                            store.abrirDetalle(
+                                                row as InformePagoRow,
+                                            )
+                                        "
+                                    >
+                                        Ver detalle (#{{ row.id }})
+                                    </el-dropdown-item>
+                                    <el-dropdown-item
+                                        :disabled="!puedeGestionar"
+                                        @click="
+                                            abrirCambioEstado(
+                                                row as InformePagoRow,
+                                            )
+                                        "
+                                    >
+                                        Cambiar estado
+                                    </el-dropdown-item>
+                                    <el-dropdown-item
+                                        :disabled="!puedeGestionar"
+                                        @click="
+                                            store.abrirGestion(
+                                                row as InformePagoRow,
+                                            )
+                                        "
+                                    >
+                                        Gestionar informes del cliente
+                                    </el-dropdown-item>
+                                </el-dropdown-menu>
+                            </template>
+                        </el-dropdown>
+                    </template>
+                </el-table-column>
+            </el-table>
+        </template>
 
-        <ChangeStateModal v-model:open="stateModalOpen" :row="stateRow" />
-        <DetalleInformeModal />
-        <GestionClienteModal />
+        <template v-if="lista" #pagination>
+            <div class="mt-4 flex justify-end">
+                <el-pagination
+                    background
+                    layout="total, prev, pager, next"
+                    :total="lista.total"
+                    :page-size="lista.per_page"
+                    :current-page="lista.current_page"
+                    @current-change="onPage"
+                />
+            </div>
+        </template>
+    </ResponsiveList>
 
-        <div v-if="lista" class="mt-4 flex justify-end">
-            <el-pagination
-                background
-                layout="total, prev, pager, next"
-                :total="lista.total"
-                :page-size="lista.per_page"
-                :current-page="lista.current_page"
-                @current-change="onPage"
-            />
-        </div>
-    </div>
+    <ChangeStateModal v-model:open="stateModalOpen" :row="stateRow" />
+    <DetalleInformeModal />
+    <GestionClienteModal />
 </template>

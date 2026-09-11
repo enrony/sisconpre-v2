@@ -2,6 +2,9 @@
 import { Head, Link, usePage } from '@inertiajs/vue3';
 import { computed } from 'vue';
 import RoleFormModal from '@/components/admin/RoleFormModal.vue';
+import ResponsiveList, {
+    type ListField,
+} from '@/components/data/ResponsiveList.vue';
 import Heading from '@/components/Heading.vue';
 import { can } from '@/lib/can';
 import {
@@ -28,6 +31,15 @@ function eliminar(row: RoleRow) {
         { type: 'warning', confirmButtonText: 'Sí', cancelButtonText: 'No' },
     ).then(() => store.eliminar(row as RoleRow));
 }
+
+const fields: ListField<RoleRow>[] = [
+    {
+        label: 'Permisos',
+        class: 'tabular-nums',
+        value: (r) => r.permissions.length,
+    },
+    { label: 'Usuarios', class: 'tabular-nums', value: (r) => r.users_count },
+];
 </script>
 
 <template>
@@ -53,71 +65,114 @@ function eliminar(row: RoleRow) {
             </div>
         </div>
 
-        <div class="bg-card rounded-xl border p-4 shadow-sm">
-            <el-table
-                :data="roles"
-                stripe
-                border
-                size="small"
-                style="width: 100%"
+        <div
+            class="bg-card rounded-xl border p-4 shadow-sm max-md:border-0 max-md:bg-transparent max-md:p-0 max-md:shadow-none"
+        >
+            <ResponsiveList
+                :rows="roles"
+                :fields="fields"
+                :title="(row) => row.name"
+                empty="Sin roles."
             >
-                <el-table-column prop="name" label="Rol" min-width="200">
-                    <template #default="{ row }">
-                        {{ row.name }}
-                        <el-tag
-                            v-if="row.protegido"
-                            size="small"
-                            type="info"
-                            class="ml-2"
-                            >protegido</el-tag
-                        >
-                    </template>
-                </el-table-column>
-                <el-table-column
-                    label="Permisos"
-                    width="120"
-                    align="center"
-                    prop="permissions"
-                >
-                    <template #default="{ row }">
-                        {{ row.permissions.length }}
-                    </template>
-                </el-table-column>
-                <el-table-column
-                    prop="users_count"
-                    label="Usuarios"
-                    width="110"
-                    align="center"
-                />
-                <el-table-column
+                <template #badge="{ row }">
+                    <el-tag v-if="row.protegido" size="small" type="info">
+                        protegido
+                    </el-tag>
+                </template>
+
+                <template
                     v-if="puedeEditar || puedeEliminar"
-                    label="Operaciones"
-                    width="160"
-                    align="center"
-                    fixed="right"
+                    #actions="{ row }"
                 >
-                    <template #default="{ row }">
-                        <div class="flex justify-center gap-1">
-                            <el-button
-                                v-if="puedeEditar"
-                                size="small"
-                                @click="store.abrir(row as RoleRow)"
-                            >
-                                Editar
-                            </el-button>
-                            <el-button
-                                v-if="puedeEliminar && !row.protegido"
-                                size="small"
-                                type="danger"
-                                plain
-                                @click="eliminar(row as RoleRow)"
-                            >
-                                Eliminar
-                            </el-button>
-                        </div>
-                    </template>
-                </el-table-column>
-            </el-table>
+                    <el-button
+                        v-if="puedeEditar"
+                        size="default"
+                        @click="store.abrir(row as RoleRow)"
+                    >
+                        Editar
+                    </el-button>
+                    <el-button
+                        v-if="puedeEliminar && !row.protegido"
+                        size="default"
+                        type="danger"
+                        plain
+                        @click="eliminar(row as RoleRow)"
+                    >
+                        Eliminar
+                    </el-button>
+                </template>
+
+                <template #table>
+                    <el-table
+                        :data="roles"
+                        stripe
+                        border
+                        size="small"
+                        style="width: 100%"
+                    >
+                        <el-table-column
+                            prop="name"
+                            label="Rol"
+                            min-width="200"
+                        >
+                            <template #default="{ row }">
+                                {{ row.name }}
+                                <el-tag
+                                    v-if="row.protegido"
+                                    size="small"
+                                    type="info"
+                                    class="ml-2"
+                                    >protegido</el-tag
+                                >
+                            </template>
+                        </el-table-column>
+                        <el-table-column
+                            label="Permisos"
+                            width="120"
+                            align="center"
+                            prop="permissions"
+                        >
+                            <template #default="{ row }">
+                                {{ row.permissions.length }}
+                            </template>
+                        </el-table-column>
+                        <el-table-column
+                            prop="users_count"
+                            label="Usuarios"
+                            width="110"
+                            align="center"
+                        />
+                        <el-table-column
+                            v-if="puedeEditar || puedeEliminar"
+                            label="Operaciones"
+                            width="160"
+                            align="center"
+                            fixed="right"
+                        >
+                            <template #default="{ row }">
+                                <div class="flex justify-center gap-1">
+                                    <el-button
+                                        v-if="puedeEditar"
+                                        size="small"
+                                        @click="store.abrir(row as RoleRow)"
+                                    >
+                                        Editar
+                                    </el-button>
+                                    <el-button
+                                        v-if="puedeEliminar && !row.protegido"
+                                        size="small"
+                                        type="danger"
+                                        plain
+                                        @click="eliminar(row as RoleRow)"
+                                    >
+                                        Eliminar
+                                    </el-button>
+                                </div>
+                            </template>
+                        </el-table-column>
+                    </el-table>
+                </template>
+            </ResponsiveList>
         </div>
 
         <RoleFormModal :catalogo="catalogo" />
