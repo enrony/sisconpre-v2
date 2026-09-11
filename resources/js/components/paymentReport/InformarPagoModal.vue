@@ -62,7 +62,8 @@ async function registrar() {
         <div class="space-y-4">
             <div class="grid grid-cols-1 gap-3 md:grid-cols-2">
                 <div>
-                    <label class="text-muted-foreground text-xs font-semibold"
+                    <label
+                        class="text-muted-foreground mb-1.5 block text-xs font-semibold"
                         >Cliente</label
                     >
                     <el-select
@@ -83,7 +84,8 @@ async function registrar() {
                     </el-select>
                 </div>
                 <div>
-                    <label class="text-muted-foreground text-xs font-semibold"
+                    <label
+                        class="text-muted-foreground mb-1.5 block text-xs font-semibold"
                         >Destino del pago</label
                     >
                     <el-radio-group v-model="informar.tipoPago" size="small">
