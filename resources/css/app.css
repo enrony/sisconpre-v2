@@ -170,3 +170,45 @@
         @apply bg-background text-foreground;
     }
 }
+
+/*
+ * Cabecera de TODOS los `<el-dialog>` de la app con el azul de marca de
+ * GilenSoft (--primary-blue en gilensoft.com). Global a propósito, no un
+ * `<style scoped>` por componente: el `<header>` real lo renderiza
+ * `ElDialogContent` — varios componentes por debajo de `<el-dialog>` y
+ * dentro de un `<Teleport to="body">` propio de element-plus — así que el
+ * atributo `data-v-*` que Vue usa para scopear nunca llega a ese nodo y un
+ * `:deep()` con scope no matchea nada (comprobado en producción: el CSS
+ * llegaba bien pero la regla no aplicaba).
+ *
+ * `.el-dialog` trae su propio padding (16px por defecto) alrededor de TODO
+ * su contenido, así que la cabecera se sangra hasta el borde real del
+ * diálogo con márgenes negativos — si no, queda un marco blanco alrededor,
+ * más visible arriba a la derecha porque la "X" de cerrar se posiciona
+ * absoluta contra el diálogo entero, no contra la cabecera.
+ */
+.el-dialog__header {
+    margin: calc(var(--el-dialog-padding-primary, 16px) * -1)
+        calc(var(--el-dialog-padding-primary, 16px) * -1) 0;
+    padding: 1rem 3rem 1rem 1.5rem;
+    background-color: #0073c3;
+    border-radius: var(--el-dialog-border-radius, var(--radius))
+        var(--el-dialog-border-radius, var(--radius)) 0 0;
+}
+
+.el-dialog__title {
+    color: #fff;
+    font-weight: 600;
+}
+
+.el-dialog__headerbtn .el-dialog__close {
+    color: rgb(255 255 255 / 85%);
+}
+
+.el-dialog__headerbtn:hover .el-dialog__close {
+    color: #fff;
+}
+
+.el-dialog__body {
+    padding-top: 1.25rem;
+}

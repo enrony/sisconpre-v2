@@ -57,8 +57,6 @@ async function registrar() {
         title="Informar un pago"
         width="min(900px, 94vw)"
         :close-on-click-modal="false"
-        header-class="informar-pago-dialog-header"
-        body-class="informar-pago-dialog-body"
     >
         <div class="space-y-4">
             <div class="grid grid-cols-1 gap-3 md:grid-cols-2">
@@ -282,52 +280,8 @@ async function registrar() {
     </el-dialog>
 </template>
 
-<style>
-/*
- * Cabecera con el azul de marca de GilenSoft (--primary-blue en
- * gilensoft.com). Sólo este diálogo: el resto de la app usa el estilo
- * neutro por defecto de element-plus.
- *
- * Sin `scoped`: el `<header>`/`<div class="el-dialog__body">` reales los
- * renderiza `ElDialogContent` dentro de un `<Teleport>` propio de
- * element-plus, así que el atributo `data-v-*` de este componente nunca
- * llega a esos nodos y un `:deep()` con scope no matchea nada (comprobado en
- * producción: el CSS estaba servido bien pero la regla no aplicaba). En
- * cambio `header-class`/`body-class` son props documentadas de `el-dialog`
- * que element-plus aplica directo sobre esos nodos, así que apuntamos a esas
- * clases con selectores normales.
- */
-.informar-pago-dialog-header {
-    /*
-     * `.el-dialog` trae su propio padding (16px por defecto) alrededor de
-     * TODO su contenido — header incluido. Con sólo el color de fondo, la
-     * cabecera quedaba "flotando" adentro de ese padding, dejando un marco
-     * blanco alrededor (más visible arriba a la derecha, donde vive la "X"
-     * de cerrar: se posiciona absoluta contra el diálogo entero, no contra
-     * la cabecera). La sangramos hasta el borde real del diálogo.
-     */
-    margin: calc(var(--el-dialog-padding-primary, 16px) * -1)
-        calc(var(--el-dialog-padding-primary, 16px) * -1) 0;
-    padding: 1rem 3rem 1rem 1.5rem;
-    background-color: #0073c3;
-    border-radius: var(--el-dialog-border-radius, var(--radius))
-        var(--el-dialog-border-radius, var(--radius)) 0 0;
-}
-
-.informar-pago-dialog-header .el-dialog__title {
-    color: #fff;
-    font-weight: 600;
-}
-
-.informar-pago-dialog-header .el-dialog__headerbtn .el-dialog__close {
-    color: rgb(255 255 255 / 85%);
-}
-
-.informar-pago-dialog-header .el-dialog__headerbtn:hover .el-dialog__close {
-    color: #fff;
-}
-
-.informar-pago-dialog-body {
-    padding-top: 1.25rem;
-}
-</style>
+<!--
+    La cabecera con el azul de marca de GilenSoft es global (ver
+    resources/css/app.css → `.el-dialog__header`), aplica a este diálogo y a
+    todos los `<el-dialog>` de la app sin necesidad de estilo por componente.
+-->
