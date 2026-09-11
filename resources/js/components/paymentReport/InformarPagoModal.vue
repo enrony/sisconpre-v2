@@ -57,6 +57,7 @@ async function registrar() {
         title="Informar un pago"
         width="min(900px, 94vw)"
         :close-on-click-modal="false"
+        class="informar-pago-dialog"
     >
         <div class="space-y-4">
             <div class="grid grid-cols-1 gap-3 md:grid-cols-2">
@@ -277,3 +278,34 @@ async function registrar() {
         </template>
     </el-dialog>
 </template>
+
+<style scoped>
+/*
+ * Cabecera con el azul de marca de GilenSoft (--primary-blue en
+ * gilensoft.com). Sólo este diálogo: el resto de la app usa el estilo
+ * neutro por defecto de element-plus.
+ */
+.informar-pago-dialog :deep(.el-dialog__header) {
+    margin-right: 0;
+    padding: 1rem 1.5rem;
+    background-color: #0073c3;
+    border-radius: var(--radius) var(--radius) 0 0;
+}
+
+.informar-pago-dialog :deep(.el-dialog__title) {
+    color: #fff;
+    font-weight: 600;
+}
+
+.informar-pago-dialog :deep(.el-dialog__headerbtn .el-dialog__close) {
+    color: rgb(255 255 255 / 85%);
+}
+
+.informar-pago-dialog :deep(.el-dialog__headerbtn:hover .el-dialog__close) {
+    color: #fff;
+}
+
+.informar-pago-dialog :deep(.el-dialog__body) {
+    padding-top: 1.25rem;
+}
+</style>

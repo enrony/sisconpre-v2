@@ -1,11 +1,13 @@
 <script setup lang="ts">
 import { Head } from '@inertiajs/vue3';
 import { onMounted } from 'vue';
+import InformarPagoModal from '@/components/paymentReport/InformarPagoModal.vue';
 import PrestamoFormModal from '@/components/prestamos/PrestamoFormModal.vue';
 import PrestamosFilters from '@/components/prestamos/PrestamosFilters.vue';
 import PrestamosTable from '@/components/prestamos/PrestamosTable.vue';
 import Heading from '@/components/Heading.vue';
 import { can } from '@/lib/can';
+import { usePaymentReportStore } from '@/stores/paymentReport';
 import { usePrestamosStore } from '@/stores/prestamos';
 import type { BreadcrumbItem } from '@/types';
 
@@ -14,6 +16,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 const store = usePrestamosStore();
+const paymentReportStore = usePaymentReportStore();
 
 onMounted(() => {
     void store.fetchList(1);
@@ -32,9 +35,12 @@ onMounted(() => {
             />
             <div class="flex gap-2">
                 <el-button
-                    v-if="can('prestamos.gestionar-informe-de-pago')"
+                    v-if="
+                        can('payment_report.registrar') ||
+                        can('payment_report.gestionar-informe-de-pago')
+                    "
                     type="success"
-                    disabled
+                    @click="paymentReportStore.abrirInformar()"
                 >
                     Informar un pago
                 </el-button>
@@ -56,5 +62,6 @@ onMounted(() => {
         </div>
 
         <PrestamoFormModal />
+        <InformarPagoModal />
     </div>
 </template>

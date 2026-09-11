@@ -26,6 +26,7 @@ export interface CuotaDia {
 /** Fila de la lista de préstamos (respuesta de POST /prestamos/records). */
 export interface PrestamoRow {
     id: number;
+    cliente_id: number;
     created: string;
     date_first_pay: string;
     date_last_pay: string;

@@ -413,9 +413,14 @@ export const usePaymentReportStore = defineStore('paymentReport', {
         //  Informar un pago
         // --------------------------------------------------------------
 
-        async abrirInformar(): Promise<void> {
+        /**
+         * Abre "Informar un pago". Si se pasa `clienteId` (p. ej. desde una
+         * fila de Préstamos), preselecciona ese cliente y carga sus cuotas
+         * pendientes de una vez.
+         */
+        async abrirInformar(clienteId: number | null = null): Promise<void> {
             this.informar = {
-                clienteId: null,
+                clienteId,
                 tipoPago: 1,
                 cuotas: [],
                 dataPayments: [nuevoPago()],
@@ -433,6 +438,10 @@ export const usePaymentReportStore = defineStore('paymentReport', {
             this.banks = bk.data.Bank ?? [];
             this.franquicias = fr.data.lista ?? [];
             this.clientesAll = cl.data.clien ?? [];
+
+            if (clienteId) {
+                await this.cargarActivos();
+            }
         },
 
         cerrarInformar(): void {

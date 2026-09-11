@@ -7,12 +7,21 @@ import ResponsiveList, {
 import PrestamoDetalleSheet from '@/components/prestamos/PrestamoDetalleSheet.vue';
 import { can } from '@/lib/can';
 import { formatNumber } from '@/lib/format';
+import { usePaymentReportStore } from '@/stores/paymentReport';
 import { type PrestamoRow, usePrestamosStore } from '@/stores/prestamos';
 
 const store = usePrestamosStore();
 const { lista, loading } = storeToRefs(store);
+const paymentReportStore = usePaymentReportStore();
 
 const puedeEditar = can('prestamos.editar');
+const puedeInformarPago =
+    can('payment_report.registrar') ||
+    can('payment_report.gestionar-informe-de-pago');
+
+function informarPago(row: PrestamoRow) {
+    void paymentReportStore.abrirInformar(row.cliente_id);
+}
 
 const detalleOpen = ref(false);
 const detalleRow = ref<PrestamoRow | null>(null);
@@ -121,6 +130,15 @@ const fields: ListField<PrestamoRow>[] = [
         <template #actions="{ row }">
             <el-button size="default" @click="abrirDetalle(row as PrestamoRow)">
                 Ver detalle
+            </el-button>
+            <el-button
+                v-if="puedeInformarPago"
+                size="default"
+                type="success"
+                plain
+                @click="informarPago(row as PrestamoRow)"
+            >
+                Informar un pago
             </el-button>
             <el-button
                 v-if="puedeEditar"
@@ -260,7 +278,12 @@ const fields: ListField<PrestamoRow>[] = [
                                     >
                                         Ver detalle (#{{ row.id }})
                                     </el-dropdown-item>
-                                    <el-dropdown-item disabled>
+                                    <el-dropdown-item
+                                        :disabled="!puedeInformarPago"
+                                        @click="
+                                            informarPago(row as PrestamoRow)
+                                        "
+                                    >
                                         Informar un pago
                                     </el-dropdown-item>
                                     <el-dropdown-item disabled>
