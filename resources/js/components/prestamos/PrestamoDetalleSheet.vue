@@ -37,7 +37,7 @@ const cliente = computed(() => {
                 </SheetTitle>
             </SheetHeader>
 
-            <div v-if="row" class="space-y-3 py-4">
+            <div v-if="row" class="space-y-3 px-4 py-4">
                 <CuotasResumen :dias="row.prestamos_dias ?? []" />
                 <CuotasSchedule :dias="row.prestamos_dias ?? []" />
             </div>
