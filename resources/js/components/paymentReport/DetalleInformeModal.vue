@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { Check } from '@lucide/vue';
 import { storeToRefs } from 'pinia';
 import { computed } from 'vue';
 import { formatNumber } from '@/lib/format';
@@ -118,12 +119,24 @@ const totalCuotasSel = computed(() =>
                         <div
                             v-for="d in p.prestamos_dias"
                             :key="d.id"
-                            class="flex h-11 overflow-hidden rounded-md border text-xs shadow-sm"
+                            class="relative flex h-11 overflow-hidden rounded-md border text-xs shadow-sm"
                             :class="[
                                 d.apply ? '' : 'opacity-40',
-                                d.p_seleccionado ? 'ring-2 ring-blue-500' : '',
+                                d.p_seleccionado
+                                    ? 'ring-2 ring-blue-600 ring-offset-2 ring-offset-white'
+                                    : '',
                             ]"
                         >
+                            <div
+                                v-if="d.p_seleccionado"
+                                class="absolute -top-1.5 -right-1.5 z-10 flex size-4 items-center justify-center rounded-full bg-blue-600 ring-2 ring-white"
+                            >
+                                <Check
+                                    class="size-2.5 text-white"
+                                    stroke-width="3"
+                                    aria-label="Cuota seleccionada"
+                                />
+                            </div>
                             <div
                                 class="flex items-center px-2 text-center"
                                 :class="badgeClass(d)"

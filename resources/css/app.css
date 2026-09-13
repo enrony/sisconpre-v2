@@ -186,8 +186,16 @@
  * diálogo con márgenes negativos — si no, queda un marco blanco alrededor,
  * más visible arriba a la derecha porque la "X" de cerrar se posiciona
  * absoluta contra el diálogo entero, no contra la cabecera.
+ *
+ * Selectores con `.el-dialog` repetido a propósito: cada regla de acá tiene
+ * la MISMA especificidad (una sola clase) que la regla por defecto de
+ * element-plus para ese mismo selector. Con empate de especificidad gana la
+ * que carga después en el documento, y ese orden varía según qué chunk de
+ * Vite metió el CSS de el-dialog en cada página — por eso el título salía
+ * blanco en una modal y negro en otra. Duplicar `.el-dialog` sube la
+ * especificidad para ganar siempre, sin depender del orden de carga.
  */
-.el-dialog__header {
+.el-dialog.el-dialog .el-dialog__header {
     margin: calc(var(--el-dialog-padding-primary, 16px) * -1)
         calc(var(--el-dialog-padding-primary, 16px) * -1) 0;
     padding: 1rem 3rem 1rem 1.5rem;
@@ -196,19 +204,19 @@
         var(--el-dialog-border-radius, var(--radius)) 0 0;
 }
 
-.el-dialog__title {
+.el-dialog.el-dialog .el-dialog__title {
     color: #fff;
     font-weight: 600;
 }
 
-.el-dialog__headerbtn .el-dialog__close {
+.el-dialog.el-dialog .el-dialog__headerbtn .el-dialog__close {
     color: rgb(255 255 255 / 85%);
 }
 
-.el-dialog__headerbtn:hover .el-dialog__close {
+.el-dialog.el-dialog .el-dialog__headerbtn:hover .el-dialog__close {
     color: #fff;
 }
 
-.el-dialog__body {
+.el-dialog.el-dialog .el-dialog__body {
     padding-top: 1.25rem;
 }
