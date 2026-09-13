@@ -297,7 +297,7 @@ class PanelSmokeTest extends TestCase
         $sumaCuotas = $cuotas->sum(fn ($c) => (float) $c->cuota);
         $before = DB::table('payment_reports')->count();
 
-        $res = $this->actingAs($this->super())->postJson('/payment_report/', [
+        $res = $this->actingAs($this->super())->postJson('/payment_report', [
             'data' => json_encode([
                 'cliente' => (array) $cliente,
                 'tipoPago' => 1,

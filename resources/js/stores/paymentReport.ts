@@ -513,7 +513,7 @@ export const usePaymentReportStore = defineStore('paymentReport', {
                     }),
                 );
 
-                const { data } = await http.post('/payment_report/', form);
+                const { data } = await http.post('/payment_report', form);
 
                 return data;
             } finally {
