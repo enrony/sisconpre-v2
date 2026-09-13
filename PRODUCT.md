@@ -34,7 +34,7 @@ Producto interno propio de GilenSoft (no un SaaS de venta externa hasta donde co
 
 ## Brand Commitments
 
-- Nombre de la empresa: **GilenSoft** (`gilensoft.com`). Azul de marca confirmado: `#0073C3` (`--primary-blue` en el sitio de GilenSoft), ya aplicado globalmente como color de cabecera de todos los `<el-dialog>` de la app. No hay logo/imagotipo propio de este producto todavía dentro del repo (favicon y touch-icon siguen siendo los de Laravel por defecto).
+- Nombre de la empresa: **GilenSoft** (`gilensoft.com`). Azul de marca confirmado: `#0073C3` (`--primary-blue` en el sitio de GilenSoft), ya aplicado globalmente como color de cabecera de todos los `<el-dialog>` de la app. Logotipo: monograma "GS" (misma marca que usa `crm_gilen`, el otro producto interno de GilenSoft) — componente `resources/js/components/AppLogoIcon.vue` y `public/favicon.svg` (SVG, reusado también como apple-touch-icon; no hay raster .ico/.png todavía porque no hay herramienta de conversión SVG→PNG disponible en este entorno).
 
 ## Evidence on Hand
 

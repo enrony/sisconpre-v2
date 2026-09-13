@@ -4,6 +4,33 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
 
+        {{--
+            Herramienta interna de back-office detrás de login: no debe indexarse
+            ni aparecer en buscadores.
+        --}}
+        <meta name="robots" content="noindex, nofollow">
+
+        @php
+            $metaTitle = config('app.name', 'Laravel');
+            $metaDescription = 'Sistema de gestión de préstamos de GilenSoft: registro de préstamos, cronograma de cuotas, informes de pago y administración de cartera.';
+        @endphp
+
+        <meta name="description" content="{{ $metaDescription }}">
+        <meta name="author" content="GilenSoft">
+
+        {{-- Open Graph: usado por WhatsApp, Slack, Facebook, LinkedIn, etc. al compartir un enlace --}}
+        <meta property="og:type" content="website">
+        <meta property="og:site_name" content="GilenSoft">
+        <meta property="og:title" content="{{ $metaTitle }}">
+        <meta property="og:description" content="{{ $metaDescription }}">
+        <meta property="og:url" content="{{ url()->current() }}">
+        <meta property="og:locale" content="es_ES">
+
+        {{-- Twitter/X Card --}}
+        <meta name="twitter:card" content="summary">
+        <meta name="twitter:title" content="{{ $metaTitle }}">
+        <meta name="twitter:description" content="{{ $metaDescription }}">
+
         {{-- Inline script to detect system dark mode preference and apply it immediately --}}
         <script>
             (function() {
@@ -30,9 +57,8 @@
             }
         </style>
 
-        <link rel="icon" href="/favicon.ico" sizes="any">
         <link rel="icon" href="/favicon.svg" type="image/svg+xml">
-        <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+        <link rel="apple-touch-icon" href="/favicon.svg">
 
         @fonts
 
