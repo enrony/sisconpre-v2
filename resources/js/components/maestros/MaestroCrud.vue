@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { router, usePage } from '@inertiajs/vue3';
+import { Pencil, Trash2 } from '@lucide/vue';
 import { computed, onMounted, ref } from 'vue';
 import ResponsiveList, {
     type ListField,
@@ -209,31 +210,43 @@ function irAPagina(p: number) {
                         <el-table-column
                             v-if="puedeEditar || puedeEliminar"
                             label="Operaciones"
-                            width="130"
+                            width="96"
                             align="center"
                             fixed="right"
                         >
                             <template #default="{ row }">
                                 <div
                                     v-if="!row.por_defecto"
-                                    class="flex justify-center gap-1"
+                                    class="flex justify-center gap-2"
                                 >
-                                    <el-button
+                                    <el-tooltip
                                         v-if="puedeEditar"
-                                        size="small"
-                                        @click="editar(row as MaestroRow)"
+                                        content="Editar"
                                     >
-                                        Editar
-                                    </el-button>
-                                    <el-button
+                                        <el-button
+                                            size="small"
+                                            circle
+                                            aria-label="Editar"
+                                            @click="editar(row as MaestroRow)"
+                                        >
+                                            <Pencil class="size-3.5" />
+                                        </el-button>
+                                    </el-tooltip>
+                                    <el-tooltip
                                         v-if="puedeEliminar"
-                                        size="small"
-                                        type="danger"
-                                        plain
-                                        @click="eliminar(row as MaestroRow)"
+                                        content="Eliminar"
                                     >
-                                        Eliminar
-                                    </el-button>
+                                        <el-button
+                                            size="small"
+                                            type="danger"
+                                            plain
+                                            circle
+                                            aria-label="Eliminar"
+                                            @click="eliminar(row as MaestroRow)"
+                                        >
+                                            <Trash2 class="size-3.5" />
+                                        </el-button>
+                                    </el-tooltip>
                                 </div>
                             </template>
                         </el-table-column>
