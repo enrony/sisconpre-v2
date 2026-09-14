@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Http\Controllers\Controller;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -49,7 +50,11 @@ class CountryHoliday extends Model
         $CountryAll = Country::WhereAllCountriesAssigned()->get();
 
         $query1 = CountryHoliday::query()->selectRaw("country_holidays.*, date_format(country_holidays.created_at, '%Y-%m-%d %H:%i:%s') as created, date_format(country_holidays.updated_at, '%Y-%m-%d %H:%i:%s') as updated")
-            ->WhereCountriesActive($CountryAll->pluck('id')->toArray());
+            ->WhereCountriesActive($CountryAll->pluck('id')->toArray())
+            ->when(
+                Controller::obtenerPaisActivo(),
+                fn ($query, $pais) => $query->where('country_holidays.country_id', $pais),
+            );
         if (isset($request->term)) {
             $query1 = $query1->when($request->term, function ($query, $term) {
                 $query->where('country_holidays.name', 'LIKE', '%'.$term.'%');

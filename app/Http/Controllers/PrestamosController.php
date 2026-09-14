@@ -44,6 +44,10 @@ class PrestamosController extends Controller
     public function records(Request $request, Prestamos $Prestamos): array
     {
         $lista = Prestamos::lista($request, $Prestamos)
+            ->when(
+                static::obtenerPaisActivo(),
+                fn ($query, $paisActivo) => $query->where('prestamos.country_id', $paisActivo),
+            )
             ->paginate(10)
             ->through(fn (Prestamos $r): array => $this->toRow($r));
 

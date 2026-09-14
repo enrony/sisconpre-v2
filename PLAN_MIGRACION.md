@@ -423,9 +423,21 @@ nombre de la acción → `prestamos.registrar`, `prestamos.editar`, `prestamos.e
 
 ### Scoping de datos (no es RBAC)
 
-El aislamiento por **grupo de trabajo / franquicia / país** (`grupos_trabajos_user_id`, 50 usos en
-controladores; `obtenerGrupoTrabajo()`) se mantiene como **capa de filtrado de consultas** (global scope /
-`when()` + un scope reutilizable), **no** como permisos spatie. Roles y permisos son **globales**.
+Dos dimensiones **distintas**, no confundir:
+
+- **País** (`country_id`, FK a `countries`; asignación por usuario en `user_countries` con un país `principal`
+  y, desde 2026-09-14, un `current_country` activo). El negocio opera en varios países a la vez (hoy: ARG/COL/VEN,
+  con datos reales repartidos). **Ya filtrado en lecturas** (2026-09-14) vía `Controller::obtenerPaisActivo()` +
+  `->when(...)` en: `Prestamos::lista()` (`/prestamos`), `DashboardController`, y los 5 maestros con
+  `country_id` (Bancos, Ciudades, Departamentos, Festivos/`country_holidays`, Tipos de Documento). Pendiente:
+  UI de asignación de países en Usuarios (hoy no existe — solo 1 usuario tiene fila en `user_countries`) y
+  filtrado de Informes de pago (vínculo indirecto a país vía `selected_payment_reports → prestamos_dias →
+  prestamos.country_id`, requiere joins extra).
+- **Grupo de trabajo / franquicia** (`grupos_trabajos_user_id`, 50 usos en controladores;
+  `obtenerGrupoTrabajo()`): sigue **sin aplicarse en ninguna lectura** — se usa solo al crear registros. Este
+  hueco sigue abierto, es independiente del de país.
+
+Ninguna de las dos es RBAC (roles y permisos spatie son globales); son capas de filtrado de consultas aparte.
 
 ### Tablas a eliminar tras la migración
 

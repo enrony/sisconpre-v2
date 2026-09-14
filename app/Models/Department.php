@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Http\Controllers\Controller;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -28,7 +29,11 @@ class Department extends Model
         $CountryAll = Country::WhereAllCountriesAssigned()->get();
 
         $query1 = (new static)::selectRaw("departments.*, date_format(departments.created_at, '%Y-%m-%d %H:%i:%s') as created, date_format(departments.updated_at, '%Y-%m-%d %H:%i:%s') as updated")
-            ->WhereCountriesActive($CountryAll->pluck('id')->toArray());
+            ->WhereCountriesActive($CountryAll->pluck('id')->toArray())
+            ->when(
+                Controller::obtenerPaisActivo(),
+                fn ($query, $pais) => $query->where('departments.country_id', $pais),
+            );
         if (isset($request->term)) {
             $query1 = $query1->when($request->term, function ($query, $term) {
                 $query->where('departments.nombre', 'LIKE', '%'.$term.'%');

@@ -10,6 +10,6 @@ class UserCountry extends Model
     use HasFactory;
 
     protected $fillable = [
-        'user_id', 'country_id', 'estatus', 'principal',
+        'user_id', 'country_id', 'estatus', 'principal', 'current_country',
     ];
 }

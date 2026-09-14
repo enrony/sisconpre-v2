@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Http\Controllers\Controller;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -37,6 +38,10 @@ class City extends Model
             ->when($request->term, function ($query, $term) {
                 $query->where('cities.nombre', 'LIKE', '%'.$term.'%');
             })
+            ->when(
+                Controller::obtenerPaisActivo(),
+                fn ($query, $pais) => $query->where('cities.country_id', $pais),
+            )
             ->with(['country', 'department'])
             ->get()->transform(function ($item) {
                 $item->updated = '';

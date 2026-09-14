@@ -12,12 +12,19 @@ use Inertia\Response;
 /**
  * Métricas y series para el panel principal.
  *
+ * Filtra por el país activo del usuario (`Controller::obtenerPaisActivo()`) en
+ * todo lo que cuelga de `prestamos` — el negocio opera en varios países
+ * (hoy: ARG/COL/VEN) y un total mezclado de todos los países no es un dato
+ * útil para nadie. `informes_por_revisar` todavía NO filtra por país: el
+ * vínculo payment_reports -> selected_payment_reports -> prestamos_dias ->
+ * prestamos.country_id es indirecto y se evalúa aparte.
+ *
  * Nota de alcance: igual que el resto de los listados (`Prestamos::lista()`,
  * `PaymentReport::lista()`), estas consultas NO filtran por
  * `grupos_trabajos_user_id` — la multi-tenencia por grupo de trabajo está en
  * las tablas pero todavía no se aplica en ninguna lectura de la app (hueco
- * documentado en PLAN_MIGRACION.md §9). Cuando se cierre ese hueco a nivel
- * general, este controlador debe sumar el mismo filtro.
+ * documentado en PLAN_MIGRACION.md §9). Es una dimensión distinta de país,
+ * no confundir las dos (ver memoria del proyecto).
  */
 class DashboardController extends Controller
 {
@@ -32,10 +39,12 @@ class DashboardController extends Controller
 
     public function index(): Response
     {
+        $paisActivo = static::obtenerPaisActivo();
+
         return Inertia::render('Dashboard', [
-            'kpis' => $this->kpis(),
-            'carteraPorEstado' => $this->carteraPorEstado(),
-            'serieMensual' => $this->serieMensual(),
+            'kpis' => $this->kpis($paisActivo),
+            'carteraPorEstado' => $this->carteraPorEstado($paisActivo),
+            'serieMensual' => $this->serieMensual($paisActivo),
         ]);
     }
 
@@ -46,10 +55,11 @@ class DashboardController extends Controller
      *     informes_por_revisar: int,
      * }
      */
-    private function kpis(): array
+    private function kpis(?string $paisActivo): array
     {
         $cartera = Prestamos::query()
             ->where('estatus', self::ESTATUS_PENDIENTE)
+            ->when($paisActivo, fn ($query, $pais) => $query->where('country_id', $pais))
             ->selectRaw('count(*) as cantidad, coalesce(sum(total), 0) as monto')
             ->first();
 
@@ -59,9 +69,13 @@ class DashboardController extends Controller
             ->where('prestamos_dias.apply', true)
             ->where('prestamos_dias.pagado', false)
             ->where('prestamos_dias.date', '<', now()->toDateString())
+            ->when($paisActivo, fn ($query, $pais) => $query->where('prestamos.country_id', $pais))
             ->selectRaw('count(*) as cantidad, coalesce(sum(prestamos_dias.cuota), 0) as monto')
             ->first();
 
+        // No filtra por país todavía: el vínculo a `prestamos.country_id` es
+        // indirecto (payment_reports -> selected_payment_reports ->
+        // prestamos_dias -> prestamos) y requiere joins extra.
         $informesPorRevisar = PaymentReport::query()
             ->where('estatus', 1)
             ->whereIn('payment_reports_movements_estatus_id', self::ESTADOS_INFORME_SIN_RESOLVER)
@@ -85,11 +99,12 @@ class DashboardController extends Controller
      *
      * @return list<array{estatus: int, label: string, cantidad: int}>
      */
-    private function carteraPorEstado(): array
+    private function carteraPorEstado(?string $paisActivo): array
     {
         return array_values(
             DB::table('prestamos')
                 ->join('prestamos_estatus', 'prestamos_estatus.id', '=', 'prestamos.estatus')
+                ->when($paisActivo, fn ($query, $pais) => $query->where('prestamos.country_id', $pais))
                 ->selectRaw('prestamos_estatus.id as estatus, prestamos_estatus.description as label, count(*) as cantidad')
                 ->groupBy('prestamos_estatus.id', 'prestamos_estatus.description')
                 ->orderBy('prestamos_estatus.id')
@@ -114,7 +129,7 @@ class DashboardController extends Controller
      *
      * @return list<array{mes: string, desembolsado: float, cobrado: float}>
      */
-    private function serieMensual(): array
+    private function serieMensual(?string $paisActivo): array
     {
         // Immutable a propósito: se reutiliza como ancla en el map() de abajo
         // sin ir arrastrando meses de una iteración a la siguiente.
@@ -122,15 +137,18 @@ class DashboardController extends Controller
 
         $desembolsos = Prestamos::query()
             ->where('created_at', '>=', $desde)
+            ->when($paisActivo, fn ($query, $pais) => $query->where('country_id', $pais))
             ->selectRaw("date_format(created_at, '%Y-%m') as mes, coalesce(sum(monto_prestamo), 0) as monto")
             ->groupBy('mes')
             ->pluck('monto', 'mes');
 
         $cobros = DB::table('prestamos_dias')
-            ->where('apply', true)
-            ->where('pagado', true)
-            ->where('date', '>=', $desde->toDateString())
-            ->selectRaw("date_format(date, '%Y-%m') as mes, coalesce(sum(cuota), 0) as monto")
+            ->join('prestamos', 'prestamos.id', '=', 'prestamos_dias.prestamo_id')
+            ->where('prestamos_dias.apply', true)
+            ->where('prestamos_dias.pagado', true)
+            ->where('prestamos_dias.date', '>=', $desde->toDateString())
+            ->when($paisActivo, fn ($query, $pais) => $query->where('prestamos.country_id', $pais))
+            ->selectRaw("date_format(prestamos_dias.date, '%Y-%m') as mes, coalesce(sum(prestamos_dias.cuota), 0) as monto")
             ->groupBy('mes')
             ->pluck('monto', 'mes');
 

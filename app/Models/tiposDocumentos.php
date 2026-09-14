@@ -30,10 +30,13 @@ class tiposDocumentos extends Model
 
         $select = "tipos_documentos.*, date_format(tipos_documentos.created_at, '%Y-%m-%d %H:%i:%s') as created, date_format(tipos_documentos.updated_at, '%Y-%m-%d %H:%i:%s') as updated";
 
+        $paisActivo = Controller::obtenerPaisActivo();
+
         $query1 = (new static)::selectRaw("{$select}")
             ->when($request->term, function ($query, $term) {
                 $query->where('tipos_documentos.nombre', 'LIKE', '%'.$term.'%');
             })
+            ->when($paisActivo, fn ($query, $pais) => $query->where('tipos_documentos.country_id', $pais))
             ->where('tipos_documentos.estatus', 1)
             ->whereNull('grupos_trabajos_user_id')
             ->with(['country'])
@@ -43,6 +46,7 @@ class tiposDocumentos extends Model
             ->when($request->term, function ($query, $term) {
                 $query->where('tipos_documentos.nombre', 'LIKE', '%'.$term.'%');
             })
+            ->when($paisActivo, fn ($query, $pais) => $query->where('tipos_documentos.country_id', $pais))
             ->where('tipos_documentos.estatus', 1)
             ->with(['country'])
             ->join('grupos_trabajos_users', function ($j) use ($GruposTrabajoUser, $su) {
