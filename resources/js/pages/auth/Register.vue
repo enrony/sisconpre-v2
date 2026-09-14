@@ -33,13 +33,32 @@ defineOptions({
     >
         <div class="grid gap-6">
             <div class="grid gap-2">
+                <Label for="codigo_grupo_trabajo">Código de grupo de trabajo</Label>
+                <Input
+                    id="codigo_grupo_trabajo"
+                    type="text"
+                    required
+                    autofocus
+                    :tabindex="1"
+                    autocomplete="off"
+                    name="codigo_grupo_trabajo"
+                    placeholder="Ej: 7K3PQ2"
+                    class="uppercase placeholder:normal-case"
+                />
+                <p class="text-muted-foreground text-xs">
+                    Pedíselo a tu supervisor o a alguien de tu equipo — te une
+                    a su grupo de trabajo.
+                </p>
+                <InputError :message="errors.codigo_grupo_trabajo" />
+            </div>
+
+            <div class="grid gap-2">
                 <Label for="name">Nombre</Label>
                 <Input
                     id="name"
                     type="text"
                     required
-                    autofocus
-                    :tabindex="1"
+                    :tabindex="2"
                     autocomplete="name"
                     name="name"
                     placeholder="Nombre completo"
@@ -53,7 +72,7 @@ defineOptions({
                     id="email"
                     type="email"
                     required
-                    :tabindex="2"
+                    :tabindex="3"
                     autocomplete="email"
                     name="email"
                     placeholder="correo@ejemplo.com"
@@ -66,7 +85,7 @@ defineOptions({
                 <PasswordInput
                     id="password"
                     required
-                    :tabindex="3"
+                    :tabindex="4"
                     autocomplete="new-password"
                     name="password"
                     placeholder="Contraseña"
@@ -80,7 +99,7 @@ defineOptions({
                 <PasswordInput
                     id="password_confirmation"
                     required
-                    :tabindex="4"
+                    :tabindex="5"
                     autocomplete="new-password"
                     name="password_confirmation"
                     placeholder="Confirmar contraseña"
@@ -92,7 +111,7 @@ defineOptions({
             <Button
                 type="submit"
                 class="mt-2 w-full"
-                tabindex="5"
+                tabindex="6"
                 :disabled="processing"
                 data-test="register-user-button"
             >
@@ -106,7 +125,7 @@ defineOptions({
             <TextLink
                 :href="login()"
                 class="underline underline-offset-4"
-                :tabindex="6"
+                :tabindex="7"
                 >Inicia sesión</TextLink
             >
         </div>

@@ -22,8 +22,7 @@ const config: MaestroConfig = {
         { prop: 'reference', label: 'Referencia' },
     ],
     fields: [
-        { key: 'nombre', label: 'Nombre', span: 1 },
-        { key: 'code', label: 'Código', span: 1 },
+        { key: 'nombre', label: 'Nombre' },
         {
             key: 'city_id',
             label: 'Ciudad',

@@ -432,7 +432,7 @@ Dos dimensiones **distintas**, no confundir:
   `country_id` (Bancos, Ciudades, Departamentos, Festivos/`country_holidays`, Tipos de Documento). Pendiente:
   UI de asignación de países en Usuarios (hoy no existe — solo 1 usuario tiene fila en `user_countries`) y
   filtrado de Informes de pago (vínculo indirecto a país vía `selected_payment_reports → prestamos_dias →
-  prestamos.country_id`, requiere joins extra).
+prestamos.country_id`, requiere joins extra).
 - **Grupo de trabajo / franquicia** (`grupos_trabajos_user_id`, 50 usos en controladores;
   `obtenerGrupoTrabajo()`): sigue **sin aplicarse en ninguna lectura** — se usa solo al crear registros. Este
   hueco sigue abierto, es independiente del de país.

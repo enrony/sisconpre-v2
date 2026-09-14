@@ -58,8 +58,9 @@ class GruposTrabajoController extends Controller
             GruposTrabajo::find($request->input('id'))->update($request->all());
             session()->flash('flash.message', 'Registro actualizado!');
         } else {
-
-            GruposTrabajo::create($request->all());
+            $data = $request->all();
+            $data['code'] = $this->generarCodigoUnico();
+            GruposTrabajo::create($data);
             session()->flash('flash.message', 'Registro creado!');
         }
 
@@ -68,18 +69,19 @@ class GruposTrabajoController extends Controller
         return Redirect::route('grupos_trabajo', ['page' => $request->input('paginaActual')]);
     }
 
-    public function generateCode()
+    /**
+     * Código único de 6 caracteres para un grupo de trabajo nuevo: se genera
+     * siempre en el servidor (nunca lo tipea quien lo crea), para que el
+     * código que después se comparte en el registro público (`/register`)
+     * identifique un único grupo sin ambigüedad.
+     */
+    private function generarCodigoUnico(): string
     {
+        do {
+            $code = Str::upper(Str::random(6));
+        } while (GruposTrabajo::where('code', $code)->exists());
 
-        inicio:
-
-        $code = Str::random(6);
-
-        if (GruposTrabajo::where('code', $code)->exists()) {
-            goto inicio;
-        }
-
-        return compact('code');
+        return $code;
     }
 
     /**
