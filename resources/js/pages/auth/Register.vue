@@ -33,7 +33,9 @@ defineOptions({
     >
         <div class="grid gap-6">
             <div class="grid gap-2">
-                <Label for="codigo_grupo_trabajo">Código de grupo de trabajo</Label>
+                <Label for="codigo_grupo_trabajo"
+                    >Código de grupo de trabajo</Label
+                >
                 <Input
                     id="codigo_grupo_trabajo"
                     type="text"
@@ -46,8 +48,8 @@ defineOptions({
                     class="uppercase placeholder:normal-case"
                 />
                 <p class="text-muted-foreground text-xs">
-                    Pedíselo a tu supervisor o a alguien de tu equipo — te une
-                    a su grupo de trabajo.
+                    Pedíselo a tu supervisor o a alguien de tu equipo — te une a
+                    su grupo de trabajo.
                 </p>
                 <InputError :message="errors.codigo_grupo_trabajo" />
             </div>

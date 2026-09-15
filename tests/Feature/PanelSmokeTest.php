@@ -507,6 +507,35 @@ class PanelSmokeTest extends TestCase
         $this->actingAs($super)->put("/profile/usuarios/{$u->id}", ['roles' => $antes])->assertRedirect();
     }
 
+    /**
+     * Admin/RBAC: sincroniza en qué países puede un usuario crear un grupo de
+     * trabajo (`user_countries`, redefinido — no es "en qué país opera").
+     */
+    public function test_admin_usuarios_paises(): void
+    {
+        $super = $this->super();
+        $u = $this->cliente();
+        $antes = $u->ownedUserCountry()->pluck('country_id')->all();
+
+        $this->actingAs($super)->put("/profile/usuarios/{$u->id}", [
+            'paises' => ['ARG', 'VEN'],
+        ])->assertRedirect();
+
+        $u->unsetRelation('ownedUserCountry');
+        $this->assertEqualsCanonicalizing(['ARG', 'VEN'], $u->ownedUserCountry->pluck('country_id')->all());
+
+        // un payload que solo manda roles no debe tocar los países
+        $this->actingAs($super)->put("/profile/usuarios/{$u->id}", [
+            'roles' => $u->getRoleNames()->all(),
+        ])->assertRedirect();
+
+        $u->unsetRelation('ownedUserCountry');
+        $this->assertEqualsCanonicalizing(['ARG', 'VEN'], $u->ownedUserCountry->pluck('country_id')->all());
+
+        // revertir
+        $this->actingAs($super)->put("/profile/usuarios/{$u->id}", ['paises' => $antes])->assertRedirect();
+    }
+
     /** Ajustes: perfil (Fortify) resuelve y el nombre se actualiza. */
     public function test_settings_perfil(): void
     {

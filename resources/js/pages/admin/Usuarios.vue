@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { Head, Link, router, usePage } from '@inertiajs/vue3';
+import { CircleHelp } from '@lucide/vue';
 import { computed, onBeforeUnmount, ref } from 'vue';
 import ResponsiveList from '@/components/data/ResponsiveList.vue';
 import Heading from '@/components/Heading.vue';
@@ -11,6 +12,12 @@ interface UsuarioRow {
     name: string;
     email: string;
     roles: string[];
+    paises: string[];
+}
+
+interface PaisOption {
+    id: string;
+    Name: string;
 }
 
 const page = usePage();
@@ -19,6 +26,9 @@ const usuarios = computed(
     () => (page.props.usuarios ?? null) as Paginated<UsuarioRow> | null,
 );
 const rolesDisponibles = computed(() => (page.props.roles ?? []) as string[]);
+const paisesDisponibles = computed(
+    () => (page.props.paises ?? []) as PaisOption[],
+);
 
 const puedeEditar = can('profile.editar');
 
@@ -41,11 +51,11 @@ onBeforeUnmount(() => clearTimeout(debounce));
 
 const guardando = ref<number | null>(null);
 
-function guardarRoles(row: UsuarioRow, roles: string[]) {
+function guardar(row: UsuarioRow, campo: 'roles' | 'paises', valor: string[]) {
     guardando.value = row.id;
     router.put(
         `/profile/usuarios/${row.id}`,
-        { roles, page: usuarios.value?.current_page ?? 1 },
+        { [campo]: valor, page: usuarios.value?.current_page ?? 1 },
         {
             preserveScroll: true,
             preserveState: true,
@@ -64,7 +74,7 @@ function guardarRoles(row: UsuarioRow, roles: string[]) {
         <div class="mb-4 flex items-center justify-between">
             <Heading
                 title="Usuarios y roles"
-                description="Asigna uno o más roles a cada usuario"
+                description="Asigna roles, y en qué países puede cada usuario crear un grupo de trabajo nuevo"
             />
             <Link href="/profile">
                 <el-button text>Roles y permisos</el-button>
@@ -99,23 +109,48 @@ function guardarRoles(row: UsuarioRow, roles: string[]) {
                     <p class="text-muted-foreground text-xs">
                         {{ (row as UsuarioRow).email }}
                     </p>
+
+                    <p class="text-muted-foreground mt-2.5 text-xs">Roles</p>
                     <el-select
                         :model-value="(row as UsuarioRow).roles"
                         multiple
                         collapse-tags
                         collapse-tags-tooltip
                         filterable
-                        class="mt-2.5 w-full"
+                        class="mt-1 w-full"
                         :disabled="!puedeEditar"
                         :loading="guardando === (row as UsuarioRow).id"
                         placeholder="Sin roles"
-                        @change="guardarRoles(row as UsuarioRow, $event)"
+                        @change="guardar(row as UsuarioRow, 'roles', $event)"
                     >
                         <el-option
                             v-for="r in rolesDisponibles"
                             :key="r"
                             :label="r"
                             :value="r"
+                        />
+                    </el-select>
+
+                    <p class="text-muted-foreground mt-2.5 text-xs">
+                        Países donde puede crear un grupo de trabajo
+                    </p>
+                    <el-select
+                        :model-value="(row as UsuarioRow).paises"
+                        multiple
+                        collapse-tags
+                        collapse-tags-tooltip
+                        filterable
+                        class="mt-1 w-full"
+                        :disabled="!puedeEditar"
+                        :loading="guardando === (row as UsuarioRow).id"
+                        placeholder="Sin países asignados"
+                        @change="guardar(row as UsuarioRow, 'paises', $event)"
+                    >
+                        <el-option
+                            v-for="p in paisesDisponibles"
+                            :key="p.id"
+                            :label="p.Name"
+                            :value="p.id"
                         />
                     </el-select>
                 </template>
@@ -145,7 +180,7 @@ function guardarRoles(row: UsuarioRow, roles: string[]) {
                             label="Correo"
                             min-width="200"
                         />
-                        <el-table-column label="Roles" min-width="280">
+                        <el-table-column label="Roles" min-width="240">
                             <template #default="{ row }">
                                 <el-select
                                     :model-value="row.roles"
@@ -159,7 +194,11 @@ function guardarRoles(row: UsuarioRow, roles: string[]) {
                                     :loading="guardando === row.id"
                                     placeholder="Sin roles"
                                     @change="
-                                        guardarRoles(row as UsuarioRow, $event)
+                                        guardar(
+                                            row as UsuarioRow,
+                                            'roles',
+                                            $event,
+                                        )
                                     "
                                 >
                                     <el-option
@@ -167,6 +206,49 @@ function guardarRoles(row: UsuarioRow, roles: string[]) {
                                         :key="r"
                                         :label="r"
                                         :value="r"
+                                    />
+                                </el-select>
+                            </template>
+                        </el-table-column>
+                        <el-table-column min-width="260">
+                            <template #header>
+                                <span class="inline-flex items-center gap-1">
+                                    Países
+                                    <el-tooltip
+                                        content="En qué países puede este usuario crear un grupo de trabajo nuevo — no es el país en el que opera hoy (eso lo determina su grupo de trabajo actual)."
+                                        placement="top"
+                                    >
+                                        <CircleHelp
+                                            class="text-muted-foreground size-3.5"
+                                        />
+                                    </el-tooltip>
+                                </span>
+                            </template>
+                            <template #default="{ row }">
+                                <el-select
+                                    :model-value="row.paises"
+                                    multiple
+                                    collapse-tags
+                                    collapse-tags-tooltip
+                                    filterable
+                                    size="small"
+                                    class="w-full"
+                                    :disabled="!puedeEditar"
+                                    :loading="guardando === row.id"
+                                    placeholder="Sin países asignados"
+                                    @change="
+                                        guardar(
+                                            row as UsuarioRow,
+                                            'paises',
+                                            $event,
+                                        )
+                                    "
+                                >
+                                    <el-option
+                                        v-for="p in paisesDisponibles"
+                                        :key="p.id"
+                                        :label="p.Name"
+                                        :value="p.id"
                                     />
                                 </el-select>
                             </template>
