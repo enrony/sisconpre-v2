@@ -221,6 +221,23 @@ class PanelSmokeTest extends TestCase
             ->assertJsonStructure(['PaymentReportsMovementsEstatu']);
     }
 
+    /**
+     * El listado de Informes de pago filtra por el país activo del grupo de
+     * trabajo — vínculo indirecto (selected_payment_reports -> prestamos_dias
+     * -> prestamos.country_id). Un informe sin cuotas seleccionadas ("saldo a
+     * favor") no tiene país resoluble y queda visible siempre.
+     */
+    public function test_informes_de_pago_filtra_por_pais_activo(): void
+    {
+        $totalSuper = $this->actingAs($this->super())
+            ->getJson('/payment_report/records')->json('lista.total');
+        $this->assertSame(16, $totalSuper);
+
+        $totalCliente = $this->actingAs($this->cliente())
+            ->getJson('/payment_report/records')->json('lista.total');
+        $this->assertSame(12, $totalCliente);
+    }
+
     /** Detalle de un informe: préstamos informados + cuotas con `p_seleccionado`. */
     public function test_detalle_informe(): void
     {

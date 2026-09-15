@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
  * Flags de decoración que algunos controladores adosan en runtime para el front
@@ -60,7 +61,10 @@ class PrestamosDias extends Model
         'day_apply_surcharge' => 'date',
     ];
 
-    public function Prestamo()
+    /**
+     * @return BelongsTo<Prestamos, $this>
+     */
+    public function Prestamo(): BelongsTo
     {
         return $this->belongsTo(Prestamos::class, 'prestamo_id');
     }

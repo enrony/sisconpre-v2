@@ -70,12 +70,18 @@ class Prestamos extends Model
 
     // Portado de L8: eran `static function` con `Self::belongsTo(...)` (roto en PHP 8.3).
     // Se corrige a método de instancia y se arregla el orden de argumentos de belongsTo.
-    public function datoCliente()
+    /**
+     * @return BelongsTo<Clientes, $this>
+     */
+    public function datoCliente(): BelongsTo
     {
         return $this->belongsTo(Clientes::class, 'cliente_id');
     }
 
-    public function country()
+    /**
+     * @return BelongsTo<Country, $this>
+     */
+    public function country(): BelongsTo
     {
         return $this->belongsTo(Country::class, 'country_id');
     }

@@ -15,9 +15,10 @@ use Inertia\Response;
  * Filtra por el país activo del usuario (`Controller::obtenerPaisActivo()`) en
  * todo lo que cuelga de `prestamos` — el negocio opera en varios países
  * (hoy: ARG/COL/VEN) y un total mezclado de todos los países no es un dato
- * útil para nadie. `informes_por_revisar` todavía NO filtra por país: el
- * vínculo payment_reports -> selected_payment_reports -> prestamos_dias ->
- * prestamos.country_id es indirecto y se evalúa aparte.
+ * útil para nadie. `informes_por_revisar` también filtra, vía el vínculo
+ * indirecto payment_reports -> selected_payment_reports -> prestamos_dias ->
+ * prestamos.country_id (un informe sin ninguna cuota seleccionada, "saldo a
+ * favor", no tiene país resoluble y se cuenta siempre, sin filtrar).
  *
  * Nota de alcance: igual que el resto de los listados (`Prestamos::lista()`,
  * `PaymentReport::lista()`), estas consultas NO filtran por
@@ -73,12 +74,19 @@ class DashboardController extends Controller
             ->selectRaw('count(*) as cantidad, coalesce(sum(prestamos_dias.cuota), 0) as monto')
             ->first();
 
-        // No filtra por país todavía: el vínculo a `prestamos.country_id` es
-        // indirecto (payment_reports -> selected_payment_reports ->
-        // prestamos_dias -> prestamos) y requiere joins extra.
         $informesPorRevisar = PaymentReport::query()
             ->where('estatus', 1)
             ->whereIn('payment_reports_movements_estatus_id', self::ESTADOS_INFORME_SIN_RESOLVER)
+            ->when(
+                $paisActivo,
+                fn ($query, $pais) => $query->where(
+                    fn ($q) => $q->whereDoesntHave('selected_payment_reports')
+                        ->orWhereHas(
+                            'selected_payment_reports.PrestamosDias.Prestamo',
+                            fn ($q2) => $q2->where('country_id', $pais),
+                        ),
+                ),
+            )
             ->count();
 
         return [

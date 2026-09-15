@@ -6,6 +6,7 @@ use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Http\Request;
 
@@ -113,7 +114,10 @@ class PaymentReport extends Model
         return $this->hasMany(paymentReportsMethod::class, 'payment_report_id');
     }
 
-    public function selected_payment_reports()
+    /**
+     * @return HasMany<SelectedPaymentReport, $this>
+     */
+    public function selected_payment_reports(): HasMany
     {
         return $this->hasMany(SelectedPaymentReport::class, 'payment_report_id');
     }

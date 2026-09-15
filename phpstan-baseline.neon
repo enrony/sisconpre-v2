@@ -1,12 +1,6 @@
 parameters:
 	ignoreErrors:
 		-
-			message: '#^Access to an undefined property App\\Models\\PrestamosDias\:\:\$Prestamo\.$#'
-			identifier: property.notFound
-			count: 5
-			path: app/Console/Commands/AplicarRecargosPrestamos.php
-
-		-
 			message: '#^Method App\\Console\\Commands\\AplicarRecargosPrestamos\:\:handle\(\) has no return type specified\.$#'
 			identifier: missingType.return
 			count: 1
@@ -25,22 +19,10 @@ parameters:
 			path: app/Console/Commands/AplicarRecargosPrestamos.php
 
 		-
-			message: '#^Relation ''Prestamo'' is not found in App\\Models\\PrestamosDias model\.$#'
-			identifier: larastan.relationExistence
-			count: 2
-			path: app/Console/Commands/AplicarRecargosPrestamos.php
-
-		-
 			message: '#^Left side of && is always true\.$#'
 			identifier: booleanAnd.leftAlwaysTrue
 			count: 1
 			path: app/Console/Commands/CountryHoliday.php
-
-		-
-			message: '#^Access to an undefined property App\\Models\\PrestamosDias\:\:\$Prestamo\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app/Console/Commands/NotificarRecargosPrestamos.php
 
 		-
 			message: '#^If condition is always true\.$#'
@@ -52,12 +34,6 @@ parameters:
 			message: '#^Method App\\Console\\Commands\\NotificarRecargosPrestamos\:\:handle\(\) has no return type specified\.$#'
 			identifier: missingType.return
 			count: 1
-			path: app/Console/Commands/NotificarRecargosPrestamos.php
-
-		-
-			message: '#^Relation ''Prestamo'' is not found in App\\Models\\PrestamosDias model\.$#'
-			identifier: larastan.relationExistence
-			count: 2
 			path: app/Console/Commands/NotificarRecargosPrestamos.php
 
 		-
@@ -1759,12 +1735,6 @@ parameters:
 			path: app/Http/Controllers/PaymentReportController.php
 
 		-
-			message: '#^Relation ''selected_payment_reports'' is not found in App\\Models\\PaymentReport model\.$#'
-			identifier: larastan.relationExistence
-			count: 1
-			path: app/Http/Controllers/PaymentReportController.php
-
-		-
 			message: '#^Method App\\Http\\Controllers\\PaymentReportsMovementsEstatuController\:\:create\(\) should return Illuminate\\Http\\Response but return statement is missing\.$#'
 			identifier: return.missing
 			count: 1
@@ -3211,12 +3181,6 @@ parameters:
 			path: app/Models/PaymentReport.php
 
 		-
-			message: '#^Access to an undefined property App\\Models\\PaymentReport\:\:\$selected_payment_reports\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app/Models/PaymentReport.php
-
-		-
 			message: '#^Class App\\Models\\PaymentReport uses generic trait Illuminate\\Database\\Eloquent\\Factories\\HasFactory but does not specify its types\: TFactory$#'
 			identifier: missingType.generics
 			count: 1
@@ -3319,12 +3283,6 @@ parameters:
 			path: app/Models/PaymentReport.php
 
 		-
-			message: '#^Method App\\Models\\PaymentReport\:\:selected_payment_reports\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: app/Models/PaymentReport.php
-
-		-
 			message: '#^Method App\\Models\\PaymentReport\:\:setClienteAttribute\(\) has no return type specified\.$#'
 			identifier: missingType.return
 			count: 1
@@ -3381,18 +3339,6 @@ parameters:
 		-
 			message: '#^Class App\\Models\\Prestamos uses generic trait Illuminate\\Database\\Eloquent\\Factories\\HasFactory but does not specify its types\: TFactory$#'
 			identifier: missingType.generics
-			count: 1
-			path: app/Models/Prestamos.php
-
-		-
-			message: '#^Method App\\Models\\Prestamos\:\:country\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: app/Models/Prestamos.php
-
-		-
-			message: '#^Method App\\Models\\Prestamos\:\:datoCliente\(\) has no return type specified\.$#'
-			identifier: missingType.return
 			count: 1
 			path: app/Models/Prestamos.php
 
@@ -3493,20 +3439,8 @@ parameters:
 			path: app/Models/PrestamosDias.php
 
 		-
-			message: '#^Method App\\Models\\PrestamosDias\:\:Prestamo\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: app/Models/PrestamosDias.php
-
-		-
 			message: '#^Method App\\Models\\PrestamosDias\:\:pendientesPago\(\) has no return type specified\.$#'
 			identifier: missingType.return
-			count: 1
-			path: app/Models/PrestamosDias.php
-
-		-
-			message: '#^Relation ''paymentReport'' is not found in App\\Models\\SelectedPaymentReport model\.$#'
-			identifier: larastan.relationExistence
 			count: 1
 			path: app/Models/PrestamosDias.php
 
@@ -3615,18 +3549,6 @@ parameters:
 		-
 			message: '#^Class App\\Models\\SelectedPaymentReport uses generic trait Illuminate\\Database\\Eloquent\\Factories\\HasFactory but does not specify its types\: TFactory$#'
 			identifier: missingType.generics
-			count: 1
-			path: app/Models/SelectedPaymentReport.php
-
-		-
-			message: '#^Method App\\Models\\SelectedPaymentReport\:\:PrestamosDias\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: app/Models/SelectedPaymentReport.php
-
-		-
-			message: '#^Method App\\Models\\SelectedPaymentReport\:\:paymentReport\(\) has no return type specified\.$#'
-			identifier: missingType.return
 			count: 1
 			path: app/Models/SelectedPaymentReport.php
 

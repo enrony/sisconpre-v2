@@ -43,9 +43,9 @@ class AplicarRecargosPrestamos extends Command
                 return Carbon::parse($date)->format('Y-m-d');
             })->toArray());
 
-            if ($prestamoDia->Prestamo->days_apply_surcharge > 0) {
+            if ($prestamoDia->days_apply_surcharge > 0) {
                 $diasAgregados = 0;
-                $diasPorAgregar = $prestamoDia->Prestamo->days_apply_surcharge;
+                $diasPorAgregar = $prestamoDia->days_apply_surcharge;
 
                 while ($diasAgregados < $diasPorAgregar) {
                     $fechaRecargo->addDay();

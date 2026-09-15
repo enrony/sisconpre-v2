@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class SelectedPaymentReport extends Model
 {
@@ -23,12 +24,18 @@ class SelectedPaymentReport extends Model
     // public function Prestamos(){
     //     return $this->belongsToMany(PrestamosDias::class, 'payment_reports', 'payment_report_id', 'prestamos_dia_isd');
     // }
-    public function PrestamosDias()
+    /**
+     * @return BelongsTo<PrestamosDias, $this>
+     */
+    public function PrestamosDias(): BelongsTo
     {
         return $this->belongsTo(PrestamosDias::class, 'prestamos_dia_id');
     }
 
-    public function paymentReport()
+    /**
+     * @return BelongsTo<PaymentReport, $this>
+     */
+    public function paymentReport(): BelongsTo
     {
         return $this->belongsTo(PaymentReport::class, 'payment_report_id');
     }

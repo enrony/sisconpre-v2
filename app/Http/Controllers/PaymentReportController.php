@@ -44,7 +44,24 @@ class PaymentReportController extends Controller
      */
     public function records(Request $request, PaymentReport $PaymentReport): array
     {
+        // El vínculo a país es indirecto (payment_reports no tiene country_id
+        // propio): selected_payment_reports -> prestamos_dias -> prestamos.
+        // Un informe sin ninguna cuota seleccionada (informe de "saldo a
+        // favor") no tiene país resoluble -> se deja visible siempre en vez de
+        // ocultarlo (mismo criterio que el resto de la app: dato incompleto no
+        // filtra, no oculta). Un informe puede además tocar cuotas de más de
+        // un préstamo -> whereHas basta con que UNA coincida con el país activo.
         $lista = $PaymentReport::lista($request, $PaymentReport)
+            ->when(
+                static::obtenerPaisActivo(),
+                fn ($query, $pais) => $query->where(
+                    fn ($q) => $q->whereDoesntHave('selected_payment_reports')
+                        ->orWhereHas(
+                            'selected_payment_reports.PrestamosDias.Prestamo',
+                            fn ($q2) => $q2->where('country_id', $pais),
+                        ),
+                ),
+            )
             ->paginate(100)
             ->through(fn (PaymentReport $r): array => $this->toRow($r));
 
