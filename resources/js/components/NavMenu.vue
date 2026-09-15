@@ -19,6 +19,7 @@ import {
     ShieldCheck,
     Store,
     Tags,
+    UserCog,
     Users,
     UsersRound,
     WalletCards,
@@ -64,6 +65,7 @@ const ICONS: Record<string, LucideIcon> = {
     modules: Boxes,
     grupos_trabajo: UsersRound,
     profile: ShieldCheck,
+    profile_usuarios: UserCog,
 };
 
 const iconFor = (key: string): LucideIcon => ICONS[key] ?? Dot;
