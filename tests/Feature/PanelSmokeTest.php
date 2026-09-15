@@ -354,6 +354,53 @@ class PanelSmokeTest extends TestCase
         DB::table('payment_reports')->where('id', $pr->id)->update(['payment_reports_movements_estatus_id' => null]);
     }
 
+    /**
+     * Un informe en estado final (finish_estatus=1: Aprobado/Rechazado/Remitido) no
+     * admite más cambios, ni siquiera llamando directo al endpoint (bypaseando la UI,
+     * que ya deshabilita el modal en ese caso).
+     */
+    public function test_no_se_puede_cambiar_estado_de_informe_finalizado(): void
+    {
+        $pr = DB::table('payment_reports')
+            ->where(fn ($q) => $q->whereNull('payment_reports_movements_estatus_id')->orWhere('payment_reports_movements_estatus_id', 1))
+            ->orderByDesc('id')
+            ->first();
+        $this->assertNotNull($pr);
+
+        $movId = DB::table('payment_reports_movements')->insertGetId([
+            'payment_report_id' => $pr->id,
+            'estatus' => 3, // Rechazado (finish_estatus = 1)
+            'grupos_trabajos_user_id' => null,
+            'motivo' => 'QA finalizado',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+        DB::table('payment_reports')->where('id', $pr->id)->update(['payment_reports_movements_estatus_id' => 3]);
+
+        $movsAntes = DB::table('payment_reports_movements')->where('payment_report_id', $pr->id)->count();
+
+        $res = $this->actingAs($this->super())->postJson('/payment_report/change_estatus_report', [
+            'data' => json_encode([
+                'id' => $pr->id,
+                'estatus_actual' => 3,
+                'estatus_selected' => 2,
+                'motivo' => 'QA intento forzado',
+                'support_image' => [],
+            ]),
+        ]);
+
+        $res->assertOk()->assertJson([
+            'success' => false,
+            'message' => 'Este informe está en un estado final y no se puede modificar.',
+        ]);
+        $this->assertSame(3, (int) DB::table('payment_reports')->where('id', $pr->id)->value('payment_reports_movements_estatus_id'));
+        $this->assertSame($movsAntes, DB::table('payment_reports_movements')->where('payment_report_id', $pr->id)->count());
+
+        // revertir
+        DB::table('payment_reports_movements')->where('id', $movId)->delete();
+        DB::table('payment_reports')->where('id', $pr->id)->update(['payment_reports_movements_estatus_id' => null]);
+    }
+
     /** "Informar un pago": crea el informe con cuotas seleccionadas + método + saldo a favor. */
     public function test_informar_un_pago(): void
     {

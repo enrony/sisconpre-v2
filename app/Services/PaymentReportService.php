@@ -49,10 +49,17 @@ class PaymentReportService
     {
         // 1. Usamos findOrFail() para evitar errores si el reporte no existe y lanzar ModelNotFoundException
         // 2. Removemos la carga pesada de 'selected_payment_reports' ya que no se usa aquí. Se cargará de forma diferida (lazy load) en processReportPaymentAproved solo si es necesario.
-        $this->PaymentReport = PaymentReport::with('payment_reports_movement_first')->findOrFail($this->data['id']);
+        $this->PaymentReport = PaymentReport::with('payment_reports_movement_first.estatus_description')->findOrFail($this->data['id']);
 
         // 3. Obtenemos el movimiento y evitamos errores (Notice/Error) si resultase null
         $movement = $this->PaymentReport->payment_reports_movement_first;
+
+        // El frontend ya deshabilita el cambio de estado cuando finish_estatus
+        // es true (Aprobado/Rechazado/Remitido), pero eso no protege contra un
+        // llamado directo al endpoint — se valida también acá.
+        if ($movement && $movement->estatus_description?->finish_estatus) {
+            throw new \Exception('Este informe está en un estado final y no se puede modificar.');
+        }
 
         if ($movement && $movement->estatus == $this->data['estatus_selected']) {
             throw new \Exception('El estado seleccionado para el reporte indicado ya fue procesado anteriormente, actualice la pagina.');
