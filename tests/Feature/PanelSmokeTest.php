@@ -104,6 +104,63 @@ class PanelSmokeTest extends TestCase
             ->assertSuccessful();
     }
 
+    /**
+     * El país del asistente de préstamos lo determina el grupo de trabajo
+     * activo de quien lo usa (Controller::obtenerPaisActivo()), no una lista
+     * de países libre — Maria Ruiz (grupo activo -> Colombia) solo ve
+     * Colombia; el superusuario, al no tener país fijo, ve los 3 activos.
+     */
+    public function test_prestamos_tables_pais_por_grupo_activo(): void
+    {
+        $res = $this->actingAs($this->cliente())->getJson('/prestamos/tables');
+        $res->assertOk();
+        $this->assertSame(['COL'], collect($res->json('CountryAll'))->pluck('id')->all());
+
+        $resSuper = $this->actingAs($this->super())->getJson('/prestamos/tables');
+        $resSuper->assertOk();
+        $this->assertEqualsCanonicalizing(
+            ['ARG', 'COL', 'VEN'],
+            collect($resSuper->json('CountryAll'))->pluck('id')->all(),
+        );
+    }
+
+    /**
+     * Al registrar un préstamo, el país se fuerza al del grupo de trabajo
+     * activo de quien lo crea — se ignora cualquier country_id distinto que
+     * mande el frontend (mismo trato que grupos_trabajos_user_id).
+     */
+    public function test_prestamos_store_fuerza_pais_del_grupo_activo(): void
+    {
+        $cliente = DB::table('clientes')->first();
+        $this->assertNotNull($cliente);
+
+        $antes = DB::table('prestamos')->count();
+
+        $this->actingAs($this->cliente())->put('/prestamos', [
+            'clienteSelected' => (array) $cliente,
+            'country_id' => 'VEN', // intento de mandar un país distinto al activo (COL)
+            'tipo_prestamo_id' => 1,
+            'monto_prestamo' => 100000,
+            'cuota' => 100000,
+            'tasa' => 10,
+            'total' => 110000,
+            'utilidad' => 10000,
+            'date_first_pay' => now()->addDays(7)->toDateString(),
+            'date_last_pay' => now()->addDays(37)->toDateString(),
+            'list_pays' => [
+                ['cuota' => 100000, 'date' => now()->addDays(7)->toDateString()],
+            ],
+        ])->assertRedirect();
+
+        $this->assertSame($antes + 1, DB::table('prestamos')->count());
+        $prestamo = DB::table('prestamos')->orderByDesc('id')->first();
+        $this->assertSame('COL', $prestamo->country_id);
+
+        // revertir
+        DB::table('prestamos_dias')->where('prestamo_id', $prestamo->id)->delete();
+        DB::table('prestamos')->where('id', $prestamo->id)->delete();
+    }
+
     /** Pausar / reanudar el recargo por mora de un préstamo. */
     public function test_pausar_recargo_prestamo(): void
     {

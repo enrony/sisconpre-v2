@@ -137,6 +137,12 @@ class PrestamosController extends Controller
 
         $GruposTrabajoUser = $this->obtenerGrupoTrabajo();
         $data['grupos_trabajos_user_id'] = $GruposTrabajoUser->id;
+        // El país del préstamo es el del grupo de trabajo activo de quien lo
+        // registra, no una elección libre — igual que grupos_trabajos_user_id,
+        // se fuerza acá y se ignora lo que haya mandado el frontend. Si no se
+        // puede resolver (superusuario, o grupo sin ciudad todavía) se respeta
+        // lo que el formulario haya enviado (ahí sí queda un selector visible).
+        $data['country_id'] = static::obtenerPaisActivo() ?? $data['country_id'];
         $Prestamos = Prestamos::create($data);
 
         // $PrestamosDias = new PrestamosDias();
@@ -212,7 +218,16 @@ class PrestamosController extends Controller
 
         $TipoPrestamo = $TipoPrestamo->get();
         $CountryHoliday = CountryHoliday::CriterioYear()->get();
-        $CountryAll = Country::WhereAllCountriesAssigned()->get();
+
+        // El país del préstamo lo determina el grupo de trabajo activo de
+        // quien lo registra (Controller::obtenerPaisActivo()), no la lista de
+        // países en los que puede FUNDAR un grupo (eso es user_countries, un
+        // concepto distinto). Si no se puede resolver (superusuario, o un
+        // grupo sin ciudad todavía) se deja elegir entre todos los activos.
+        $paisActivo = static::obtenerPaisActivo();
+        $CountryAll = $paisActivo
+            ? Country::where('id', $paisActivo)->where('estatus', 1)->get()
+            : Country::where('estatus', 1)->get();
 
         return compact('TipoPrestamo', 'CountryHoliday', 'CountryAll');
     }
