@@ -115,22 +115,31 @@ async function registrar() {
                         :name="p.id"
                     >
                         <div class="grid grid-cols-2 gap-2 md:grid-cols-4">
-                            <label
+                            <el-tooltip
                                 v-for="d in p.prestamos_dias.filter(
                                     (x) => x.apply && !x.pagado,
                                 )"
                                 :key="d.id"
-                                class="flex items-center gap-2 rounded border p-1 text-xs"
+                                :disabled="!d.pendientesPago2"
+                                :content="`Pendiente de confirmación — informe #${d.payment_report_id_pendiente}`"
                             >
-                                <el-checkbox
-                                    :model-value="store.cuotaSeleccionada(d.id)"
-                                    @change="store.toggleCuota(d)"
-                                />
-                                <span
-                                    >{{ d.date }} ·
-                                    {{ formatNumber(d.cuota) }}</span
+                                <label
+                                    class="flex items-center gap-2 rounded border p-1 text-xs"
+                                    :class="{ 'opacity-50': d.pendientesPago2 }"
                                 >
-                            </label>
+                                    <el-checkbox
+                                        :model-value="
+                                            store.cuotaSeleccionada(d.id)
+                                        "
+                                        :disabled="d.pendientesPago2"
+                                        @change="store.toggleCuota(d)"
+                                    />
+                                    <span
+                                        >{{ d.date }} ·
+                                        {{ formatNumber(d.cuota) }}</span
+                                    >
+                                </label>
+                            </el-tooltip>
                         </div>
                     </el-collapse-item>
                 </el-collapse>

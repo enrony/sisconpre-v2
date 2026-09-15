@@ -78,6 +78,44 @@ class PaymentReportService
         $this->registerPaymentMovement($this->data['estatus_selected'], $this->data['motivo']);
     }
 
+    /**
+     * Bloquea informar un pago sobre una cuota que ya está pagada o que ya
+     * tiene otro informe de pago en curso (no finalizado) — el frontend ya
+     * las oculta/deshabilita, pero esto es lo que realmente lo impide: sin
+     * esto, dos pestañas o una llamada directa a la API podían duplicar el
+     * informe sobre la misma cuota.
+     */
+    public function verifiedCuotasDisponibles(): void
+    {
+        if (($this->data['tipoPago'] ?? null) != 1) { // Solo aplica a pago de cuotas
+            return;
+        }
+
+        $cuotaIds = array_column($this->data['cuotas'] ?? [], 'id');
+
+        if (empty($cuotaIds)) {
+            return;
+        }
+
+        $noDisponibles = PrestamosDias::with('pendientesPago.paymentReport.payment_reports_movement_first.estatus_description')
+            ->whereIn('id', $cuotaIds)
+            ->get()
+            ->filter(function (PrestamosDias $cuota) {
+                if ($cuota->pagado) {
+                    return true;
+                }
+
+                $estatusReserva = $cuota->pendientesPago?->paymentReport?->payment_reports_movement_first?->estatus_description;
+
+                return $estatusReserva && ! $estatusReserva->finish_estatus;
+            })
+            ->pluck('id');
+
+        if ($noDisponibles->isNotEmpty()) {
+            throw new \Exception('La(s) cuota(s) #'.$noDisponibles->implode(', #').' ya no está(n) disponible(s) para informar un pago (ya fue(ron) pagada(s) o tiene(n) un informe de pago en curso).');
+        }
+    }
+
     public function createPaymentReport(Request $request)
     {
 

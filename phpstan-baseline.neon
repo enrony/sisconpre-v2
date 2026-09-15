@@ -3439,12 +3439,6 @@ parameters:
 			path: app/Models/PrestamosDias.php
 
 		-
-			message: '#^Method App\\Models\\PrestamosDias\:\:pendientesPago\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: app/Models/PrestamosDias.php
-
-		-
 			message: '#^Class App\\Models\\PrestamosEstatu uses generic trait Illuminate\\Database\\Eloquent\\Factories\\HasFactory but does not specify its types\: TFactory$#'
 			identifier: missingType.generics
 			count: 1

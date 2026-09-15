@@ -99,11 +99,15 @@ class PrestamosController extends Controller
     public function transformData($queryAll)
     {
         return $queryAll = $queryAll->map(function ($item) {
-            // $item->pendientesPago2 = true;
             $item->prestamos_dias = $item->prestamos_dias->map(function ($pdias) {
                 $pdias->pendientesPago2 = false;
-                if ($pdias->pendientesPago && $pdias->pendientesPago->paymentReport && $pdias->pendientesPago->paymentReport->payment_reports_movement_first->estatus_description->finish_estatus == 0) {
+                $pdias->payment_report_id_pendiente = null;
+
+                $estatusReserva = $pdias->pendientesPago?->paymentReport?->payment_reports_movement_first?->estatus_description;
+
+                if ($estatusReserva && ! $estatusReserva->finish_estatus) {
                     $pdias->pendientesPago2 = true;
+                    $pdias->payment_report_id_pendiente = $pdias->pendientesPago->payment_report_id;
                 }
 
                 return $pdias;

@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 /**
  * Flags de decoración que algunos controladores adosan en runtime para el front
@@ -69,15 +70,24 @@ class PrestamosDias extends Model
         return $this->belongsTo(Prestamos::class, 'prestamo_id');
     }
 
-    // Pendientes por selección en informe de pago
-    public function pendientesPago()
+    /**
+     * Última vez que esta cuota fue incluida en un informe de pago (si una
+     * cuota se informó, se rechazó, y se volvió a informar, esta relación
+     * debe reflejar la más reciente — `latest()` es necesario para eso, no
+     * cosmético: sin él, "¿está reservada?" podría evaluarse contra un
+     * informe viejo ya resuelto).
+     *
+     * @return HasOne<SelectedPaymentReport, $this>
+     */
+    public function pendientesPago(): HasOne
     {
-        return $this->hasOne(SelectedPaymentReport::class, 'prestamos_dia_id')->with(['paymentReport' => function ($paymentReport) {
-            $paymentReport->with(['payment_reports_movement_first' => function ($payment_reports_movement_first) {
-                $payment_reports_movement_first->with(['estatus_description']);
+        return $this->hasOne(SelectedPaymentReport::class, 'prestamos_dia_id')
+            ->latest()
+            ->with(['paymentReport' => function ($paymentReport) {
+                $paymentReport->with(['payment_reports_movement_first' => function ($payment_reports_movement_first) {
+                    $payment_reports_movement_first->with(['estatus_description']);
+                }]);
             }]);
-        }]);
-
     }
 
     // public function set

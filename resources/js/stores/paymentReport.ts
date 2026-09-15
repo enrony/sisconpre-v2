@@ -112,6 +112,10 @@ export interface CuotaPendiente {
     cuota: string | number;
     apply: boolean;
     pagado: boolean;
+    /** true si ya tiene otro informe de pago en curso (no finalizado) sobre esta cuota. */
+    pendientesPago2: boolean;
+    /** Nº de informe (comprobante) que la tiene reservada, si `pendientesPago2`. */
+    payment_report_id_pendiente: number | null;
 }
 
 export interface PrestamoActivo {
@@ -469,6 +473,8 @@ export const usePaymentReportStore = defineStore('paymentReport', {
         },
 
         toggleCuota(c: CuotaPendiente): void {
+            if (c.pendientesPago2) return;
+
             const i = this.informar.cuotas.findIndex((x) => x.id === c.id);
             if (i >= 0) {
                 this.informar.cuotas.splice(i, 1);

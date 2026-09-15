@@ -224,6 +224,9 @@ class PaymentReportController extends Controller
             // Parseamos la data recibida desde el Front
             $this->PaymentReportService->parseaRequest($request);
 
+            // Bloquea informar pago sobre cuotas ya pagadas o reservadas por otro informe en curso
+            $this->PaymentReportService->verifiedCuotasDisponibles();
+
             // Registra encabezado del pago reportado
             $this->PaymentReportService->createPaymentReport($request);
 

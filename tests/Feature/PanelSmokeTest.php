@@ -445,6 +445,126 @@ class PanelSmokeTest extends TestCase
         DB::table('payment_reports')->where('id', $pr->id)->delete();
     }
 
+    /**
+     * Una cuota con un informe de pago en curso (no finalizado) no puede
+     * volver a informarse — ni bypaseando la UI llamando directo al endpoint.
+     */
+    public function test_no_se_puede_informar_pago_de_cuota_ya_reservada(): void
+    {
+        $cliente = DB::table('clientes')->first();
+        $this->assertNotNull($cliente);
+
+        $cuota = DB::table('prestamos_dias as d')
+            ->join('prestamos as p', 'p.id', '=', 'd.prestamo_id')
+            ->where('p.cliente_id', $cliente->id)
+            ->where('d.apply', true)->where('d.pagado', false)
+            ->orderBy('d.id')->first(['d.id', 'd.cuota']);
+        $this->assertNotNull($cuota);
+
+        // Reservamos la cuota "a mano": un informe Pendiente con esa cuota seleccionada.
+        $prId = DB::table('payment_reports')->insertGetId([
+            'cliente_id' => $cliente->id,
+            'cliente' => json_encode((array) $cliente),
+            'destination' => 1,
+            'importe' => 0,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+        DB::table('selected_payment_reports')->insert([
+            'payment_report_id' => $prId,
+            'prestamos_dia_id' => $cuota->id,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+        DB::table('payment_reports_movements')->insert([
+            'payment_report_id' => $prId,
+            'estatus' => 1, // Pendiente (finish_estatus = 0)
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        $res = $this->actingAs($this->super())->postJson('/payment_report', [
+            'data' => json_encode([
+                'cliente' => (array) $cliente,
+                'tipoPago' => 1,
+                'cuotas' => [['id' => $cuota->id, 'cuota' => (float) $cuota->cuota]],
+                'dataPayments' => [[
+                    'payment_method_id' => DB::table('payment_methods')->value('id'),
+                    'valor_importe' => (float) $cuota->cuota,
+                    'bank_id' => null, 'franquicia_id' => null, 'referencia' => null, 'support_image' => [],
+                ]],
+            ]),
+        ]);
+
+        $res->assertOk()->assertJson(['success' => false]);
+        $this->assertStringContainsString((string) $cuota->id, (string) $res->json('message'));
+        $this->assertSame(1, DB::table('selected_payment_reports')->where('prestamos_dia_id', $cuota->id)->count());
+
+        // revertir
+        DB::table('selected_payment_reports')->where('payment_report_id', $prId)->delete();
+        DB::table('payment_reports_movements')->where('payment_report_id', $prId)->delete();
+        DB::table('payment_reports')->where('id', $prId)->delete();
+    }
+
+    /**
+     * Si el informe que reservaba la cuota fue rechazado, la cuota vuelve a
+     * estar disponible sin ninguna acción manual de "liberar": la reserva
+     * siempre se evalúa contra el último movimiento del informe.
+     */
+    public function test_cuota_se_libera_si_el_informe_que_la_reservaba_fue_rechazado(): void
+    {
+        $cliente = DB::table('clientes')->first();
+        $this->assertNotNull($cliente);
+
+        $cuota = DB::table('prestamos_dias as d')
+            ->join('prestamos as p', 'p.id', '=', 'd.prestamo_id')
+            ->where('p.cliente_id', $cliente->id)
+            ->where('d.apply', true)->where('d.pagado', false)
+            ->orderBy('d.id')->first(['d.id', 'd.cuota']);
+        $this->assertNotNull($cuota);
+
+        $prId = DB::table('payment_reports')->insertGetId([
+            'cliente_id' => $cliente->id,
+            'cliente' => json_encode((array) $cliente),
+            'destination' => 1,
+            'importe' => 0,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+        DB::table('selected_payment_reports')->insert([
+            'payment_report_id' => $prId,
+            'prestamos_dia_id' => $cuota->id,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+        DB::table('payment_reports_movements')->insert([
+            ['payment_report_id' => $prId, 'estatus' => 1, 'created_at' => now(), 'updated_at' => now()],
+            ['payment_report_id' => $prId, 'estatus' => 3, 'created_at' => now()->addSecond(), 'updated_at' => now()->addSecond()], // Rechazado, después
+        ]);
+
+        $res = $this->actingAs($this->super())->postJson('/payment_report', [
+            'data' => json_encode([
+                'cliente' => (array) $cliente,
+                'tipoPago' => 1,
+                'cuotas' => [['id' => $cuota->id, 'cuota' => (float) $cuota->cuota]],
+                'dataPayments' => [[
+                    'payment_method_id' => DB::table('payment_methods')->value('id'),
+                    'valor_importe' => (float) $cuota->cuota,
+                    'bank_id' => null, 'franquicia_id' => null, 'referencia' => null, 'support_image' => [],
+                ]],
+            ]),
+        ]);
+
+        $res->assertOk()->assertJson(['success' => true]);
+        $nuevoPr = DB::table('payment_reports')->orderByDesc('id')->first();
+
+        // revertir (informe viejo rechazado + el nuevo que creó el test)
+        DB::table('selected_payment_reports')->whereIn('payment_report_id', [$prId, $nuevoPr->id])->delete();
+        DB::table('payment_reports_methods')->where('payment_report_id', $nuevoPr->id)->delete();
+        DB::table('payment_reports_movements')->whereIn('payment_report_id', [$prId, $nuevoPr->id])->delete();
+        DB::table('payment_reports')->whereIn('id', [$prId, $nuevoPr->id])->delete();
+    }
+
     /** Las pantallas de maestros (CRUD genérico) resuelven. */
     public function test_maestros_resuelven(): void
     {
