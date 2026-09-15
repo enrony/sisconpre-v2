@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Http\Traits\generalsTrait;
 use App\Models\GruposTrabajoUser;
-use App\Models\UserCountry;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Foundation\Validation\ValidatesRequests;
 
@@ -25,10 +24,16 @@ abstract class Controller
     }
 
     /**
-     * País activo del usuario autenticado (multi-tenencia por país): `current_country`
-     * si está marcado, si no el país `principal`, si no el primero asignado.
-     * `null` = sin restricción de país (superusuario, o usuario sin países asignados
-     * todavía — ver el hueco de asignación documentado en PLAN_MIGRACION.md).
+     * País activo del usuario autenticado (multi-tenencia por país): se resuelve
+     * desde su **grupo de trabajo activo** (`current_grupo=1` → `grupos_trabajos.city_id`
+     * → `cities.country_id`), no desde una asignación de país aparte — el país de
+     * un usuario es el país de su grupo de trabajo (decisión 2026-09-14; `user_countries`
+     * pasó a significar "en qué países puede este usuario crear un grupo de trabajo
+     * nuevo", no "en qué país opera").
+     *
+     * `null` = sin restricción de país: superusuario, usuario sin grupo de trabajo
+     * activo todavía, o grupo sin ciudad asignada (huecos de datos que hay que
+     * cerrar aparte, no algo que este método deba inventar).
      */
     public static function obtenerPaisActivo(): ?string
     {
@@ -42,16 +47,12 @@ abstract class Controller
             return null;
         }
 
-        $userCountry = UserCountry::query()
-            ->select('country_id')
-            ->where('user_id', $userId)
-            ->where('estatus', 1)
-            ->orderByDesc('current_country')
-            ->orderByDesc('principal')
-            ->orderBy('id')
-            ->first();
-
-        return $userCountry?->country_id;
+        return GruposTrabajoUser::query()
+            ->join('grupos_trabajos', 'grupos_trabajos.id', '=', 'grupos_trabajos_users.idgrupo_trabajo')
+            ->join('cities', 'cities.id', '=', 'grupos_trabajos.city_id')
+            ->where('grupos_trabajos_users.iduser', $userId)
+            ->where('grupos_trabajos_users.current_grupo', 1)
+            ->value('cities.country_id');
     }
 
     /**
