@@ -449,6 +449,48 @@ class PanelSmokeTest extends TestCase
         $this->assertNull(DB::table('franquicias')->where('id', $fr->id)->first());
     }
 
+    /**
+     * Grupo de trabajo: el código se pide al endpoint dedicado (para
+     * mostrarlo en pantalla antes de guardar) y, si el que se manda al crear
+     * ya es ese, se respeta tal cual — no se regenera solo. Al editar sin
+     * tocar el código tampoco se regenera (el propio registro no cuenta como
+     * "ya tomado" contra sí mismo).
+     */
+    public function test_grupo_trabajo_codigo(): void
+    {
+        $super = $this->super();
+        $city = DB::table('cities')->value('id');
+
+        $codigo = $this->actingAs($super)
+            ->getJson('/grupos_trabajo/generateCode')
+            ->assertOk()
+            ->json('code');
+        $this->assertNotEmpty($codigo);
+
+        $this->actingAs($super)->put('/grupos_trabajo', [
+            'id' => 0,
+            'nombre' => 'QA Grupo '.uniqid(),
+            'city_id' => $city,
+            'code' => $codigo,
+            'paginaActual' => 1,
+        ])->assertRedirect();
+
+        $grupo = DB::table('grupos_trabajos')->where('code', $codigo)->first();
+        $this->assertNotNull($grupo, 'el grupo se creó con el código mostrado en pantalla');
+
+        $this->actingAs($super)->put('/grupos_trabajo', [
+            'id' => $grupo->id,
+            'nombre' => 'QA Grupo editado',
+            'city_id' => $city,
+            'code' => $codigo,
+            'paginaActual' => 1,
+        ])->assertRedirect();
+
+        $this->assertSame($codigo, DB::table('grupos_trabajos')->where('id', $grupo->id)->value('code'));
+
+        DB::table('grupos_trabajos')->where('id', $grupo->id)->delete();
+    }
+
     /** Alta + edición + borrado de un tipo de préstamo (maestro con select de frecuencia). */
     public function test_maestro_crud_tipo_prestamo(): void
     {

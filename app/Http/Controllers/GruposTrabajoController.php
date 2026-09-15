@@ -55,11 +55,13 @@ class GruposTrabajoController extends Controller
     public function store(GrupoUsuarioRequest $request)
     {
         if ($request->has('id') && $request->input('id') > 0) {
-            GruposTrabajo::find($request->input('id'))->update($request->all());
+            $data = $request->all();
+            $data['code'] = $this->resolverCodigo($data['code'] ?? null, (int) $request->input('id'));
+            GruposTrabajo::find($request->input('id'))->update($data);
             session()->flash('flash.message', 'Registro actualizado!');
         } else {
             $data = $request->all();
-            $data['code'] = $this->generarCodigoUnico();
+            $data['code'] = $this->resolverCodigo($data['code'] ?? null);
             GruposTrabajo::create($data);
             session()->flash('flash.message', 'Registro creado!');
         }
@@ -70,11 +72,43 @@ class GruposTrabajoController extends Controller
     }
 
     /**
-     * Código único de 6 caracteres para un grupo de trabajo nuevo: se genera
-     * siempre en el servidor (nunca lo tipea quien lo crea), para que el
-     * código que después se comparte en el registro público (`/register`)
-     * identifique un único grupo sin ambigüedad.
+     * Código de vinculación de un usuario nuevo a este grupo de trabajo (se
+     * ingresa en el registro público, `/register`, y hereda el país del
+     * grupo). El frontend lo pide con `generateCode()` al abrir el modal (y
+     * cada vez que se toque el ícono de refresh) y lo muestra en pantalla
+     * para que quien crea/edita el grupo pueda copiarlo y compartirlo — por
+     * eso, a diferencia de otros campos, si el formulario ya trae un código
+     * válido y libre se respeta tal cual (es el que la persona vio y va a
+     * compartir); solo se genera uno nuevo en el servidor si falta o si en el
+     * instante de guardar ya lo tomó otro grupo (carrera improbable, no motivo
+     * para bloquear el guardado).
      */
+    private function resolverCodigo(?string $code, ?int $excludeId = null): string
+    {
+        $code = $code ? Str::upper(trim($code)) : null;
+
+        if ($code === null) {
+            return $this->generarCodigoUnico();
+        }
+
+        $yaExiste = GruposTrabajo::where('code', $code)
+            ->when($excludeId, fn ($q, $id) => $q->where('id', '!=', $id))
+            ->exists();
+
+        return $yaExiste ? $this->generarCodigoUnico() : $code;
+    }
+
+    /**
+     * Código único de 6 caracteres, para el ícono de "generar/regenerar" del
+     * formulario de grupo de trabajo.
+     *
+     * @return array{code: string}
+     */
+    public function generateCode(): array
+    {
+        return ['code' => $this->generarCodigoUnico()];
+    }
+
     private function generarCodigoUnico(): string
     {
         do {

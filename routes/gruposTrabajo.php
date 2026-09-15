@@ -20,4 +20,6 @@ Route::prefix('/grupos_trabajo')->middleware(['auth', 'verified'])->group(functi
     Route::put('/', [GruposTrabajoController::class, 'store'])->middleware('permission:grupos_trabajo.registrar|grupos_trabajo.editar');
     Route::delete('/{id}/{page}', [GruposTrabajoController::class, 'destroy'])->middleware('permission:grupos_trabajo.eliminar');
     Route::get('/tables', [GruposTrabajoController::class, 'tables']);
+    Route::get('/generateCode', [GruposTrabajoController::class, 'generateCode'])
+        ->middleware('permission:grupos_trabajo.registrar|grupos_trabajo.editar');
 });

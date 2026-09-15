@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { Head } from '@inertiajs/vue3';
+import GrupoTrabajoFormModal from '@/components/maestros/GrupoTrabajoFormModal.vue';
 import MaestroCrud from '@/components/maestros/MaestroCrud.vue';
 import type { MaestroConfig } from '@/components/maestros/types';
 
@@ -21,21 +22,24 @@ const config: MaestroConfig = {
         },
         { prop: 'reference', label: 'Referencia' },
     ],
-    fields: [
-        { key: 'nombre', label: 'Nombre' },
-        {
-            key: 'city_id',
-            label: 'Ciudad',
-            type: 'select',
-            optionsKey: 'CitiesAll',
-            optionLabel: 'nombre',
-        },
-        { key: 'reference', label: 'Referencia' },
-    ],
+    // El modal de creación/edición es el de abajo (GrupoTrabajoFormModal),
+    // por el campo "Código" con su propia UX — no lee esta lista.
+    fields: [],
 };
 </script>
 
 <template>
     <Head title="Grupos de trabajo" />
-    <MaestroCrud :config="config" />
+    <MaestroCrud :config="config">
+        <template #modal="{ open, record, currentPage, tables, updateOpen }">
+            <GrupoTrabajoFormModal
+                :config="config"
+                :open="open"
+                :record="record"
+                :current-page="currentPage"
+                :tables="tables"
+                @update:open="updateOpen"
+            />
+        </template>
+    </MaestroCrud>
 </template>

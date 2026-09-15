@@ -268,12 +268,21 @@ function irAPagina(p: number) {
             </ResponsiveList>
         </div>
 
-        <MaestroFormModal
-            v-model:open="modalOpen"
-            :config="config"
+        <slot
+            name="modal"
+            :open="modalOpen"
             :record="editing"
             :current-page="currentPage"
             :tables="tables"
-        />
+            :update-open="(v: boolean) => (modalOpen = v)"
+        >
+            <MaestroFormModal
+                v-model:open="modalOpen"
+                :config="config"
+                :record="editing"
+                :current-page="currentPage"
+                :tables="tables"
+            />
+        </slot>
     </div>
 </template>
