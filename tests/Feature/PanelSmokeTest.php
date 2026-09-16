@@ -2,7 +2,10 @@
 
 namespace Tests\Feature;
 
+use App\Http\Controllers\Controller;
+use App\Http\Controllers\ReportePrestamosController;
 use App\Models\User;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
@@ -52,8 +55,8 @@ class PanelSmokeTest extends TestCase
      */
     public function test_is_super_usuario_via_rol_spatie(): void
     {
-        $this->assertTrue(\App\Http\Controllers\Controller::isSuperUsuario($this->super()->id));
-        $this->assertFalse(\App\Http\Controllers\Controller::isSuperUsuario($this->cliente()->id));
+        $this->assertTrue(Controller::isSuperUsuario($this->super()->id));
+        $this->assertFalse(Controller::isSuperUsuario($this->cliente()->id));
     }
 
     /** El super-usuario (Gate::before) entra a cualquier índice del panel. */
@@ -171,6 +174,61 @@ class PanelSmokeTest extends TestCase
         // revertir
         DB::table('prestamos_dias')->where('prestamo_id', $prestamo->id)->delete();
         DB::table('prestamos')->where('id', $prestamo->id)->delete();
+    }
+
+    /**
+     * `reporte_prestamos.listar` no se le concedió a ningún rol (solo el
+     * super-admin entra, vía `Gate::before`) — el admin lo asigna después
+     * desde "Roles y permisos" a quien corresponda.
+     */
+    public function test_reporte_prestamos_permission_gate(): void
+    {
+        $this->actingAs($this->cliente())->get('/reporte_prestamos')->assertForbidden();
+        $this->actingAs($this->super())->get('/reporte_prestamos')->assertSuccessful();
+    }
+
+    /**
+     * El reporte de préstamos filtra por el país activo del grupo de trabajo,
+     * igual que `/prestamos` — y un intento de forzar `?pais=` distinto al
+     * propio se ignora para un usuario no-superusuario.
+     */
+    public function test_reporte_prestamos_filtra_por_pais_activo(): void
+    {
+        $res = $this->actingAs($this->super())->getJson('/reporte_prestamos/records?pais=VEN');
+        $res->assertOk();
+        $this->assertNotEmpty($res->json('lista.data'));
+        $this->assertContains('Venezuela', collect($res->json('lista.data'))->pluck('pais')->unique()->all());
+
+        // (no hay un usuario "cliente" con permiso propio para este reporte,
+        // así que el país activo se prueba a través del super-admin, forzando
+        // el filtro explícito arriba, y confirmando abajo que sin filtro trae
+        // más de un país.)
+        $resTodos = $this->actingAs($this->super())->getJson('/reporte_prestamos/records');
+        $resTodos->assertOk();
+        $this->assertGreaterThan(
+            1,
+            collect($resTodos->json('lista.data'))->pluck('pais')->unique()->count(),
+        );
+
+        // "Cliente Verficado" no tiene el permiso del reporte (ver gate arriba);
+        // se llama al controlador directo para probar igual el filtro de país,
+        // ignorando el ?pais= que se le pase.
+        $this->actingAs($this->cliente());
+        $req = Request::create('/reporte_prestamos/records', 'GET', ['pais' => 'VEN']);
+        $lista = (new ReportePrestamosController)->records($req)['lista'];
+        $this->assertNotEmpty($lista->items());
+        $this->assertSame(['Colombia'], collect($lista->items())->pluck('pais')->unique()->values()->all());
+    }
+
+    /** Datos de los selects de filtro (país/ciudad/grupo). */
+    public function test_reporte_prestamos_tables(): void
+    {
+        $res = $this->actingAs($this->super())->getJson('/reporte_prestamos/tables');
+        $res->assertOk()->assertJsonStructure(['CountryAll', 'CitiesAll', 'GruposTrabajoAll']);
+        $this->assertEqualsCanonicalizing(
+            ['ARG', 'COL', 'VEN'],
+            collect($res->json('CountryAll'))->pluck('id')->all(),
+        );
     }
 
     /** Pausar / reanudar el recargo por mora de un préstamo. */

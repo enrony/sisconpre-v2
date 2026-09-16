@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class GruposTrabajoUser extends Model
 {
@@ -15,8 +16,11 @@ class GruposTrabajoUser extends Model
         'idgrupo_trabajo', 'iduser', 'estatus', 'current_grupo',
     ];
 
-    public function grupo_trabajo()
+    /**
+     * @return BelongsTo<GruposTrabajo, $this>
+     */
+    public function grupo_trabajo(): BelongsTo
     {
-        return $this->belongsTo(GruposTrabajo::class);
+        return $this->belongsTo(GruposTrabajo::class, 'idgrupo_trabajo');
     }
 }

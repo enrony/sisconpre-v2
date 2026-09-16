@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class GruposTrabajo extends Model
 {
@@ -13,12 +14,18 @@ class GruposTrabajo extends Model
 
     protected $with = ['ciudad'];
 
-    public function grupo_trabajo_user()
+    /**
+     * @return BelongsTo<GruposTrabajoUser, $this>
+     */
+    public function grupo_trabajo_user(): BelongsTo
     {
         return $this->belongsTo(GruposTrabajoUser::class);
     }
 
-    public function ciudad()
+    /**
+     * @return BelongsTo<City, $this>
+     */
+    public function ciudad(): BelongsTo
     {
         return $this->belongsTo(City::class, 'city_id');
     }

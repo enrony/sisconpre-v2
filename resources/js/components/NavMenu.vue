@@ -8,6 +8,7 @@ import {
     ClipboardList,
     CreditCard,
     Dot,
+    FileBarChart2,
     HandCoins,
     IdCard,
     Landmark,
@@ -64,6 +65,7 @@ const ICONS: Record<string, LucideIcon> = {
     grupos_trabajo: UsersRound,
     profile: ShieldCheck,
     profile_usuarios: UserCog,
+    reporte_prestamos: FileBarChart2,
 };
 
 const iconFor = (key: string): LucideIcon => ICONS[key] ?? Dot;

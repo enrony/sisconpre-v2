@@ -86,6 +86,14 @@ class Prestamos extends Model
         return $this->belongsTo(Country::class, 'country_id');
     }
 
+    /**
+     * @return BelongsTo<GruposTrabajoUser, $this>
+     */
+    public function grupoTrabajoUser(): BelongsTo
+    {
+        return $this->belongsTo(GruposTrabajoUser::class, 'grupos_trabajos_user_id');
+    }
+
     public function scopePrestamoActivo($query, $cliente)
     {
         return $query->where('cliente_id', $cliente)->where('pagado', false)->where('anulado', false)->where('perdido', false)->where('estatus', 1)->whereHas('prestamos_dias');

@@ -56,10 +56,10 @@ Estas 4 quedan como **próximas a abordar**, en el orden que se decida al arranc
 
 ### 2.6 Reportes
 
-| Ítem                                                                               | Estado       | Evidencia                                                                                                                                                                                                                     |
-| ---------------------------------------------------------------------------------- | ------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Listado de préstamos agrupado por cliente/día/banco/tipo de pago/país/ciudad/grupo | ❌ No existe | No hay módulo "Reportes" separado del listado plano de `/prestamos`                                                                                                                                                           |
-| Gráficas: torta por estado, utilidad, monto prestado/recibido/perdido              | 🟡 Parcial   | El Dashboard ya tiene gráficas reales con datos (`CarteraPorEstadoChart.vue`, `SerieMensualChart.vue`), pero son de barras (no torta) y no incluyen utilidad/monto perdido. Viven en el Dashboard, no en un módulo "Reportes" |
+| Ítem                                                                  | Estado                    | Evidencia                                                                                                                                                                                                                     |
+| --------------------------------------------------------------------- | ------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Listado de préstamos filtrable por cliente/fecha/país/ciudad/grupo    | ✅ Hecho (2026-09-16)     | Módulo nuevo `/reporte_prestamos`. Ver §3.4 — banco/tipo de pago quedaron fuera a propósito, no son atributos del préstamo                                                                                                    |
+| Gráficas: torta por estado, utilidad, monto prestado/recibido/perdido | 🟡 Parcial, no priorizado | El Dashboard ya tiene gráficas reales con datos (`CarteraPorEstadoChart.vue`, `SerieMensualChart.vue`), pero son de barras (no torta) y no incluyen utilidad/monto perdido. Viven en el Dashboard, no en el módulo "Reportes" |
 
 ### 2.7 Tabla de transacciones (ingresos/egresos centralizados)
 
@@ -157,14 +157,42 @@ en algún préstamo activo con un informe en curso.
 - **Tests:** `test_no_se_puede_informar_pago_de_cuota_ya_reservada` y
   `test_cuota_se_libera_si_el_informe_que_la_reservaba_fue_rechazado`.
 
+### 3.4 Módulo Reportes — listado de préstamos (2026-09-16)
+
+**Decisiones tomadas antes de construir** (el pedido mezclaba dos cosas que no encajaban con el modelo de
+datos): el "banco"/"tipo de pago" del PDF viven en cada pago informado, no en el préstamo — un préstamo puede
+tener pagos de varios bancos — así que se dejaron fuera de este reporte. El listado quedó como **tabla
+filtrable** (una fila por préstamo, no un pivot de totales). "Monto perdido" (para cuando se hagan las
+gráficas) queda definido como `monto_prestamo` de los préstamos en estado Perdido.
+
+**Qué se hizo:**
+
+- Nuevo módulo `/reporte_prestamos` (permiso `reporte_prestamos.listar`, nadie lo tiene asignado todavía salvo
+  `super-admin` vía `Gate::before` — se asigna a los roles que corresponda desde "Roles y permisos"). Cuelga
+  del grupo de menú **"Reportes"**, que ya existía vacío desde el scaffold inicial.
+- `ReportePrestamosController`: filtra por cliente, rango de fechas de registro, país, ciudad y grupo de
+  trabajo. Aplica automáticamente el país activo del usuario (mismo criterio que `/prestamos`); el filtro de
+  país solo es elegible para quien no tiene país fijo (superusuario).
+- Se encontraron y corrigieron dos relaciones con bugs de FK **nunca antes usadas** (`grep` confirmó cero
+  llamadas): `GruposTrabajoUser::grupo_trabajo()` apuntaba a la FK por convención (`grupos_trabajo_id`) en vez
+  de la real (`idgrupo_trabajo`); se corrigió porque el reporte la necesita para resolver ciudad/grupo de cada
+  préstamo. `GruposTrabajo::grupo_trabajo_user()` tiene el mismo tipo de problema pero sigue sin ningún
+  llamador — se le agregó el tipo de retorno de paso, no se tocó su FK (fuera de alcance, cero impacto hoy).
+- Nota de datos (no es un bug de este código, es preexistente): algunos préstamos antiguos tienen
+  `country_id` propio que no coincide con el país de la ciudad de su grupo de trabajo — el reporte muestra
+  ambos datos tal como están, no intenta reconciliarlos.
+- Frontend: `ReportePrestamos.vue` + `ReportePrestamosFilters.vue`/`ReportePrestamosTable.vue` (Pinia store
+  `reportePrestamos.ts`), mismo patrón que la pantalla de Informes de pago (filtros + `ResponsiveList`).
+- **Tests:** `test_reporte_prestamos_permission_gate`, `test_reporte_prestamos_filtra_por_pais_activo`,
+  `test_reporte_prestamos_tables`.
+
 ---
 
 ## 4. No priorizado (queda en el backlog, sin fecha)
 
 - Guardar filtros aplicados (JSON por tipo).
 - Listado de cuotas a pagar por rango de fechas.
-- Módulo "Reportes" (listado agrupado de préstamos).
-- Gráficas de torta + utilidad/monto perdido en el Dashboard.
+- Gráficas de torta + utilidad/monto perdido (Reportes o Dashboard, a definir).
 - Email en cada cambio de estado del informe de pago.
 - Exigir soporte/comprobante al rechazar un pago.
 - Método `aprobar()`/`rechazar()` dedicados en vez del genérico `change_estatus_report` (refactor, no bloquea nada funcional).

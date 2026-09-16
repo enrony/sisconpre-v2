@@ -40,6 +40,7 @@ return Application::configure(basePath: dirname(__DIR__))
                 'frecuencias' => 'frecuencias.php',
                 'grupos_trabajo' => 'gruposTrabajo.php',
                 'prestamos' => 'prestamos.php',
+                'reporte_prestamos' => 'reportePrestamos.php',
                 'tipo_documentos' => 'tipo_documentos.php',
                 'tipo_prestamo' => 'tipo_prestamos.php',
             ];
