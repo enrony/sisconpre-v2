@@ -17,7 +17,7 @@ Leyenda: ✅ Hecho · 🟡 Parcial · ❌ Pendiente / no existe · 🚫 Cerrado 
 | #   | Tema                                                      | Decisión                                                                                                                                                                                                                                                                                                      |
 | --- | --------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | 1   | "Reajuste de informe de pago"                             | 🚫 **Cerrado.** El propio análisis de negocio en el PDF concluía que no conviene alterar información ya registrada, solo aplicar saldo a favor — y el pago con saldo a favor **ya está implementado** (`PaymentReportService::registerPositiveBalance`). No se construye nada adicional.                      |
-| 2   | CRUD de `modules` (menú dinámico)                         | 🔜 **Se retoma.** Ya existe el backend completo (`ModulesController`, rutas en `routes/modules.php`, tabla `modules`) pero está desconectado — sin pantalla en el frontend y sin que `Menu.php` lo use. Se construye el frontend y se conecta como fuente del menú.                                           |
+| 2   | CRUD de `modules` (menú dinámico)                         | ✅ **Corregido el diagnóstico y cerrado (2026-09-15) — no era una feature a medio construir.** `modules`/`profiles` y las 5 tablas asociadas son el RBAC **legado**, ya reemplazado por `menu_items` + spatie (`PLAN_MIGRACION.md §11` decía explícitamente eliminarlas). Se eliminó todo. Detalle en §3.1.   |
 | 3   | Cuota bloqueada mientras hay un pago informado sobre ella | ✅ **Hecho (2026-09-15), como una sola feature: "estado de reserva de cuota".** Bloqueado en backend (no solo UI): `PaymentReportService::verifiedCuotasDisponibles()`. Detalle en §3.3.                                                                                                                      |
 | 4   | Bloqueo de edición de informe rechazado/procesado         | ✅ **Hecho (2026-09-15).** `PaymentReportService::verifiedCurrentStatus()` ahora rechaza cualquier cambio de estado si el estado actual tiene `finish_estatus`, sin importar el estado destino. Cubre el bypass de llamar directo al endpoint. Test: `test_no_se_puede_cambiar_estado_de_informe_finalizado`. |
 
@@ -74,7 +74,7 @@ Estas 4 quedan como **próximas a abordar**, en el orden que se decida al arranc
 | Pago de cuotas con saldo a favor                                  | ✅ Hecho                            | Completo de punta a punta                                                                                                                                      |
 | Validar cliente seleccionado antes de habilitar "pagar"           | ✅ Hecho                            | `InformarPagoModal.vue` (`puedeRegistrar`)                                                                                                                     |
 | Botón general vs. botón por cliente                               | ✅ Hecho                            | `abrirInformar(clienteId?)` soporta ambos casos                                                                                                                |
-| Menú según permisos                                               | ✅ Hecho                            | `Menu.php` filtra por `$user->cannot($item->permission)` — ver también §1.2 (CRUD de `modules`)                                                                |
+| Menú según permisos                                               | ✅ Hecho                            | `Menu.php` filtra por `$user->cannot($item->permission)`                                                                                                       |
 | Reajuste de informe de pago                                       | 🚫 Cerrado — ver §1.1               |                                                                                                                                                                |
 | Email en cada cambio de estado                                    | ❌ No existe                        | No hay ni un mailable para esto (ni siquiera al crear)                                                                                                         |
 | Aprobar → marcar cuotas pagadas + saldo a cartera + transaccional | 🟡 Parcial                          | Pasa por un endpoint genérico `change_estatus_report`, sin método `aprobar()` dedicado. Sí marca cuotas pagadas y sí registra en `customer_movement_histories` |
@@ -85,18 +85,39 @@ Estas 4 quedan como **próximas a abordar**, en el orden que se decida al arranc
 
 ## 3. Detalle de las features priorizadas
 
-### 3.1 Retomar CRUD de `modules` (menú dinámico)
+### 3.1 CRUD de `modules` (menú dinámico) — diagnóstico corregido y cerrado (2026-09-15)
 
-**Qué existe:** `app/Http/Controllers/ModulesController.php` + rutas en `routes/modules.php` + tabla `modules`,
-completo del lado backend, sin uso.
+**El triage anterior estaba mal planteado.** No era "backend completo esperando su pantalla": `modules` /
+`modules_relations` / `actions` / `modules_actions` / `modules_actions_profiles` / `profiles` / `users_profiles`
+son el RBAC **propio del sistema legado**, y `PLAN_MIGRACION.md §11` decía explícitamente, desde el arranque
+de este proyecto: _"Tablas a eliminar tras la migración: ... (`modules`/`modules_relations` reconvertidas a
+`menu_items`)"_. Esa consolidación a spatie + `menu_items` **ya estaba hecha y en uso** — `MenuItem.php` dice
+en su propio docblock "Reemplaza `modules` + `modules_relations`". `ModulesController`/`ActionController`/
+`ProfileController` (el de raíz, no `Admin\RolesController`) ya ni siquiera renderizaban: sus vistas Inertia
+(`Modules`, `Action`, `Profiles`) nunca existieron en el frontend.
 
-**Qué falta:**
+**Hallazgo importante durante la limpieza:** `Controller::obtenerPaisActivo()` — el método del que depende
+**todo** el filtrado por país (Dashboard, préstamos, informes de pago, los 5 maestros) — llamaba a
+`isSuperUsuario()`, que sí seguía leyendo de la tabla legada `users_profiles`/`profiles.su`. Borrar las tablas
+a ciegas habría roto la detección de superusuario en toda la app. Se corrigió primero: `isSuperUsuario()`
+ahora resuelve contra el rol spatie `super-admin` (ya existía, sincronizado en su momento por
+`rbac:sync-from-legacy`).
 
-- Pantalla de frontend (`resources/js/pages/Modules.vue` o similar) — no existe hoy.
-- Decidir la relación entre `modules` (tabla legada) y `menu_items` (tabla vigente que arma `Menu.php`) —
-  hoy son dos conceptos separados y hay que definir si `modules` pasa a ser la fuente de `menu_items`,
-  o si se gestiona `menu_items` directamente desde esta nueva pantalla.
-- Conectar `Menu.php` a lo que se decida.
+**Se eliminó:**
+
+- Controladores: `ActionController`, `ModulesController`, `ProfileController` (raíz).
+- Modelos: `Action`, `Modules`, `ModulesActions`, `ModulesActionsProfiles`, `ModulesRelation`, `Profiles`,
+  `ProfilesUsers` (+ sus 2 relaciones muertas en `User.php`, y `'profiles'` sacado del `$with` eager-load).
+- Requests/rutas: `StoreModuleRequest`, `StoreActionRequest`, `UpdateActionRequest`, `ProfileRequest`,
+  `routes/Action.php`, `routes/modules.php`, entradas `'action'`/`'modules'` del panel en `bootstrap/app.php`.
+- El comando `rbac:sync-from-legacy` (su única función era leer de estas tablas; además reconstruía
+  `menu_items` desde cero en cada corrida, lo que habría borrado las entradas agregadas a mano esta semana —
+  quedó como una trampa, no solo como código muerto).
+- Las 7 tablas (migración `drop_legacy_rbac_tables`) + el ítem de menú huérfano "Módulos" que apuntaba a la
+  ruta ya eliminada, + su ícono en `NavMenu.vue`.
+- `legacy:import-data` ya no intenta importar estas 7 tablas (se sacaron de su lista).
+
+**Tests:** `test_is_super_usuario_via_rol_spatie` (regresión del fix crítico); `test_super_accede_a_los_indices_del_panel` actualizado (ya no prueba `/modules`).
 
 ### 3.2 Validar en el backend el bloqueo de edición de informes rechazados/procesados — ✅ Hecho (2026-09-15)
 

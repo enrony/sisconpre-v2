@@ -30,7 +30,7 @@ class PanelSmokeTest extends TestCase
         $this->withoutVite();
 
         if (! DB::table('users')->where('email', 'enrony@gmail.com')->exists()) {
-            $this->markTestSkipped('BD local sin datos importados (legacy:import-data + rbac:sync-from-legacy).');
+            $this->markTestSkipped('BD local sin datos importados (legacy:import-data).');
         }
     }
 
@@ -44,10 +44,22 @@ class PanelSmokeTest extends TestCase
         return User::where('email', 'ruiztovarmariaeugenia@gmail.com')->firstOrFail();
     }
 
+    /**
+     * `Controller::isSuperUsuario()` — de la que depende TODO el filtrado por
+     * país (`obtenerPaisActivo()`) — se resuelve contra el rol spatie
+     * `super-admin`, ya no contra `users_profiles`/`profiles.su` (tablas del
+     * RBAC legado eliminadas junto con `modules`/`actions`/etc., PLAN_MIGRACION.md §11).
+     */
+    public function test_is_super_usuario_via_rol_spatie(): void
+    {
+        $this->assertTrue(\App\Http\Controllers\Controller::isSuperUsuario($this->super()->id));
+        $this->assertFalse(\App\Http\Controllers\Controller::isSuperUsuario($this->cliente()->id));
+    }
+
     /** El super-usuario (Gate::before) entra a cualquier índice del panel. */
     public function test_super_accede_a_los_indices_del_panel(): void
     {
-        foreach (['/prestamos', '/clientes', '/banks', '/frecuencias', '/payment_report', '/modules', '/profile', '/profile/usuarios'] as $path) {
+        foreach (['/prestamos', '/clientes', '/banks', '/frecuencias', '/payment_report', '/profile', '/profile/usuarios'] as $path) {
             $this->actingAs($this->super())->get($path)->assertSuccessful();
         }
     }

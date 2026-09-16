@@ -24,7 +24,6 @@ return Application::configure(basePath: dirname(__DIR__))
             // no se accede a ninguna acción del módulo. El ajuste fino por acción
             // (registrar / editar / eliminar) es trabajo de Fase 6/9.
             $panel = [
-                'action' => 'Action.php',
                 'banks' => 'Bank.php',
                 'bank_account_types' => 'BankAccountTypes.php',
                 'franquicias' => 'Franquicias.php',
@@ -40,7 +39,6 @@ return Application::configure(basePath: dirname(__DIR__))
                 'festivos' => 'festivos.php',
                 'frecuencias' => 'frecuencias.php',
                 'grupos_trabajo' => 'gruposTrabajo.php',
-                'modules' => 'modules.php',
                 'prestamos' => 'prestamos.php',
                 'tipo_documentos' => 'tipo_documentos.php',
                 'tipo_prestamo' => 'tipo_prestamos.php',

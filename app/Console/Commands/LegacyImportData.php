@@ -13,8 +13,9 @@ use Illuminate\Support\Facades\Schema;
  * Destino: conexión por defecto.
  *
  * NO toca los catálogos (los pone LegacyCatalogSeeder) ni las tablas del
- * framework/spatie. El RBAC propio (`modules`, `profiles`, …) se importa aquí
- * y luego se consolida en spatie con otro comando (PLAN_MIGRACION.md §11).
+ * framework/spatie. El RBAC propio (`modules`, `profiles`, …) ya se consolidó
+ * en spatie y sus 7 tablas se eliminaron (PLAN_MIGRACION.md §11) — no se
+ * importan más.
  *
  * Idempotente: vacía cada tabla destino y la recarga. Copia server-side
  * (`INSERT ... SELECT` entre esquemas) con las FKs desactivadas.
@@ -59,28 +60,7 @@ class LegacyImportData extends Command
         // varios
         'configuration_items',
         'scheduled_tasks_log',
-        // RBAC propio (se consolidará en spatie — §11)
-        'modules',
-        'modules_actions',
-        'modules_relations',
-        'profiles',
-        'modules_actions_profiles',
-        'users_profiles',
     ];
-
-    /**
-     * Filtros WHERE aplicados al SELECT del origen (excluir basura de pruebas).
-     *
-     * @var array<string, string>
-     */
-    private const FILTERS = [
-        'profiles' => self::KEEP_PROFILE,
-        // no arrastrar asignaciones de los perfiles de prueba excluidos
-        'modules_actions_profiles' => 'profiles_id IN (SELECT id FROM profiles WHERE '.self::KEEP_PROFILE.')',
-        'users_profiles' => 'profiles_id IN (SELECT id FROM profiles WHERE '.self::KEEP_PROFILE.')',
-    ];
-
-    private const KEEP_PROFILE = "LOWER(name) NOT IN ('prueba', 'testing', 'test')";
 
     public function handle(): int
     {
@@ -128,9 +108,8 @@ class LegacyImportData extends Command
 
             $cols = array_values(array_intersect($dstCols, $refCols));
             $colList = implode(', ', array_map(fn ($c) => "`{$c}`", $cols));
-            $where = isset(self::FILTERS[$table]) ? ' WHERE '.self::FILTERS[$table] : '';
 
-            $sql = "INSERT INTO `{$target}`.`{$table}` ({$colList}) SELECT {$colList} FROM `{$ref}`.`{$table}`{$where}";
+            $sql = "INSERT INTO `{$target}`.`{$table}` ({$colList}) SELECT {$colList} FROM `{$ref}`.`{$table}`";
 
             if ($pretend) {
                 $this->line("  {$sql}");

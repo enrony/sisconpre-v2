@@ -6,11 +6,12 @@ namespace App\Support;
  * Catálogo de habilidades de permiso.
  *
  * Los permisos de spatie se nombran `"<modulo>.<habilidad>"`, donde `<modulo>`
- * es la `clave` del módulo (tabla `modules` del legado / `menu_items.key`) y
- * `<habilidad>` uno de los slugs de abajo (portados de la tabla `actions`).
+ * es la `clave` del módulo (`menu_items.key`) y `<habilidad>` uno de los slugs
+ * de abajo — portados en su momento desde el RBAC legado (`modules`/`actions`,
+ * ya eliminado, ver PLAN_MIGRACION.md §11).
  *
- * `acceso-total` NO se materializa como permiso: al sincronizar concede todos
- * los permisos del módulo al rol (ver `rbac:sync-from-legacy`).
+ * `acceso-total` NO se materializa como permiso: se usaba al migrar para
+ * conceder todos los permisos del módulo al rol de una sola vez.
  */
 final class Permission
 {

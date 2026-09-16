@@ -2,7 +2,6 @@
 import { Link, usePage } from '@inertiajs/vue3';
 import {
     Banknote,
-    Boxes,
     Building2,
     CalendarClock,
     CalendarOff,
@@ -62,7 +61,6 @@ const ICONS: Record<string, LucideIcon> = {
     franquicias: Store,
     festivos: CalendarOff,
     type_payment_record: ClipboardList,
-    modules: Boxes,
     grupos_trabajo: UsersRound,
     profile: ShieldCheck,
     profile_usuarios: UserCog,

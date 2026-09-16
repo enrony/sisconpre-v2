@@ -41,7 +41,7 @@ class User extends Authenticatable implements PasskeyUser
      *
      * @var list<string>
      */
-    protected $with = ['profiles', 'ownedUserCountry'];
+    protected $with = ['ownedUserCountry'];
 
     /**
      * Get the attributes that should be cast.
@@ -68,28 +68,10 @@ class User extends Authenticatable implements PasskeyUser
     }
 
     /**
-     * @return HasMany<ProfilesUsers, $this>
-     */
-    public function ownedProfilesUser(): HasMany
-    {
-        return $this->hasMany(ProfilesUsers::class, 'users_id');
-    }
-
-    /**
      * @return HasMany<UserCountry, $this>
      */
     public function ownedUserCountry(): HasMany
     {
         return $this->hasMany(UserCountry::class);
-    }
-
-    /**
-     * Perfiles (RBAC propio, se consolidará en spatie — ver PLAN_MIGRACION.md §11).
-     *
-     * @return HasMany<ProfilesUsers, $this>
-     */
-    public function profiles(): HasMany
-    {
-        return $this->hasMany(ProfilesUsers::class, 'users_id', 'id');
     }
 }
