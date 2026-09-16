@@ -15,5 +15,6 @@ use Illuminate\Support\Facades\Route;
 Route::middleware(['auth', 'verified'])->prefix('/reporte_prestamos')->group(function () {
     Route::get('/', [ReportePrestamosController::class, 'index'])->name('reporte_prestamos');
     Route::get('/records', [ReportePrestamosController::class, 'records']);
-    Route::get('/tables', [ReportePrestamosController::class, 'tables']);
+    Route::get('/exportar-excel', [ReportePrestamosController::class, 'exportarExcel']);
+    Route::get('/exportar-pdf', [ReportePrestamosController::class, 'exportarPdf']);
 });

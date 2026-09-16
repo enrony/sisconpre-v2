@@ -186,6 +186,47 @@ gráficas) queda definido como `monto_prestamo` de los préstamos en estado Perd
 - **Tests:** `test_reporte_prestamos_permission_gate`, `test_reporte_prestamos_filtra_por_pais_activo`,
   `test_reporte_prestamos_tables`.
 
+### 3.5 Reportes: filtros en cascada + Excel/PDF/Imprimir, reutilizable (2026-09-16)
+
+Ampliación pedida sobre §3.4, explícitamente para que sirva de base a **todos los reportes futuros**, no solo
+este.
+
+**Filtros (cascada), ahora compartidos en `ReporteFiltrosController` + `routes/shared.php`** (no en
+`ReportePrestamosController`, para no reescribir la cascada en cada reporte nuevo):
+
+- `estados` y `grupos` pasaron a selección múltiple; `responsables` es nuevo (multi + autocomplete).
+- País → ciudad: sin país, la ciudad **no ofrece ninguna opción** (a propósito, tal como se pidió).
+- País → grupo: sin país, muestra **todos** los grupos del alcance del usuario; con país, solo los de ese país.
+- Grupo → responsable: el autocomplete de responsables se acota a los grupos elegidos (o a todo el alcance si
+  no se eligió ninguno).
+- Se agregó `GruposTrabajoUser::user()` (faltaba) para resolver quién es el responsable de cada préstamo (el
+  `iduser` del `grupos_trabajos_users` que tenía en el momento del registro).
+- El catálogo de estados se sirve desde el propio módulo de reportes (`/reportes/filtros/estados-prestamo`) y
+  no desde `/prestamos/recordsEstados`, a propósito: ese último está gateado por `prestamos.listar`, y alguien
+  con solo `reporte_prestamos.listar` se hubiera quedado sin poder cargar el filtro.
+
+**Exportar/Imprimir, reutilizable por cualquier reporte futuro:**
+
+- Librerías nuevas: `phpoffice/phpspreadsheet` (Excel) y `barryvdh/laravel-dompdf` (PDF) — confirmadas con el
+  usuario antes de instalar. **Pendiente de verificar en el servidor Ferozo**: `phpspreadsheet` necesita la
+  extensión `ext-zip` de PHP para generar `.xlsx` (es un archivo zip); no hay forma de confirmar esto sin
+  acceso al server — probarlo ahí antes de asumir que el Excel va a funcionar en producción. Dompdf es PHP
+  puro, no debería tener este problema.
+- `app/Http/Controllers/Concerns/ExportsReport.php`: trait con `generarExcel()`/`generarPdf()`, genérico —
+  recibe filas ya "aplanadas" (un array asociativo por fila, sin objetos anidados) y un mapa
+  `clave => etiqueta`. Cualquier `Reporte*Controller` nuevo solo necesita `use ExportsReport;` y armar su
+  propia query sin paginar.
+- `resources/views/reportes/pdf.blade.php`: plantilla PDF genérica (tabla + título), reutilizable igual.
+- "Imprimir" no generó código nuevo aparte: abre el mismo PDF pero con `?inline=1` (`Pdf::stream()` en vez de
+  `Pdf::download()`), y el usuario imprime desde el visor de PDF del navegador — evita mantener una vista
+  "imprimible" HTML aparte.
+- Frontend: `ReporteToolbar.vue` (botones Excel/PDF/Imprimir) recibe las 3 URLs ya armadas — no sabe nada del
+  reporte en sí, cualquier página de reporte nueva lo puede reusar tal cual.
+- **Verificado con datos reales** (vía tinker, no solo el navegador): el `.xlsx` generado se releyó con
+  PhpSpreadsheet y trajo las filas correctas; el PDF se abrió y se revisó visualmente (cabecera azul de marca,
+  filas alternadas, filtrado correcto).
+- **Tests:** `test_reportes_filtros_en_cascada`, `test_reporte_prestamos_exportar`.
+
 ---
 
 ## 4. No priorizado (queda en el backlog, sin fecha)

@@ -4,13 +4,16 @@ import { onMounted } from 'vue';
 import Heading from '@/components/Heading.vue';
 import ReportePrestamosFilters from '@/components/reportePrestamos/ReportePrestamosFilters.vue';
 import ReportePrestamosTable from '@/components/reportePrestamos/ReportePrestamosTable.vue';
+import ReporteToolbar from '@/components/reportes/ReporteToolbar.vue';
 import { useReportePrestamosStore } from '@/stores/reportePrestamos';
 
 const store = useReportePrestamosStore();
 
 onMounted(() => {
     void store.fetchList(1);
-    void store.fetchTables();
+    void store.fetchPaises();
+    void store.fetchEstados();
+    void store.fetchGrupos();
 });
 </script>
 
@@ -18,10 +21,15 @@ onMounted(() => {
     <Head title="Reporte de préstamos" />
 
     <div class="px-4 py-6">
-        <div class="mb-4">
+        <div class="mb-4 flex items-center justify-between">
             <Heading
                 title="Reporte de préstamos"
-                description="Listado detallado, filtrable por cliente, fecha, país, ciudad y grupo de trabajo"
+                description="Listado detallado, filtrable por cliente, fecha, estado, país, ciudad, grupo de trabajo y responsable"
+            />
+            <ReporteToolbar
+                :url-excel="store.urlExportarExcel()"
+                :url-pdf="store.urlExportarPdf()"
+                :url-imprimir="store.urlExportarPdf(true)"
             />
         </div>
 

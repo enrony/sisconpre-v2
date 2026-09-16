@@ -2,25 +2,49 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\City;
-use App\Models\Country;
+use App\Http\Controllers\Concerns\ExportsReport;
 use App\Models\GruposTrabajo;
 use App\Models\GruposTrabajoUser;
 use App\Models\Prestamos;
 use Carbon\Carbon;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Inertia;
 use Inertia\Response;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 /**
  * Reporte de préstamos (`TasksSISCONPRE.pdf` — "Reportes"): listado detallado
- * y filtrable por cliente, rango de fechas, país, ciudad y grupo de trabajo.
- * Distinto de `/prestamos` (la consola operativa) — este es de solo lectura,
- * sin acciones de alta/edición.
+ * y filtrable por cliente, rango de fechas, estado, país, ciudad, grupo de
+ * trabajo y responsable. Distinto de `/prestamos` (la consola operativa) —
+ * este es de solo lectura, sin acciones de alta/edición.
  */
 class ReportePrestamosController extends Controller
 {
+    use ExportsReport;
+
+    /**
+     * Clave de la fila "aplanada" (`toExportRow()`) => etiqueta de columna,
+     * en el orden en que aparecen en Excel/PDF.
+     *
+     * @var array<string, string>
+     */
+    private const COLUMNAS_EXPORT = [
+        'id' => '#',
+        'registrado' => 'Registrado',
+        'cliente' => 'Cliente',
+        'documento' => 'Documento',
+        'monto_prestamo' => 'Monto',
+        'utilidad' => 'Utilidad',
+        'total' => 'Total',
+        'estado' => 'Estado',
+        'pais' => 'País',
+        'ciudad' => 'Ciudad',
+        'grupo' => 'Grupo',
+        'responsable' => 'Responsable',
+    ];
+
     public function index(): Response
     {
         return Inertia\Inertia::render('ReportePrestamos', [
@@ -29,9 +53,13 @@ class ReportePrestamosController extends Controller
     }
 
     /**
-     * @return array{lista: LengthAwarePaginator<int, array<string, mixed>>}
+     * Query filtrada, sin paginar — la reusan tanto `records()` (paginada)
+     * como las exportaciones (traen todo lo filtrado, no solo la página
+     * visible).
+     *
+     * @return Builder<Prestamos>
      */
-    public function records(Request $request): array
+    private function baseQuery(Request $request): Builder
     {
         $csvIds = static fn (mixed $csv): array => array_values(array_filter(
             explode(',', (string) $csv),
@@ -40,7 +68,7 @@ class ReportePrestamosController extends Controller
 
         $paisActivo = static::obtenerPaisActivo();
 
-        $lista = Prestamos::query()
+        return Prestamos::query()
             ->select([
                 'prestamos.id',
                 'prestamos.cliente_id',
@@ -59,7 +87,12 @@ class ReportePrestamosController extends Controller
             ->selectRaw("json_unquote(json_extract(prestamos.cliente, '$.nombre')) as cliente_nombre")
             ->selectRaw("json_unquote(json_extract(prestamos.cliente, '$.apellido')) as cliente_apellido")
             ->selectRaw("json_unquote(json_extract(prestamos.cliente, '$.documento')) as cliente_documento")
-            ->with(['p_estatus:id,description,type_tag', 'country:id,Name', 'grupoTrabajoUser.grupo_trabajo.ciudad'])
+            ->with([
+                'p_estatus:id,description,type_tag',
+                'country:id,Name',
+                'grupoTrabajoUser.grupo_trabajo.ciudad',
+                'grupoTrabajoUser.user:id,name,email',
+            ])
             ->when($paisActivo, fn ($q, $pais) => $q->where('prestamos.country_id', $pais))
             ->when(! $paisActivo && $request->filled('pais'), fn ($q) => $q->where('prestamos.country_id', $request->pais))
             ->when($request->filled(['fecha_registro1', 'fecha_registro2']), function ($q) use ($request) {
@@ -69,14 +102,26 @@ class ReportePrestamosController extends Controller
                 ]);
             })
             ->when($request->filled('clientes'), fn ($q) => $q->whereIn('prestamos.cliente_id', $csvIds($request->clientes)))
-            ->when($request->filled('grupo'), function ($q) use ($request) {
-                $q->whereIn('prestamos.grupos_trabajos_user_id', GruposTrabajoUser::where('idgrupo_trabajo', $request->grupo)->pluck('id'));
+            ->when($request->filled('estados'), fn ($q) => $q->whereIn('prestamos.estatus', $csvIds($request->estados)))
+            ->when($request->filled('grupos'), function ($q) use ($request, $csvIds) {
+                $q->whereIn('prestamos.grupos_trabajos_user_id', GruposTrabajoUser::whereIn('idgrupo_trabajo', $csvIds($request->grupos))->pluck('id'));
             })
             ->when($request->filled('ciudad'), function ($q) use ($request) {
                 $grupoIds = GruposTrabajo::where('city_id', $request->ciudad)->pluck('id');
                 $q->whereIn('prestamos.grupos_trabajos_user_id', GruposTrabajoUser::whereIn('idgrupo_trabajo', $grupoIds)->pluck('id'));
             })
-            ->latest('prestamos.created_at')
+            ->when($request->filled('responsables'), function ($q) use ($request, $csvIds) {
+                $q->whereIn('prestamos.grupos_trabajos_user_id', GruposTrabajoUser::whereIn('iduser', $csvIds($request->responsables))->pluck('id'));
+            })
+            ->latest('prestamos.created_at');
+    }
+
+    /**
+     * @return array{lista: LengthAwarePaginator<int, array<string, mixed>>}
+     */
+    public function records(Request $request): array
+    {
+        $lista = $this->baseQuery($request)
             ->paginate(20)
             ->through(fn (Prestamos $r): array => $this->toRow($r));
 
@@ -89,6 +134,7 @@ class ReportePrestamosController extends Controller
     private function toRow(Prestamos $r): array
     {
         $grupo = $r->grupoTrabajoUser?->grupo_trabajo;
+        $responsable = $r->grupoTrabajoUser?->user;
 
         return [
             'id' => $r->id,
@@ -108,28 +154,48 @@ class ReportePrestamosController extends Controller
             'pais' => $r->country?->Name,
             'ciudad' => $grupo?->ciudad?->nombre,
             'grupo' => $grupo?->nombre,
+            'responsable' => $responsable?->name,
         ];
     }
 
     /**
-     * Datos para los selects de filtro: países/ciudades/grupos ya acotados al
-     * país activo del usuario (igual criterio que `PrestamosController::tables()`).
+     * Misma info que `toRow()`, pero "aplanada" para Excel/PDF (una columna
+     * por dato, sin objetos anidados).
      *
      * @return array<string, mixed>
      */
-    public function tables(): array
+    private function toExportRow(Prestamos $r): array
     {
-        $paisActivo = static::obtenerPaisActivo();
+        $grupo = $r->grupoTrabajoUser?->grupo_trabajo;
+        $responsable = $r->grupoTrabajoUser?->user;
 
-        $CountryAll = $paisActivo
-            ? Country::where('id', $paisActivo)->where('estatus', 1)->get()
-            : Country::where('estatus', 1)->get();
+        return [
+            'id' => $r->id,
+            'registrado' => $r->created,
+            'cliente' => trim(($r->cliente_nombre ?? '').' '.($r->cliente_apellido ?? '')),
+            'documento' => $r->cliente_documento,
+            'monto_prestamo' => (float) $r->monto_prestamo,
+            'utilidad' => (float) $r->utilidad,
+            'total' => (float) $r->total,
+            'estado' => $r->p_estatus?->description,
+            'pais' => $r->country?->Name,
+            'ciudad' => $grupo?->ciudad?->nombre,
+            'grupo' => $grupo?->nombre,
+            'responsable' => $responsable?->name,
+        ];
+    }
 
-        $countryIds = $CountryAll->pluck('id')->toArray();
+    public function exportarExcel(Request $request): StreamedResponse
+    {
+        $filas = $this->baseQuery($request)->get()->map(fn (Prestamos $r): array => $this->toExportRow($r));
 
-        $CitiesAll = City::WhereCountriesActive($countryIds)->get();
-        $GruposTrabajoAll = GruposTrabajo::whereIn('city_id', $CitiesAll->pluck('id'))->where('estatus', 1)->get();
+        return $this->generarExcel($filas, self::COLUMNAS_EXPORT, 'reporte_prestamos');
+    }
 
-        return compact('CountryAll', 'CitiesAll', 'GruposTrabajoAll');
+    public function exportarPdf(Request $request): \Illuminate\Http\Response
+    {
+        $filas = $this->baseQuery($request)->get()->map(fn (Prestamos $r): array => $this->toExportRow($r));
+
+        return $this->generarPdf($filas, self::COLUMNAS_EXPORT, 'reporte_prestamos', 'Reporte de préstamos', $request->boolean('inline'));
     }
 }

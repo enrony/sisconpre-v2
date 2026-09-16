@@ -223,12 +223,65 @@ class PanelSmokeTest extends TestCase
     /** Datos de los selects de filtro (país/ciudad/grupo). */
     public function test_reporte_prestamos_tables(): void
     {
-        $res = $this->actingAs($this->super())->getJson('/reporte_prestamos/tables');
-        $res->assertOk()->assertJsonStructure(['CountryAll', 'CitiesAll', 'GruposTrabajoAll']);
+        $res = $this->actingAs($this->super())->getJson('/reportes/filtros/paises');
+        $res->assertOk()->assertJsonStructure(['CountryAll']);
         $this->assertEqualsCanonicalizing(
             ['ARG', 'COL', 'VEN'],
             collect($res->json('CountryAll'))->pluck('id')->all(),
         );
+    }
+
+    /**
+     * Filtros en cascada compartidos por todos los reportes (`routes/shared.php`):
+     * ciudades vacío sin país (a propósito), grupos completo sin país y acotado
+     * con país, responsables por autocomplete acotado a los grupos indicados.
+     */
+    public function test_reportes_filtros_en_cascada(): void
+    {
+        $super = $this->super();
+
+        // Sin país: ninguna ciudad (a propósito, no tiene sentido ofrecerlas todas).
+        $this->actingAs($super)->getJson('/reportes/filtros/ciudades')
+            ->assertOk()->assertJson(['CitiesAll' => []]);
+
+        // Con país: solo las de ese país.
+        $resCiudades = $this->actingAs($super)->getJson('/reportes/filtros/ciudades?pais=COL');
+        $resCiudades->assertOk();
+        $this->assertNotEmpty($resCiudades->json('CitiesAll'));
+
+        // Grupos: sin país trae todos; con país, menos o igual cantidad.
+        $totalGrupos = $this->actingAs($super)->getJson('/reportes/filtros/grupos-trabajo')->json('GruposTrabajoAll');
+        $gruposCol = $this->actingAs($super)->getJson('/reportes/filtros/grupos-trabajo?pais=COL')->json('GruposTrabajoAll');
+        $this->assertNotEmpty($totalGrupos);
+        $this->assertLessThanOrEqual(count($totalGrupos), count($gruposCol));
+
+        // Responsables: sin término, vacío; con término, aparece el superusuario.
+        $this->actingAs($super)->getJson('/reportes/filtros/responsables?term=')
+            ->assertOk()->assertJson(['ResponsablesAll' => []]);
+
+        $resResp = $this->actingAs($super)->getJson('/reportes/filtros/responsables?term=enrony');
+        $resResp->assertOk();
+        $this->assertContains($super->email, collect($resResp->json('ResponsablesAll'))->pluck('email')->all());
+
+        // Estados de préstamo (catálogo propio del módulo, no acoplado a /prestamos).
+        $this->actingAs($this->cliente())->getJson('/reportes/filtros/estados-prestamo')
+            ->assertOk()->assertJsonStructure(['EstadosAll']);
+    }
+
+    /** Exportar a Excel/PDF respeta los mismos filtros que el listado en pantalla. */
+    public function test_reporte_prestamos_exportar(): void
+    {
+        $excel = $this->actingAs($this->super())->get('/reporte_prestamos/exportar-excel?pais=VEN');
+        $excel->assertOk();
+        $this->assertSame(
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            $excel->headers->get('Content-Type'),
+        );
+
+        $pdf = $this->actingAs($this->super())->get('/reporte_prestamos/exportar-pdf?pais=VEN');
+        $pdf->assertOk();
+        $this->assertSame('application/pdf', $pdf->headers->get('Content-Type'));
+        $this->assertStringStartsWith('%PDF-', $pdf->getContent());
     }
 
     /** Pausar / reanudar el recargo por mora de un préstamo. */

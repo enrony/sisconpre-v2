@@ -5,6 +5,7 @@ use App\Http\Controllers\ClientesController;
 use App\Http\Controllers\FranquiciaController;
 use App\Http\Controllers\PaymentMethodController;
 use App\Http\Controllers\PrestamosController;
+use App\Http\Controllers\ReporteFiltrosController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -31,4 +32,12 @@ Route::middleware(['web', 'auth', 'verified'])->group(function () {
     Route::get('/clientes/lista-clientes-json-basic', [ClientesController::class, 'listaClientesJsonBasic']);
 
     Route::get('/prestamos/obtenerPrestamosActivos/{cliente}', [PrestamosController::class, 'obtenerPrestamosActivos']);
+
+    // Filtros en cascada país -> ciudad/grupo de trabajo -> responsable,
+    // compartidos por todos los módulos de "Reportes".
+    Route::get('/reportes/filtros/paises', [ReporteFiltrosController::class, 'paises']);
+    Route::get('/reportes/filtros/ciudades', [ReporteFiltrosController::class, 'ciudades']);
+    Route::get('/reportes/filtros/grupos-trabajo', [ReporteFiltrosController::class, 'gruposTrabajo']);
+    Route::get('/reportes/filtros/responsables', [ReporteFiltrosController::class, 'responsables']);
+    Route::get('/reportes/filtros/estados-prestamo', [ReporteFiltrosController::class, 'estadosPrestamo']);
 });

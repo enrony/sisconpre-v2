@@ -7,9 +7,14 @@ const {
     filtro,
     clientesLista,
     loadingClientes,
+    estadosAll,
     countryAll,
     citiesAll,
+    loadingCiudades,
     gruposTrabajoAll,
+    loadingGrupos,
+    responsablesLista,
+    loadingResponsables,
 } = storeToRefs(store);
 
 function aplicar() {
@@ -23,7 +28,7 @@ function limpiar() {
 </script>
 
 <template>
-    <div class="grid grid-cols-1 gap-3 md:grid-cols-3 lg:grid-cols-6">
+    <div class="grid grid-cols-1 gap-3 md:grid-cols-3 lg:grid-cols-4">
         <div class="md:col-span-3 lg:col-span-2">
             <label class="text-muted-foreground text-xs font-semibold"
                 >Clientes</label
@@ -64,6 +69,28 @@ function limpiar() {
             />
         </div>
 
+        <div>
+            <label class="text-muted-foreground text-xs font-semibold"
+                >Estado</label
+            >
+            <el-select
+                v-model="filtro.estados"
+                multiple
+                collapse-tags
+                clearable
+                size="small"
+                class="w-full"
+                placeholder="Todos"
+            >
+                <el-option
+                    v-for="e in estadosAll"
+                    :key="e.id"
+                    :label="e.description"
+                    :value="e.id"
+                />
+            </el-select>
+        </div>
+
         <div v-if="countryAll.length > 1">
             <label class="text-muted-foreground text-xs font-semibold"
                 >País</label
@@ -74,6 +101,8 @@ function limpiar() {
                 size="small"
                 class="w-full"
                 placeholder="Todos"
+                @change="store.onPaisChange"
+                @clear="store.onPaisChange"
             >
                 <el-option
                     v-for="c in countryAll"
@@ -88,21 +117,28 @@ function limpiar() {
             <label class="text-muted-foreground text-xs font-semibold"
                 >Ciudad</label
             >
-            <el-select
-                v-model="filtro.ciudad"
-                filterable
-                clearable
-                size="small"
-                class="w-full"
-                placeholder="Todas"
+            <el-tooltip
+                :disabled="!!filtro.pais"
+                content="Elegí un país primero"
             >
-                <el-option
-                    v-for="c in citiesAll"
-                    :key="c.id"
-                    :label="c.nombre"
-                    :value="c.id"
-                />
-            </el-select>
+                <el-select
+                    v-model="filtro.ciudad"
+                    filterable
+                    clearable
+                    size="small"
+                    class="w-full"
+                    :disabled="!filtro.pais"
+                    :loading="loadingCiudades"
+                    placeholder="Todas"
+                >
+                    <el-option
+                        v-for="c in citiesAll"
+                        :key="c.id"
+                        :label="c.nombre"
+                        :value="c.id"
+                    />
+                </el-select>
+            </el-tooltip>
         </div>
 
         <div>
@@ -110,11 +146,14 @@ function limpiar() {
                 >Grupo de trabajo</label
             >
             <el-select
-                v-model="filtro.grupo"
+                v-model="filtro.grupos"
+                multiple
+                collapse-tags
                 filterable
                 clearable
                 size="small"
                 class="w-full"
+                :loading="loadingGrupos"
                 placeholder="Todos"
             >
                 <el-option
@@ -122,6 +161,32 @@ function limpiar() {
                     :key="g.id"
                     :label="g.nombre"
                     :value="g.id"
+                />
+            </el-select>
+        </div>
+
+        <div class="md:col-span-2">
+            <label class="text-muted-foreground text-xs font-semibold"
+                >Responsable</label
+            >
+            <el-select
+                v-model="filtro.responsables"
+                multiple
+                collapse-tags
+                filterable
+                remote
+                clearable
+                size="small"
+                class="w-full"
+                placeholder="Buscar por nombre o email"
+                :remote-method="store.searchResponsables"
+                :loading="loadingResponsables"
+            >
+                <el-option
+                    v-for="r in responsablesLista"
+                    :key="r.id"
+                    :label="`${r.name} (${r.email})`"
+                    :value="r.id"
                 />
             </el-select>
         </div>

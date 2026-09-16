@@ -16,6 +16,7 @@ export interface ReportePrestamoRow {
     pais: string | null;
     ciudad: string | null;
     grupo: string | null;
+    responsable: string | null;
 }
 
 interface ClienteOption {
@@ -31,22 +32,37 @@ interface LookupOption {
     Name?: string;
 }
 
+interface EstadoOption {
+    id: number;
+    description: string;
+}
+
+interface ResponsableOption {
+    id: number;
+    name: string;
+    email: string;
+}
+
 type DateRange = [string, string] | null;
 
 interface Filtro {
     clientes: number[];
     fecha_registro: DateRange;
+    estados: number[];
     pais: string | null;
     ciudad: number | null;
-    grupo: number | null;
+    grupos: number[];
+    responsables: number[];
 }
 
 const emptyFiltro = (): Filtro => ({
     clientes: [],
     fecha_registro: null,
+    estados: [],
     pais: null,
     ciudad: null,
-    grupo: null,
+    grupos: [],
+    responsables: [],
 });
 
 export const useReportePrestamosStore = defineStore('reportePrestamos', {
@@ -58,9 +74,14 @@ export const useReportePrestamosStore = defineStore('reportePrestamos', {
         clientesLista: [] as ClienteOption[],
         loadingClientes: false,
 
+        estadosAll: [] as EstadoOption[],
         countryAll: [] as LookupOption[],
         citiesAll: [] as LookupOption[],
+        loadingCiudades: false,
         gruposTrabajoAll: [] as LookupOption[],
+        loadingGrupos: false,
+        responsablesLista: [] as ResponsableOption[],
+        loadingResponsables: false,
     }),
 
     actions: {
@@ -76,14 +97,20 @@ export const useReportePrestamosStore = defineStore('reportePrestamos', {
             if (this.filtro.clientes.length) {
                 p.set('clientes', this.filtro.clientes.join(','));
             }
+            if (this.filtro.estados.length) {
+                p.set('estados', this.filtro.estados.join(','));
+            }
             if (this.filtro.pais) {
                 p.set('pais', this.filtro.pais);
             }
             if (this.filtro.ciudad) {
                 p.set('ciudad', String(this.filtro.ciudad));
             }
-            if (this.filtro.grupo) {
-                p.set('grupo', String(this.filtro.grupo));
+            if (this.filtro.grupos.length) {
+                p.set('grupos', this.filtro.grupos.join(','));
+            }
+            if (this.filtro.responsables.length) {
+                p.set('responsables', this.filtro.responsables.join(','));
             }
 
             return p.toString();
@@ -101,11 +128,85 @@ export const useReportePrestamosStore = defineStore('reportePrestamos', {
             }
         },
 
-        async fetchTables(): Promise<void> {
-            const { data } = await http.get('/reporte_prestamos/tables');
+        // --------------------------------------------------------------
+        //  Filtros (catálogos + cascada país -> ciudad/grupo -> responsable)
+        // --------------------------------------------------------------
+
+        async fetchPaises(): Promise<void> {
+            const { data } = await http.get('/reportes/filtros/paises');
             this.countryAll = data.CountryAll ?? [];
-            this.citiesAll = data.CitiesAll ?? [];
-            this.gruposTrabajoAll = data.GruposTrabajoAll ?? [];
+        },
+
+        async fetchEstados(): Promise<void> {
+            const { data } = await http.get(
+                '/reportes/filtros/estados-prestamo',
+            );
+            this.estadosAll = data.EstadosAll ?? [];
+        },
+
+        /** Se llama cuando cambia el país elegido en el filtro. */
+        async onPaisChange(): Promise<void> {
+            this.filtro.ciudad = null;
+            this.filtro.grupos = [];
+            await Promise.all([this.fetchCiudades(), this.fetchGrupos()]);
+        },
+
+        /** Sin país seleccionado, no se ofrece ninguna ciudad (a propósito). */
+        async fetchCiudades(): Promise<void> {
+            if (!this.filtro.pais) {
+                this.citiesAll = [];
+
+                return;
+            }
+            this.loadingCiudades = true;
+            try {
+                const { data } = await http.get('/reportes/filtros/ciudades', {
+                    params: { pais: this.filtro.pais },
+                });
+                this.citiesAll = data.CitiesAll ?? [];
+            } finally {
+                this.loadingCiudades = false;
+            }
+        },
+
+        /** Sin país, trae todos los grupos del alcance del usuario. */
+        async fetchGrupos(): Promise<void> {
+            this.loadingGrupos = true;
+            try {
+                const { data } = await http.get(
+                    '/reportes/filtros/grupos-trabajo',
+                    {
+                        params: this.filtro.pais
+                            ? { pais: this.filtro.pais }
+                            : {},
+                    },
+                );
+                this.gruposTrabajoAll = data.GruposTrabajoAll ?? [];
+            } finally {
+                this.loadingGrupos = false;
+            }
+        },
+
+        /** Autocomplete de responsables, acotado a los grupos seleccionados. */
+        async searchResponsables(term: string): Promise<void> {
+            if (!term) {
+                return;
+            }
+            this.loadingResponsables = true;
+            try {
+                const { data } = await http.get(
+                    '/reportes/filtros/responsables',
+                    {
+                        params: {
+                            term,
+                            grupos: this.filtro.grupos.join(','),
+                        },
+                    },
+                );
+                this.responsablesLista = data.ResponsablesAll ?? [];
+            } finally {
+                this.loadingResponsables = false;
+            }
         },
 
         async searchClientes(query: string): Promise<void> {
@@ -126,6 +227,22 @@ export const useReportePrestamosStore = defineStore('reportePrestamos', {
 
         resetFiltro(): void {
             this.filtro = emptyFiltro();
+            this.citiesAll = [];
+            void this.fetchGrupos();
+        },
+
+        // --------------------------------------------------------------
+        //  Exportar / Imprimir
+        // --------------------------------------------------------------
+
+        urlExportarExcel(): string {
+            return `/reporte_prestamos/exportar-excel?${this.queryString()}`;
+        },
+
+        urlExportarPdf(inline = false): string {
+            const qs = this.queryString();
+
+            return `/reporte_prestamos/exportar-pdf?${qs}${inline ? '&inline=1' : ''}`;
         },
     },
 });

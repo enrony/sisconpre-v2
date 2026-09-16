@@ -31,6 +31,7 @@ const fields: ListField<ReportePrestamoRow>[] = [
     { label: 'País', value: (r) => r.pais ?? '—' },
     { label: 'Ciudad', value: (r) => r.ciudad ?? '—' },
     { label: 'Grupo', value: (r) => r.grupo ?? '—' },
+    { label: 'Responsable', value: (r) => r.responsable ?? '—' },
     { label: 'Estado', value: (r) => r.estado ?? '—' },
 ];
 </script>
@@ -96,6 +97,12 @@ const fields: ListField<ReportePrestamoRow>[] = [
                     prop="grupo"
                     label="Grupo"
                     width="130"
+                    align="center"
+                />
+                <el-table-column
+                    prop="responsable"
+                    label="Responsable"
+                    width="180"
                     align="center"
                 />
                 <el-table-column label="Estado" width="120" align="center">

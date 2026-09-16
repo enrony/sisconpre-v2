@@ -23,4 +23,14 @@ class GruposTrabajoUser extends Model
     {
         return $this->belongsTo(GruposTrabajo::class, 'idgrupo_trabajo');
     }
+
+    /**
+     * Usuario responsable de este grupo de trabajo en este período.
+     *
+     * @return BelongsTo<User, $this>
+     */
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'iduser');
+    }
 }
