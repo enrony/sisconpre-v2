@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\ReporteInformesPagoController;
 use App\Http\Controllers\ReportePrestamosController;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -279,6 +280,79 @@ class PanelSmokeTest extends TestCase
         );
 
         $pdf = $this->actingAs($this->super())->get('/reporte_prestamos/exportar-pdf?pais=VEN');
+        $pdf->assertOk();
+        $this->assertSame('application/pdf', $pdf->headers->get('Content-Type'));
+        $this->assertStringStartsWith('%PDF-', $pdf->getContent());
+    }
+
+    /** Igual que en /payment_report: nadie tiene el permiso salvo super-admin (Gate::before). */
+    public function test_reporte_informes_pago_permission_gate(): void
+    {
+        $this->actingAs($this->cliente())->get('/reporte_informes_pago')->assertForbidden();
+        $this->actingAs($this->super())->get('/reporte_informes_pago')->assertSuccessful();
+    }
+
+    /**
+     * Mismo criterio de país que `/payment_report/records` (indirecto, vía
+     * cuotas -> préstamo), y los filtros nuevos: estado, destino, método de
+     * pago y banco.
+     */
+    public function test_reporte_informes_pago_filtros(): void
+    {
+        $super = $this->super();
+
+        // País: mismo total que ya prueba test_informes_de_pago_filtra_por_pais_activo.
+        $resSuper = $this->actingAs($super)->getJson('/reporte_informes_pago/records');
+        $resSuper->assertOk();
+        $this->assertSame(16, $resSuper->json('lista.total'));
+
+        $this->actingAs($this->cliente());
+        $req = Request::create('/reporte_informes_pago/records', 'GET', ['pais' => 'VEN']);
+        $lista = (new ReporteInformesPagoController)->records($req)['lista'];
+        $this->assertSame(12, $lista->total());
+        $this->assertNotContains('Venezuela', collect($lista->items())->pluck('pais')->unique()->all());
+
+        // Destino: "saldo a favor" (2) es un subconjunto real y distinto de "todos".
+        $resDestino = $this->actingAs($super)->getJson('/reporte_informes_pago/records?destinos=2');
+        $resDestino->assertOk();
+        $this->assertNotEmpty($resDestino->json('lista.data'));
+        $this->assertLessThan($resSuper->json('lista.total'), $resDestino->json('lista.total'));
+        $this->assertSame([2], collect($resDestino->json('lista.data'))->pluck('destination')->unique()->all());
+
+        // Estado: acota por el último movimiento del informe (mismo criterio que el resto de la app).
+        $pendienteId = DB::table('payment_reports_movements_estatus')->where('description', 'Pendiente')->value('id');
+        $resEstado = $this->actingAs($super)->getJson("/reporte_informes_pago/records?estados={$pendienteId}");
+        $resEstado->assertOk();
+        $this->assertNotEmpty($resEstado->json('lista.data'));
+
+        // Método de pago: acota a informes con al menos un método = Efectivo.
+        $efectivoId = DB::table('payment_methods')->where('description', 'Efectivo')->value('id');
+        $resMetodo = $this->actingAs($super)->getJson("/reporte_informes_pago/records?metodos={$efectivoId}");
+        $resMetodo->assertOk();
+        $this->assertNotEmpty($resMetodo->json('lista.data'));
+        foreach ($resMetodo->json('lista.data') as $fila) {
+            $this->assertContains('Efectivo', $fila['metodos']);
+        }
+    }
+
+    /** Catálogo de estados de informe de pago, servido por el módulo de reportes (no acoplado a payment_report.listar). */
+    public function test_reporte_informes_pago_estados_catalogo(): void
+    {
+        $this->actingAs($this->cliente())->getJson('/reportes/filtros/estados-informe-pago')
+            ->assertOk()->assertJsonStructure(['EstadosAll']);
+    }
+
+    /** Exportar a Excel/PDF respeta los mismos filtros que el listado en pantalla. */
+    public function test_reporte_informes_pago_exportar(): void
+    {
+        $excel = $this->actingAs($this->super())->get('/reporte_informes_pago/exportar-excel?destinos=2');
+        $excel->assertOk();
+        $this->assertSame(
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            $excel->headers->get('Content-Type'),
+        );
+
+        $pdf = $this->actingAs($this->super())->get('/reporte_informes_pago/exportar-pdf?destinos=2');
         $pdf->assertOk();
         $this->assertSame('application/pdf', $pdf->headers->get('Content-Type'));
         $this->assertStringStartsWith('%PDF-', $pdf->getContent());

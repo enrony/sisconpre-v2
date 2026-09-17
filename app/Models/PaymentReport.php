@@ -6,6 +6,7 @@ use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Http\Request;
@@ -16,6 +17,7 @@ use Illuminate\Http\Request;
  * @property-read string|null $cliente_nombre
  * @property-read string|null $cliente_apellido
  * @property-read string|null $cliente_documento
+ * @property-read string|null $created
  * @property-read string|null $value_amount_sum
  * @property-read int $selected_payment_reports_count
  */
@@ -51,6 +53,17 @@ class PaymentReport extends Model
     public function payment_reports_movements_estatus()
     {
         return $this->belongsTo(PaymentReportsMovementsEstatu::class, 'payment_reports_movements_estatus_id');
+    }
+
+    /**
+     * Grupo de trabajo (y por lo tanto responsable/ciudad/país) de quien
+     * gestionaba ese grupo cuando se registró este informe.
+     *
+     * @return BelongsTo<GruposTrabajoUser, $this>
+     */
+    public function grupoTrabajoUser(): BelongsTo
+    {
+        return $this->belongsTo(GruposTrabajoUser::class, 'grupos_trabajos_user_id');
     }
 
     public function getNumberCuotasAttribute()
@@ -108,7 +121,10 @@ class PaymentReport extends Model
         $this->attributes['cliente_id'] = $value['id'];
     }
 
-    public function payment_reports_methods()
+    /**
+     * @return HasMany<paymentReportsMethod, $this>
+     */
+    public function payment_reports_methods(): HasMany
     { // usar solo para registro, no agregar order ni otra condicion, ya que puede afectar el correcto funcionamiento al registrar
         // desde informe de pagos
         return $this->hasMany(paymentReportsMethod::class, 'payment_report_id');

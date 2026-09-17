@@ -16,6 +16,7 @@ import {
     type LucideIcon,
     MapPinned,
     ReceiptText,
+    ScrollText,
     ShieldCheck,
     Store,
     Tags,
@@ -66,6 +67,7 @@ const ICONS: Record<string, LucideIcon> = {
     profile: ShieldCheck,
     profile_usuarios: UserCog,
     reporte_prestamos: FileBarChart2,
+    reporte_informes_pago: ScrollText,
 };
 
 const iconFor = (key: string): LucideIcon => ICONS[key] ?? Dot;

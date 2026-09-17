@@ -59,6 +59,7 @@ Estas 4 quedan como **próximas a abordar**, en el orden que se decida al arranc
 | Ítem                                                                  | Estado                    | Evidencia                                                                                                                                                                                                                     |
 | --------------------------------------------------------------------- | ------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Listado de préstamos filtrable por cliente/fecha/país/ciudad/grupo    | ✅ Hecho (2026-09-16)     | Módulo nuevo `/reporte_prestamos`. Ver §3.4 — banco/tipo de pago quedaron fuera a propósito, no son atributos del préstamo                                                                                                    |
+| Reporte de informes de pago recibidos, filtrable por método/tipo/etc  | ✅ Hecho (2026-09-17)     | Módulo nuevo `/reporte_informes_pago`. Ver §3.6                                                                                                                                                                               |
 | Gráficas: torta por estado, utilidad, monto prestado/recibido/perdido | 🟡 Parcial, no priorizado | El Dashboard ya tiene gráficas reales con datos (`CarteraPorEstadoChart.vue`, `SerieMensualChart.vue`), pero son de barras (no torta) y no incluyen utilidad/monto perdido. Viven en el Dashboard, no en el módulo "Reportes" |
 
 ### 2.7 Tabla de transacciones (ingresos/egresos centralizados)
@@ -226,6 +227,40 @@ este.
   PhpSpreadsheet y trajo las filas correctas; el PDF se abrió y se revisó visualmente (cabecera azul de marca,
   filas alternadas, filtrado correcto).
 - **Tests:** `test_reportes_filtros_en_cascada`, `test_reporte_prestamos_exportar`.
+
+### 3.6 Reporte de informes de pago recibidos (2026-09-17)
+
+Segundo consumidor de la infraestructura de §3.4/§3.5 (prueba de que efectivamente sirve para "todos los
+reportes", no solo préstamos) — filtros y export/imprimir se reusaron sin cambios.
+
+**Antes de construir se aclaró un hallazgo real:** el pedido era filtrar por "método y tipo de pago". Existe
+una tabla `type_payment_record` que parecía ser "tipo de pago", pero en la práctica **todos** los informes
+(60+) tienen el mismo `type_payment_record_id` — se hardcodea en `PaymentReportService::createPaymentReport()`
+(`TypePaymentRecord::first()->id`), nadie lo elige nunca. Filtrar por eso hoy no distingue nada. Lo que sí
+varía de verdad es `destination` (Pago de cuotas / Saldo a favor, ya usado como "Destino del pago" en la
+consola operativa) — el usuario confirmó que a eso se refería. También se sumó "banco" (vive en la misma
+tabla que método de pago, mismo esfuerzo).
+
+**Filtros:** cliente, rango de fechas, estado del informe (multi), destino (multi), método de pago (multi),
+banco (multi), país (mismo criterio indirecto ya probado: cuotas → préstamo → `country_id`; un informe de
+saldo a favor sin cuotas queda siempre visible), ciudad/grupo/responsable (derivados del `grupos_trabajos_user_id`
+**del informe**, no del préstamo — quién lo gestionaba al registrarse, mismo patrón que §3.4).
+
+**Relaciones nuevas** (`PaymentReport::grupoTrabajoUser()`, `paymentReportsMethod::paymentMethod()`/`bank()`) —
+ninguna existía todavía en ese modelo. De paso se tipó `PaymentReport::payment_reports_methods()` (retorno sin
+tipo, rompía el `whereHas` que necesita este reporte) y se agregó `@property-read $created` al docblock del
+modelo (mismo patrón que `Prestamos.php`), resolviendo 2 entradas más del baseline de PHPStan.
+
+**Catálogo de estados** servido igual que en §3.4: desde el propio módulo de reportes
+(`/reportes/filtros/estados-informe-pago`), no desde el endpoint de la consola operativa — mismo motivo (evitar
+acoplar el permiso de un reporte al de otro módulo).
+
+**Catálogos de método/banco:** se reusaron los endpoints transversales ya existentes
+(`/payment_methods/tables`, `/banks/tables/{pais?}`) — no hizo falta agregar nada nuevo al controlador
+compartido de filtros para esto.
+
+**Tests:** `test_reporte_informes_pago_permission_gate`, `test_reporte_informes_pago_filtros`,
+`test_reporte_informes_pago_estados_catalogo`, `test_reporte_informes_pago_exportar`.
 
 ---
 

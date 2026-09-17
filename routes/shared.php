@@ -40,4 +40,5 @@ Route::middleware(['web', 'auth', 'verified'])->group(function () {
     Route::get('/reportes/filtros/grupos-trabajo', [ReporteFiltrosController::class, 'gruposTrabajo']);
     Route::get('/reportes/filtros/responsables', [ReporteFiltrosController::class, 'responsables']);
     Route::get('/reportes/filtros/estados-prestamo', [ReporteFiltrosController::class, 'estadosPrestamo']);
+    Route::get('/reportes/filtros/estados-informe-pago', [ReporteFiltrosController::class, 'estadosInformePago']);
 });

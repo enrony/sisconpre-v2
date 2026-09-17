@@ -6,6 +6,7 @@ use App\Models\City;
 use App\Models\Country;
 use App\Models\GruposTrabajo;
 use App\Models\GruposTrabajoUser;
+use App\Models\PaymentReportsMovementsEstatu;
 use App\Models\PrestamosEstatu;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -138,6 +139,19 @@ class ReporteFiltrosController extends Controller
     public function estadosPrestamo(): array
     {
         $EstadosAll = PrestamosEstatu::where('estatus', 1)->get(['id', 'description', 'type_tag']);
+
+        return compact('EstadosAll');
+    }
+
+    /**
+     * Catálogo de estados de informe de pago (Pendiente/Aprobado/Rechazado/
+     * En revisión/Remitido), para el filtro de estado.
+     *
+     * @return array<string, mixed>
+     */
+    public function estadosInformePago(): array
+    {
+        $EstadosAll = PaymentReportsMovementsEstatu::where('estatus', 1)->get(['id', 'description']);
 
         return compact('EstadosAll');
     }

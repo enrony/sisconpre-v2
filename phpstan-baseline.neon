@@ -2490,11 +2490,6 @@ parameters:
 			count: 1
 			path: app/Models/PaymentMethod.php
 
-		-
-			message: '#^Access to an undefined property App\\Models\\PaymentReport\:\:\$payment_reports_methods\.$#'
-			identifier: property.notFound
-			count: 2
-			path: app/Models/PaymentReport.php
 
 		-
 			message: '#^Access to an undefined property App\\Models\\PaymentReport\:\:\$payment_reports_movement\.$#'
@@ -2556,11 +2551,6 @@ parameters:
 			count: 1
 			path: app/Models/PaymentReport.php
 
-		-
-			message: '#^Method App\\Models\\PaymentReport\:\:payment_reports_methods\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: app/Models/PaymentReport.php
 
 		-
 			message: '#^Method App\\Models\\PaymentReport\:\:payment_reports_movement\(\) has no return type specified\.$#'
