@@ -21,12 +21,15 @@ onMounted(() => {
     <Head title="Reporte de préstamos" />
 
     <div class="px-4 py-6">
-        <div class="mb-4 flex items-center justify-between">
+        <div
+            class="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
+        >
             <Heading
                 title="Reporte de préstamos"
                 description="Listado detallado, filtrable por cliente, fecha, estado, país, ciudad, grupo de trabajo y responsable"
             />
             <ReporteToolbar
+                class="shrink-0"
                 :url-excel="store.urlExportarExcel()"
                 :url-pdf="store.urlExportarPdf()"
                 :url-imprimir="store.urlExportarPdf(true)"
