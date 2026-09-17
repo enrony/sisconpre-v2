@@ -32,6 +32,7 @@ Route::prefix('/prestamos')->middleware(['auth'])->group(function () {
     // (lo consume "Informar un pago" del módulo de Informes de pago).
     Route::post('/records', [PrestamosController::class, 'records']);
     Route::get('/recordsEstados', [PrestamosController::class, 'recordsEstados']);
+    Route::get('/{prestamo}/carton', [PrestamosController::class, 'imprimirCarton']);
     Route::put('/{prestamo}/pausar-recargo', [PrestamosController::class, 'togglePausaRecargo'])
         ->middleware('permission:prestamos.editar');
 });

@@ -297,6 +297,36 @@ como alerta real — ícono + texto rojo, no solo color).
 
 **Tests:** `test_reporte_prestamos_resumen`, `test_reporte_informes_pago_resumen`.
 
+### 3.8 Imprimir cartón de pagos del préstamo (2026-09-17)
+
+Funcionalidad **nueva**, no migración: en `prestamos_16` no existía nada equivalente (se buscó "carton",
+"carnet", "imprimir", "pdf" en el legado y no hay resultado — el usuario adjuntó una plantilla en blanco tipo
+tarjeta como referencia de lo que se espera, no un fixture a portar).
+
+**Dónde vive:** no hay pantalla de detalle con URL propia — el "detalle" es el `PrestamoDetalleSheet.vue` que
+se abre desde `PrestamosTable.vue`. Se agregó la acción "Imprimir cartón" en tres puntos: el dropdown
+"Acciones" de la fila (desktop), el botón de acciones de `ResponsiveList` (mobile) y un ícono en el header del
+Sheet — mismo patrón `window.open(url, '_blank')` que ya usa `ReporteToolbar.vue` para "Imprimir".
+
+**Backend:** `PrestamosController::imprimirCarton()` + `GET /prestamos/{prestamo}/carton` (mismo gate
+`prestamos.listar` del resto del módulo, vía el `$panel` map — sin middleware propio). Vista Blade nueva
+`resources/views/prestamos/carton.blade.php` (no la genérica de `reportes/pdf.blade.php`, que es tabular pura;
+esta tiene secciones cliente/préstamo + tabla). La columna **Resta** es el saldo _planificado_ según el
+cronograma (`total` menos la suma acumulada de cuotas con `apply=true` en orden de fecha) — no el saldo real
+post-pago, que ya se ve aparte en **Estado** (Pagada/Vencida/Pendiente/No aplica) por cuota. El dato de
+cliente (dirección, teléfono) sale de `datoCliente` (tabla `clientes`), no del snapshot JSON `prestamos.cliente`
+que sólo tiene nombre/apellido/documento.
+
+**Diseño:** cabecera con el azul de marca (`#0073C3`), no la plantilla en blanco de la referencia — con
+identidad GilenSoft, secciones de datos y badge de estado con los mismos 4 colores semánticos del resto de la
+app. Diseñado y aprobado con el usuario antes de implementar (impeccable, refinamiento acotado — no ameritó el
+flujo completo de "nuevo mundo visual" al reutilizar el lenguaje visual ya establecido).
+
+**Verificado** generando el PDF real (tinker, préstamo #30, cliente con dirección/teléfono reales) y leyéndolo
+directamente — sin servidor http disponible para probarlo autenticado en el browser pane.
+
+**Tests:** `test_prestamos_imprimir_carton`.
+
 ---
 
 ## 4. No priorizado (queda en el backlog, sin fecha)

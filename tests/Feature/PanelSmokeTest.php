@@ -419,6 +419,21 @@ class PanelSmokeTest extends TestCase
         $this->assertSame(0, (int) DB::table('prestamos')->where('id', $id)->value('pause_surcharge'));
     }
 
+    /** PDF del cartón de pagos: gateado igual que el resto de `/prestamos` (`prestamos.listar`). */
+    public function test_prestamos_imprimir_carton(): void
+    {
+        $id = DB::table('prestamos')
+            ->whereExists(fn ($q) => $q->select(DB::raw(1))->from('prestamos_dias')->whereColumn('prestamos_dias.prestamo_id', 'prestamos.id'))
+            ->value('id');
+
+        $pdf = $this->actingAs($this->cliente())->get("/prestamos/{$id}/carton");
+        $pdf->assertOk();
+        $this->assertSame('application/pdf', $pdf->headers->get('Content-Type'));
+        $this->assertStringStartsWith('%PDF-', $pdf->getContent());
+
+        $this->actingAs($this->cliente())->get('/prestamos/999999/carton')->assertNotFound();
+    }
+
     /** El comando de recargos corre sin error (bugs `estado`/import del legado). */
     public function test_comando_aplicar_recargos(): void
     {

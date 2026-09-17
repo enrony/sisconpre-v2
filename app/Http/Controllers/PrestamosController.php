@@ -8,6 +8,8 @@ use App\Models\Prestamos;
 use App\Models\PrestamosDias;
 use App\Models\PrestamosEstatu;
 use App\Models\TipoPrestamo;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Carbon\Carbon;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -241,6 +243,52 @@ class PrestamosController extends Controller
         return $this->transformData($prestamos->with(['prestamos_dias' => function ($prestamos) {
             $prestamos->with(['pendientesPago']);
         }])->select('*', 'created_at as created')->PrestamoActivo($cliente)->get());
+    }
+
+    /**
+     * PDF tipo "cartón" para entregar/compartir con el cliente: sus datos,
+     * los del préstamo, y el cronograma de cuotas con el saldo restante
+     * planificado ("Resta") tras cada una — no el saldo real post-pago, que
+     * ya se ve en `Estado` (Pagada/Vencida/Pendiente).
+     */
+    public function imprimirCarton(Prestamos $prestamo): Response
+    {
+        $prestamo->load([
+            'datoCliente',
+            'p_estatus',
+            'prestamos_dias' => fn ($query) => $query->orderBy('date'),
+        ]);
+
+        $saldo = (float) $prestamo->total;
+
+        $cuotas = $prestamo->prestamos_dias->map(function (PrestamosDias $dia) use (&$saldo): array {
+            $fecha = Carbon::parse($dia->date);
+
+            if ($dia->apply) {
+                $saldo -= (float) $dia->cuota;
+            }
+
+            return [
+                'fecha' => $fecha->format('d/m/Y'),
+                'aplica' => (bool) $dia->apply,
+                'cuota' => (float) $dia->cuota,
+                'estado' => match (true) {
+                    ! $dia->apply => 'No aplica',
+                    (bool) $dia->pagado => 'Pagada',
+                    $fecha->lt(now()->startOfDay()) => 'Vencida',
+                    default => 'Pendiente',
+                },
+                'resta' => $dia->apply ? $saldo : null,
+            ];
+        });
+
+        $pdf = Pdf::loadView('prestamos.carton', [
+            'prestamo' => $prestamo,
+            'cliente' => $prestamo->datoCliente,
+            'cuotas' => $cuotas,
+        ])->setPaper('a4', 'portrait');
+
+        return $pdf->stream("carton-prestamo-{$prestamo->id}.pdf");
     }
 
     /**

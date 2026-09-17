@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { storeToRefs } from 'pinia';
 import { ref } from 'vue';
+import { Printer } from '@lucide/vue';
 import ResponsiveList, {
     type ListField,
 } from '@/components/data/ResponsiveList.vue';
@@ -21,6 +22,10 @@ const puedeInformarPago =
 
 function informarPago(row: PrestamoRow) {
     void paymentReportStore.abrirInformar(row.cliente_id);
+}
+
+function imprimirCarton(row: PrestamoRow) {
+    window.open(`/prestamos/${row.id}/carton`, '_blank');
 }
 
 const detalleOpen = ref(false);
@@ -149,6 +154,14 @@ const fields: ListField<PrestamoRow>[] = [
                 {{
                     row.pause_surcharge ? 'Reanudar recargo' : 'Pausar recargo'
                 }}
+            </el-button>
+            <el-button
+                size="default"
+                plain
+                :icon="Printer"
+                @click="imprimirCarton(row as PrestamoRow)"
+            >
+                Imprimir cartón
             </el-button>
         </template>
 
@@ -298,6 +311,15 @@ const fields: ListField<PrestamoRow>[] = [
                                                 ? 'Reanudar recargo'
                                                 : 'Pausar recargo'
                                         }}
+                                    </el-dropdown-item>
+                                    <el-dropdown-item
+                                        divided
+                                        :icon="Printer"
+                                        @click="
+                                            imprimirCarton(row as PrestamoRow)
+                                        "
+                                    >
+                                        Imprimir cartón
                                     </el-dropdown-item>
                                 </el-dropdown-menu>
                             </template>
