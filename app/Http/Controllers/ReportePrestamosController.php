@@ -6,6 +6,7 @@ use App\Http\Controllers\Concerns\ExportsReport;
 use App\Models\GruposTrabajo;
 use App\Models\GruposTrabajoUser;
 use App\Models\Prestamos;
+use App\Models\PrestamosEstatu;
 use Carbon\Carbon;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
@@ -53,13 +54,13 @@ class ReportePrestamosController extends Controller
     }
 
     /**
-     * Query filtrada, sin paginar — la reusan tanto `records()` (paginada)
-     * como las exportaciones (traen todo lo filtrado, no solo la página
-     * visible).
+     * Query con todos los filtros aplicados, sin columnas/eager-loads ni orden
+     * — la reusan `baseQuery()` (listado) y `resumen()` (agregados), cada uno
+     * agregando encima solo lo que necesita.
      *
      * @return Builder<Prestamos>
      */
-    private function baseQuery(Request $request): Builder
+    private function filteredQuery(Request $request): Builder
     {
         $csvIds = static fn (mixed $csv): array => array_values(array_filter(
             explode(',', (string) $csv),
@@ -69,6 +70,36 @@ class ReportePrestamosController extends Controller
         $paisActivo = static::obtenerPaisActivo();
 
         return Prestamos::query()
+            ->when($paisActivo, fn ($q, $pais) => $q->where('prestamos.country_id', $pais))
+            ->when(! $paisActivo && $request->filled('pais'), fn ($q) => $q->where('prestamos.country_id', $request->pais))
+            ->when($request->filled(['fecha_registro1', 'fecha_registro2']), function ($q) use ($request) {
+                $q->whereBetween('prestamos.created_at', [
+                    Carbon::parse($request->fecha_registro1)->startOfDay(),
+                    Carbon::parse($request->fecha_registro2)->endOfDay(),
+                ]);
+            })
+            ->when($request->filled('clientes'), fn ($q) => $q->whereIn('prestamos.cliente_id', $csvIds($request->clientes)))
+            ->when($request->filled('estados'), fn ($q) => $q->whereIn('prestamos.estatus', $csvIds($request->estados)))
+            ->when($request->filled('grupos'), function ($q) use ($request, $csvIds) {
+                $q->whereIn('prestamos.grupos_trabajos_user_id', GruposTrabajoUser::whereIn('idgrupo_trabajo', $csvIds($request->grupos))->pluck('id'));
+            })
+            ->when($request->filled('ciudad'), function ($q) use ($request) {
+                $grupoIds = GruposTrabajo::where('city_id', $request->ciudad)->pluck('id');
+                $q->whereIn('prestamos.grupos_trabajos_user_id', GruposTrabajoUser::whereIn('idgrupo_trabajo', $grupoIds)->pluck('id'));
+            })
+            ->when($request->filled('responsables'), function ($q) use ($request, $csvIds) {
+                $q->whereIn('prestamos.grupos_trabajos_user_id', GruposTrabajoUser::whereIn('iduser', $csvIds($request->responsables))->pluck('id'));
+            });
+    }
+
+    /**
+     * `filteredQuery()` + columnas y eager-loads del listado detallado.
+     *
+     * @return Builder<Prestamos>
+     */
+    private function baseQuery(Request $request): Builder
+    {
+        return $this->filteredQuery($request)
             ->select([
                 'prestamos.id',
                 'prestamos.cliente_id',
@@ -93,27 +124,53 @@ class ReportePrestamosController extends Controller
                 'grupoTrabajoUser.grupo_trabajo.ciudad',
                 'grupoTrabajoUser.user:id,name,email',
             ])
-            ->when($paisActivo, fn ($q, $pais) => $q->where('prestamos.country_id', $pais))
-            ->when(! $paisActivo && $request->filled('pais'), fn ($q) => $q->where('prestamos.country_id', $request->pais))
-            ->when($request->filled(['fecha_registro1', 'fecha_registro2']), function ($q) use ($request) {
-                $q->whereBetween('prestamos.created_at', [
-                    Carbon::parse($request->fecha_registro1)->startOfDay(),
-                    Carbon::parse($request->fecha_registro2)->endOfDay(),
-                ]);
-            })
-            ->when($request->filled('clientes'), fn ($q) => $q->whereIn('prestamos.cliente_id', $csvIds($request->clientes)))
-            ->when($request->filled('estados'), fn ($q) => $q->whereIn('prestamos.estatus', $csvIds($request->estados)))
-            ->when($request->filled('grupos'), function ($q) use ($request, $csvIds) {
-                $q->whereIn('prestamos.grupos_trabajos_user_id', GruposTrabajoUser::whereIn('idgrupo_trabajo', $csvIds($request->grupos))->pluck('id'));
-            })
-            ->when($request->filled('ciudad'), function ($q) use ($request) {
-                $grupoIds = GruposTrabajo::where('city_id', $request->ciudad)->pluck('id');
-                $q->whereIn('prestamos.grupos_trabajos_user_id', GruposTrabajoUser::whereIn('idgrupo_trabajo', $grupoIds)->pluck('id'));
-            })
-            ->when($request->filled('responsables'), function ($q) use ($request, $csvIds) {
-                $q->whereIn('prestamos.grupos_trabajos_user_id', GruposTrabajoUser::whereIn('iduser', $csvIds($request->responsables))->pluck('id'));
-            })
             ->latest('prestamos.created_at');
+    }
+
+    /**
+     * Vista consolidada: totales (cantidad, monto prestado, utilidad, monto
+     * perdido) + desglose por estado, sobre los mismos filtros del listado.
+     *
+     * @return array<string, mixed>
+     */
+    public function resumen(Request $request): array
+    {
+        $base = $this->filteredQuery($request);
+
+        // `toBase()` (query builder plano, sin hidratar a Prestamos): las
+        // columnas de abajo son agregados/joins, no atributos reales del
+        // modelo — igual patrón que DashboardController::carteraPorEstado().
+        $totales = (clone $base)->toBase()
+            ->selectRaw('count(*) as cantidad, coalesce(sum(prestamos.monto_prestamo), 0) as monto_prestado, coalesce(sum(prestamos.utilidad), 0) as utilidad')
+            ->first();
+
+        $perdidoId = PrestamosEstatu::where('description', 'Perdido')->value('id');
+        $montoPerdido = $perdidoId
+            ? (clone $base)->where('prestamos.estatus', $perdidoId)->sum('prestamos.monto_prestamo')
+            : 0;
+
+        $porEstado = (clone $base)->toBase()
+            ->join('prestamos_estatus', 'prestamos_estatus.id', '=', 'prestamos.estatus')
+            ->selectRaw('prestamos_estatus.id as estatus, prestamos_estatus.description as label, prestamos_estatus.type_tag, count(*) as cantidad')
+            ->groupBy('prestamos_estatus.id', 'prestamos_estatus.description', 'prestamos_estatus.type_tag')
+            ->orderBy('prestamos_estatus.id')
+            ->get()
+            ->map(fn (object $r): array => [
+                'estatus' => (int) $r->estatus,
+                'label' => (string) $r->label,
+                'cantidad' => (int) $r->cantidad,
+                'tipo' => json_decode((string) $r->type_tag, true)['type'] ?? 'info',
+            ]);
+
+        return [
+            'totales' => [
+                'cantidad' => (int) $totales->cantidad,
+                'monto_prestado' => (float) $totales->monto_prestado,
+                'utilidad' => (float) $totales->utilidad,
+                'monto_perdido' => (float) $montoPerdido,
+            ],
+            'porEstado' => $porEstado->values(),
+        ];
     }
 
     /**

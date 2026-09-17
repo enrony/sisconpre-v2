@@ -285,6 +285,28 @@ class PanelSmokeTest extends TestCase
         $this->assertStringStartsWith('%PDF-', $pdf->getContent());
     }
 
+    /**
+     * Vista consolidada: los totales y el desglose por estado deben cuadrar
+     * con lo que ya se sabe del dataset (mismos filtros que el listado).
+     */
+    public function test_reporte_prestamos_resumen(): void
+    {
+        $res = $this->actingAs($this->super())->getJson('/reporte_prestamos/resumen');
+        $res->assertOk()->assertJsonStructure([
+            'totales' => ['cantidad', 'monto_prestado', 'utilidad', 'monto_perdido'],
+            'porEstado' => [['estatus', 'label', 'cantidad', 'tipo']],
+        ]);
+
+        $totalPorEstado = collect($res->json('porEstado'))->sum('cantidad');
+        $this->assertSame($res->json('totales.cantidad'), $totalPorEstado);
+        $this->assertGreaterThan(0, $res->json('totales.monto_prestado'));
+
+        // Filtrando por país, los totales deben achicarse (o quedar iguales), nunca crecer.
+        $resFiltrado = $this->actingAs($this->super())->getJson('/reporte_prestamos/resumen?pais=VEN');
+        $resFiltrado->assertOk();
+        $this->assertLessThanOrEqual($res->json('totales.cantidad'), $resFiltrado->json('totales.cantidad'));
+    }
+
     /** Igual que en /payment_report: nadie tiene el permiso salvo super-admin (Gate::before). */
     public function test_reporte_informes_pago_permission_gate(): void
     {
@@ -356,6 +378,31 @@ class PanelSmokeTest extends TestCase
         $pdf->assertOk();
         $this->assertSame('application/pdf', $pdf->headers->get('Content-Type'));
         $this->assertStringStartsWith('%PDF-', $pdf->getContent());
+    }
+
+    /**
+     * Vista consolidada: totales + desglose por destino y por estado deben
+     * cuadrar entre sí (mismos filtros que el listado).
+     */
+    public function test_reporte_informes_pago_resumen(): void
+    {
+        $res = $this->actingAs($this->super())->getJson('/reporte_informes_pago/resumen');
+        $res->assertOk()->assertJsonStructure([
+            'totales' => ['cantidad', 'monto_total'],
+            'porDestino' => [['destination', 'label', 'cantidad', 'monto']],
+            'porEstado' => [['estatus', 'label', 'cantidad', 'tipo']],
+        ]);
+
+        $this->assertSame(16, $res->json('totales.cantidad'));
+        $this->assertSame(16, collect($res->json('porDestino'))->sum('cantidad'));
+        $this->assertSame(16, collect($res->json('porEstado'))->sum('cantidad'));
+        $this->assertGreaterThan(0, $res->json('totales.monto_total'));
+
+        // Filtrando por destino=2 (saldo a favor), el total de "por destino" coincide con ese subconjunto.
+        $resFiltrado = $this->actingAs($this->super())->getJson('/reporte_informes_pago/resumen?destinos=2');
+        $resFiltrado->assertOk();
+        $this->assertSame([2], collect($resFiltrado->json('porDestino'))->pluck('destination')->all());
+        $this->assertLessThan($res->json('totales.cantidad'), $resFiltrado->json('totales.cantidad'));
     }
 
     /** Pausar / reanudar el recargo por mora de un préstamo. */

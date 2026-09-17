@@ -56,11 +56,11 @@ Estas 4 quedan como **próximas a abordar**, en el orden que se decida al arranc
 
 ### 2.6 Reportes
 
-| Ítem                                                                  | Estado                    | Evidencia                                                                                                                                                                                                                     |
-| --------------------------------------------------------------------- | ------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Listado de préstamos filtrable por cliente/fecha/país/ciudad/grupo    | ✅ Hecho (2026-09-16)     | Módulo nuevo `/reporte_prestamos`. Ver §3.4 — banco/tipo de pago quedaron fuera a propósito, no son atributos del préstamo                                                                                                    |
-| Reporte de informes de pago recibidos, filtrable por método/tipo/etc  | ✅ Hecho (2026-09-17)     | Módulo nuevo `/reporte_informes_pago`. Ver §3.6                                                                                                                                                                               |
-| Gráficas: torta por estado, utilidad, monto prestado/recibido/perdido | 🟡 Parcial, no priorizado | El Dashboard ya tiene gráficas reales con datos (`CarteraPorEstadoChart.vue`, `SerieMensualChart.vue`), pero son de barras (no torta) y no incluyen utilidad/monto perdido. Viven en el Dashboard, no en el módulo "Reportes" |
+| Ítem                                                                 | Estado                | Evidencia                                                                                                                  |
+| -------------------------------------------------------------------- | --------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| Listado de préstamos filtrable por cliente/fecha/país/ciudad/grupo   | ✅ Hecho (2026-09-16) | Módulo nuevo `/reporte_prestamos`. Ver §3.4 — banco/tipo de pago quedaron fuera a propósito, no son atributos del préstamo |
+| Reporte de informes de pago recibidos, filtrable por método/tipo/etc | ✅ Hecho (2026-09-17) | Módulo nuevo `/reporte_informes_pago`. Ver §3.6                                                                            |
+| Vista consolidada: KPIs + desglose por estado (ambos reportes)       | ✅ Hecho (2026-09-17) | Ver §3.7 — se resolvió como KPI tiles + barra por estado (no torta), diseño validado con el skill `dataviz`                |
 
 ### 2.7 Tabla de transacciones (ingresos/egresos centralizados)
 
@@ -262,13 +262,47 @@ compartido de filtros para esto.
 **Tests:** `test_reporte_informes_pago_permission_gate`, `test_reporte_informes_pago_filtros`,
 `test_reporte_informes_pago_estados_catalogo`, `test_reporte_informes_pago_exportar`.
 
+### 3.7 Vista consolidada (KPIs + desglose por estado) en ambos reportes (2026-09-17)
+
+Cierra el ítem "Gráficas" que había quedado sin priorizar en §2.6/§4 — con diseño validado con el skill
+`dataviz` en vez de a ojo.
+
+**Decisión de forma (antes de tocar color):** ni torta ni gráfico de más ejes. Los totales (cantidad, montos)
+son "un puñado de cifras encabezado" → **KPI tiles**; el desglose por estado es un **status job** (escala fija,
+reservada, siempre ícono+etiqueta), no una identidad categórica → **barra horizontal con los mismos 4 tipos
+semánticos que ya usa el Dashboard** (info/success/warning/danger), no una paleta nueva. "Por destino" en
+informes de pago son solo 2 categorías nominales → se resolvió como 2 tiles de KPI más, no un gráfico aparte
+(evita el anti-patrón de "torta de 2 porciones").
+
+**Reutilización, no duplicación:** `ReporteEstadoBar.vue` es una generalización de
+`dashboard/CarteraPorEstadoChart.vue` (mismo layout de barra, mismos 4 colores/íconos por tipo semántico) para
+no atarse a los 4 estados puntuales de préstamos — cualquier catálogo de estados que sepa resolver su propio
+`tipo` puede reusarla. Los informes de pago no tienen un `type_tag` como préstamos (solo un color legado tipo
+`text-green-400`); se resuelve con un mapeo chico en el backend (`tipoDesdeStyle()`) en vez de inventar un
+campo nuevo.
+
+**Backend:** cada controlador se separó en `filteredQuery()` (todos los `when()` de filtro, sin columnas) +
+`baseQuery()` (agrega columnas/eager-loads del listado) — así el nuevo `resumen()` reusa exactamente los
+mismos filtros sin duplicar la lógica, agregando encima solo lo que necesita (agregados SQL con `clone` +
+`toBase()` en préstamos; colección en PHP para informes, por la complejidad de agrupar por el último
+movimiento vía relación `hasOne`). "Monto perdido" quedó finalmente resuelto con datos reales (no solo
+definido en el papel, ver §1).
+
+**Dónde vive:** un toggle "Detallado / Consolidado" (`el-radio-button`, mismo componente ya usado en
+"Informar un pago" para Destino del pago) dentro de la misma pantalla — los mismos filtros aplican a las dos
+vistas, no hay que duplicar la barra de filtros.
+
+**Verificado con datos reales** (tinker) y visualmente (fixture con datos mockeados, "Monto perdido" se lee
+como alerta real — ícono + texto rojo, no solo color).
+
+**Tests:** `test_reporte_prestamos_resumen`, `test_reporte_informes_pago_resumen`.
+
 ---
 
 ## 4. No priorizado (queda en el backlog, sin fecha)
 
 - Guardar filtros aplicados (JSON por tipo).
 - Listado de cuotas a pagar por rango de fechas.
-- Gráficas de torta + utilidad/monto perdido (Reportes o Dashboard, a definir).
 - Email en cada cambio de estado del informe de pago.
 - Exigir soporte/comprobante al rechazar un pago.
 - Método `aprobar()`/`rechazar()` dedicados en vez del genérico `change_estatus_report` (refactor, no bloquea nada funcional).

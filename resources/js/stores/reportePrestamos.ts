@@ -43,6 +43,23 @@ interface ResponsableOption {
     email: string;
 }
 
+export interface EstadoBreakdown {
+    estatus: number;
+    label: string;
+    cantidad: number;
+    tipo: 'info' | 'success' | 'warning' | 'danger';
+}
+
+export interface ReportePrestamosResumen {
+    totales: {
+        cantidad: number;
+        monto_prestado: number;
+        utilidad: number;
+        monto_perdido: number;
+    };
+    porEstado: EstadoBreakdown[];
+}
+
 type DateRange = [string, string] | null;
 
 interface Filtro {
@@ -70,6 +87,9 @@ export const useReportePrestamosStore = defineStore('reportePrestamos', {
         lista: null as Paginated<ReportePrestamoRow> | null,
         loading: false,
         filtro: emptyFiltro(),
+
+        resumen: null as ReportePrestamosResumen | null,
+        loadingResumen: false,
 
         clientesLista: [] as ClienteOption[],
         loadingClientes: false,
@@ -125,6 +145,18 @@ export const useReportePrestamosStore = defineStore('reportePrestamos', {
                 this.lista = data.lista;
             } finally {
                 this.loading = false;
+            }
+        },
+
+        async fetchResumen(): Promise<void> {
+            this.loadingResumen = true;
+            try {
+                const { data } = await http.get(
+                    `/reporte_prestamos/resumen?${this.queryString()}`,
+                );
+                this.resumen = data;
+            } finally {
+                this.loadingResumen = false;
             }
         },
 

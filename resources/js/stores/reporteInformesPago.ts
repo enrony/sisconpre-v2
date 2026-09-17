@@ -48,6 +48,29 @@ export const DESTINOS = [
     { value: 2, label: 'Saldo a favor' },
 ];
 
+export interface EstadoBreakdown {
+    estatus: number;
+    label: string;
+    cantidad: number;
+    tipo: 'info' | 'success' | 'warning' | 'danger';
+}
+
+export interface DestinoBreakdown {
+    destination: number;
+    label: string;
+    cantidad: number;
+    monto: number;
+}
+
+export interface ReporteInformesPagoResumen {
+    totales: {
+        cantidad: number;
+        monto_total: number;
+    };
+    porDestino: DestinoBreakdown[];
+    porEstado: EstadoBreakdown[];
+}
+
 type DateRange = [string, string] | null;
 
 interface Filtro {
@@ -81,6 +104,9 @@ export const useReporteInformesPagoStore = defineStore('reporteInformesPago', {
         lista: null as Paginated<ReporteInformePagoRow> | null,
         loading: false,
         filtro: emptyFiltro(),
+
+        resumen: null as ReporteInformesPagoResumen | null,
+        loadingResumen: false,
 
         clientesLista: [] as ClienteOption[],
         loadingClientes: false,
@@ -148,6 +174,18 @@ export const useReporteInformesPagoStore = defineStore('reporteInformesPago', {
                 this.lista = data.lista;
             } finally {
                 this.loading = false;
+            }
+        },
+
+        async fetchResumen(): Promise<void> {
+            this.loadingResumen = true;
+            try {
+                const { data } = await http.get(
+                    `/reporte_informes_pago/resumen?${this.queryString()}`,
+                );
+                this.resumen = data;
+            } finally {
+                this.loadingResumen = false;
             }
         },
 

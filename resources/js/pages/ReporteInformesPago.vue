@@ -1,16 +1,19 @@
 <script setup lang="ts">
 import { Head } from '@inertiajs/vue3';
-import { onMounted } from 'vue';
+import { onMounted, ref } from 'vue';
 import Heading from '@/components/Heading.vue';
 import ReporteInformesPagoFilters from '@/components/reporteInformesPago/ReporteInformesPagoFilters.vue';
+import ReporteInformesPagoResumen from '@/components/reporteInformesPago/ReporteInformesPagoResumen.vue';
 import ReporteInformesPagoTable from '@/components/reporteInformesPago/ReporteInformesPagoTable.vue';
 import ReporteToolbar from '@/components/reportes/ReporteToolbar.vue';
 import { useReporteInformesPagoStore } from '@/stores/reporteInformesPago';
 
 const store = useReporteInformesPagoStore();
+const vista = ref<'detallado' | 'consolidado'>('detallado');
 
 onMounted(() => {
     void store.fetchList(1);
+    void store.fetchResumen();
     void store.fetchPaises();
     void store.fetchEstados();
     void store.fetchMetodos();
@@ -28,7 +31,7 @@ onMounted(() => {
         >
             <Heading
                 title="Reporte de informes de pago"
-                description="Pagos recibidos, filtrable por cliente, fecha, estado, destino, método de pago, banco, país, ciudad, grupo de trabajo y responsable"
+                description="Filtrable por cliente, fecha, estado, destino, método de pago, banco, país, ciudad, grupo de trabajo y responsable"
             />
             <ReporteToolbar
                 class="shrink-0"
@@ -42,7 +45,16 @@ onMounted(() => {
             <div class="mb-4">
                 <ReporteInformesPagoFilters />
             </div>
-            <ReporteInformesPagoTable />
+
+            <el-radio-group v-model="vista" size="small" class="mb-4">
+                <el-radio-button value="detallado">Detallado</el-radio-button>
+                <el-radio-button value="consolidado"
+                    >Consolidado</el-radio-button
+                >
+            </el-radio-group>
+
+            <ReporteInformesPagoResumen v-if="vista === 'consolidado'" />
+            <ReporteInformesPagoTable v-else />
         </div>
     </div>
 </template>

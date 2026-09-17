@@ -19,11 +19,13 @@ const {
 
 function aplicar() {
     void store.fetchList(1);
+    void store.fetchResumen();
 }
 
 function limpiar() {
     store.resetFiltro();
     void store.fetchList(1);
+    void store.fetchResumen();
 }
 </script>
 

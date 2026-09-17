@@ -52,13 +52,13 @@ class ReporteInformesPagoController extends Controller
     }
 
     /**
-     * Query filtrada, sin paginar — la reusan tanto `records()` (paginada)
-     * como las exportaciones (traen todo lo filtrado, no solo la página
-     * visible).
+     * Query con todos los filtros aplicados, sin columnas/eager-loads ni orden
+     * — la reusan `baseQuery()` (listado) y `resumen()` (agregados), cada uno
+     * agregando encima solo lo que necesita.
      *
      * @return Builder<PaymentReport>
      */
-    private function baseQuery(Request $request): Builder
+    private function filteredQuery(Request $request): Builder
     {
         $csvIds = static fn (mixed $csv): array => array_values(array_filter(
             explode(',', (string) $csv),
@@ -81,28 +81,7 @@ class ReporteInformesPagoController extends Controller
         );
 
         return PaymentReport::query()
-            ->select([
-                'payment_reports.id',
-                'payment_reports.cliente_id',
-                'payment_reports.grupos_trabajos_user_id',
-                'payment_reports.destination',
-                'payment_reports.importe',
-                'payment_reports.created_at',
-            ])
-            ->selectRaw("date_format(payment_reports.created_at, '%Y-%m-%d %H:%i:%s') as created")
-            ->selectRaw("json_unquote(json_extract(payment_reports.cliente, '$.nombre')) as cliente_nombre")
-            ->selectRaw("json_unquote(json_extract(payment_reports.cliente, '$.apellido')) as cliente_apellido")
-            ->selectRaw("json_unquote(json_extract(payment_reports.cliente, '$.documento')) as cliente_documento")
             ->where('payment_reports.estatus', 1)
-            ->withSum('payment_reports_methods as value_amount_sum', 'importe')
-            ->with([
-                'payment_reports_movement_first.estatus_description',
-                'grupoTrabajoUser.grupo_trabajo.ciudad',
-                'grupoTrabajoUser.user:id,name,email',
-                'payment_reports_methods.paymentMethod:id,description',
-                'payment_reports_methods.bank:id,description',
-                'selected_payment_reports.PrestamosDias.Prestamo.country:id,Name',
-            ])
             ->when($paisActivo, $porPais)
             ->when(! $paisActivo && $request->filled('pais'), fn ($q) => $porPais($q, $request->string('pais')->toString()))
             ->when($request->filled(['fecha_registro1', 'fecha_registro2']), function ($q) use ($request) {
@@ -131,8 +110,100 @@ class ReporteInformesPagoController extends Controller
             })
             ->when($request->filled('responsables'), function ($q) use ($request, $csvIds) {
                 $q->whereIn('payment_reports.grupos_trabajos_user_id', GruposTrabajoUser::whereIn('iduser', $csvIds($request->responsables))->pluck('id'));
-            })
+            });
+    }
+
+    /**
+     * `filteredQuery()` + columnas y eager-loads del listado detallado.
+     *
+     * @return Builder<PaymentReport>
+     */
+    private function baseQuery(Request $request): Builder
+    {
+        return $this->filteredQuery($request)
+            ->select([
+                'payment_reports.id',
+                'payment_reports.cliente_id',
+                'payment_reports.grupos_trabajos_user_id',
+                'payment_reports.destination',
+                'payment_reports.importe',
+                'payment_reports.created_at',
+            ])
+            ->selectRaw("date_format(payment_reports.created_at, '%Y-%m-%d %H:%i:%s') as created")
+            ->selectRaw("json_unquote(json_extract(payment_reports.cliente, '$.nombre')) as cliente_nombre")
+            ->selectRaw("json_unquote(json_extract(payment_reports.cliente, '$.apellido')) as cliente_apellido")
+            ->selectRaw("json_unquote(json_extract(payment_reports.cliente, '$.documento')) as cliente_documento")
+            ->withSum('payment_reports_methods as value_amount_sum', 'importe')
+            ->with([
+                'payment_reports_movement_first.estatus_description',
+                'grupoTrabajoUser.grupo_trabajo.ciudad',
+                'grupoTrabajoUser.user:id,name,email',
+                'payment_reports_methods.paymentMethod:id,description',
+                'payment_reports_methods.bank:id,description',
+                'selected_payment_reports.PrestamosDias.Prestamo.country:id,Name',
+            ])
             ->latest('payment_reports.created_at');
+    }
+
+    /**
+     * Vista consolidada: totales (cantidad, monto recibido) + desglose por
+     * destino y por estado, sobre los mismos filtros del listado.
+     *
+     * @return array<string, mixed>
+     */
+    public function resumen(Request $request): array
+    {
+        $registros = $this->filteredQuery($request)
+            ->select(['payment_reports.id', 'payment_reports.destination'])
+            ->withSum('payment_reports_methods as value_amount_sum', 'importe')
+            ->with('payment_reports_movement_first.estatus_description')
+            ->get();
+
+        $porDestino = $registros->groupBy('destination')->map(fn ($grupo, $destino): array => [
+            'destination' => (int) $destino,
+            'label' => (int) $destino === 1 ? 'Pago de cuota(s)' : 'Saldo a favor',
+            'cantidad' => $grupo->count(),
+            'monto' => (float) $grupo->sum('value_amount_sum'),
+        ])->values();
+
+        $porEstado = $registros
+            ->groupBy(fn (PaymentReport $r) => $r->payment_reports_movement_first?->estatus_description->id ?? 0)
+            ->map(function ($grupo): array {
+                $estado = $grupo->first()?->payment_reports_movement_first?->estatus_description;
+
+                return [
+                    'estatus' => $estado->id ?? 0,
+                    'label' => $estado->description ?? 'Pendiente',
+                    'cantidad' => $grupo->count(),
+                    'tipo' => $this->tipoDesdeStyle($estado->style ?? ''),
+                ];
+            })
+            ->sortBy('estatus')
+            ->values();
+
+        return [
+            'totales' => [
+                'cantidad' => $registros->count(),
+                'monto_total' => (float) $registros->sum('value_amount_sum'),
+            ],
+            'porDestino' => $porDestino,
+            'porEstado' => $porEstado,
+        ];
+    }
+
+    /**
+     * Los estados de informe de pago no tienen un `type_tag` semántico como
+     * los de préstamo — se infiere del color legado (`style`, una clase
+     * Tailwind tipo `text-green-400`).
+     */
+    private function tipoDesdeStyle(string $style): string
+    {
+        return match (true) {
+            str_contains($style, 'green') => 'success',
+            str_contains($style, 'red') => 'danger',
+            str_contains($style, 'yellow') => 'warning',
+            default => 'info',
+        };
     }
 
     /**
