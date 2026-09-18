@@ -327,6 +327,22 @@ directamente — sin servidor http disponible para probarlo autenticado en el br
 
 **Tests:** `test_prestamos_imprimir_carton`.
 
+### 3.9 Insignia de Estado en las tarjetas móviles de ambos reportes (2026-09-17)
+
+El usuario reportó (captura de `/reporte_prestamos` en mobile) que no se veían "botones de acción" en las
+tarjetas. Diagnóstico con `impeccable`: no es un bug — `ReportePrestamosTable.vue`/`ReporteInformesPagoTable.vue`
+nunca definieron el slot `#actions` de `ResponsiveList.vue` (a diferencia de `PrestamosTable.vue`, que sí lo usa
+para "Ver detalle"/"Informar un pago"/"Imprimir cartón"), porque son reportes de solo lectura/exportación, sin
+acciones por fila ni en su tabla de escritorio. **Decisión confirmada con el usuario: se mantiene así a
+propósito**, no se agregan acciones.
+
+Lo que sí era una inconsistencia real: "Estado" se veía como texto plano gris en la tarjeta móvil, mientras que
+en escritorio es un `<el-tag>` (chip). Se movió "Estado" del arreglo `fields` genérico al slot `#badge` de
+`ResponsiveList` (mismo lugar que usa el chip de ID en `PrestamosTable.vue`), en los dos reportes por igual.
+Verificado con un fixture descartable (viewport 375px, requiere `<meta name="viewport">` explícito en el HTML
+del fixture — sin eso el navegador emulado renderiza a 980px de todos modos) — insignia visible junto al título,
+igual que en escritorio.
+
 ---
 
 ## 4. No priorizado (queda en el backlog, sin fecha)

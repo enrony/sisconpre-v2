@@ -32,7 +32,6 @@ const fields: ListField<ReportePrestamoRow>[] = [
     { label: 'Ciudad', value: (r) => r.ciudad ?? '—' },
     { label: 'Grupo', value: (r) => r.grupo ?? '—' },
     { label: 'Responsable', value: (r) => r.responsable ?? '—' },
-    { label: 'Estado', value: (r) => r.estado ?? '—' },
 ];
 </script>
 
@@ -45,6 +44,16 @@ const fields: ListField<ReportePrestamoRow>[] = [
         :loading="loading"
         empty="Sin préstamos para los filtros aplicados."
     >
+        <template #badge="{ row }">
+            <el-tag
+                v-if="(row as ReportePrestamoRow).estado"
+                size="small"
+                class="shrink-0"
+            >
+                {{ (row as ReportePrestamoRow).estado }}
+            </el-tag>
+        </template>
+
         <template #table>
             <el-table
                 :data="lista?.data ?? []"

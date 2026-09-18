@@ -38,7 +38,6 @@ const fields: ListField<ReporteInformePagoRow>[] = [
     { label: 'País', value: (r) => r.pais ?? '—' },
     { label: 'Grupo', value: (r) => r.grupo ?? '—' },
     { label: 'Responsable', value: (r) => r.responsable ?? '—' },
-    { label: 'Estado', value: (r) => r.estado ?? '—' },
 ];
 </script>
 
@@ -51,6 +50,16 @@ const fields: ListField<ReporteInformePagoRow>[] = [
         :loading="loading"
         empty="Sin informes de pago para los filtros aplicados."
     >
+        <template #badge="{ row }">
+            <el-tag
+                v-if="(row as ReporteInformePagoRow).estado"
+                size="small"
+                class="shrink-0"
+            >
+                {{ (row as ReporteInformePagoRow).estado }}
+            </el-tag>
+        </template>
+
         <template #table>
             <el-table
                 :data="lista?.data ?? []"
