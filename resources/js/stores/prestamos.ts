@@ -36,6 +36,11 @@ export interface PrestamoRow {
     utilidad: string | number;
     total: string | number;
     p_estatus?: { id: number; type_tag?: { type?: string } };
+    aprobacion_estatus?: {
+        id: number;
+        description: string;
+        type_tag?: { type?: string };
+    } | null;
     prestamos_dias?: CuotaDia[];
     pause_surcharge?: boolean | number;
 }
@@ -332,6 +337,28 @@ export const usePrestamosStore = defineStore('prestamos', {
                 `/prestamos/${id}/pausar-recargo`,
                 {},
             );
+            if (data.success) {
+                await this.fetchList(this.lista?.current_page ?? 1);
+            }
+
+            return data;
+        },
+
+        async aprobarPrestamo(
+            id: number,
+        ): Promise<{ success: boolean; message: string }> {
+            const { data } = await http.put(`/prestamos/${id}/aprobar`, {});
+            if (data.success) {
+                await this.fetchList(this.lista?.current_page ?? 1);
+            }
+
+            return data;
+        },
+
+        async rechazarPrestamo(
+            id: number,
+        ): Promise<{ success: boolean; message: string }> {
+            const { data } = await http.put(`/prestamos/${id}/rechazar`, {});
             if (data.success) {
                 await this.fetchList(this.lista?.current_page ?? 1);
             }

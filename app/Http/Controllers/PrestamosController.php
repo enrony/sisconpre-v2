@@ -85,6 +85,11 @@ class PrestamosController extends Controller
                 'id' => $r->p_estatus->id,
                 'type_tag' => $r->p_estatus->type_tag,
             ] : null,
+            'aprobacion_estatus' => $r->aprobacionEstatus ? [
+                'id' => $r->aprobacionEstatus->id,
+                'description' => $r->aprobacionEstatus->description,
+                'type_tag' => $r->aprobacionEstatus->type_tag,
+            ] : null,
             'prestamos_dias' => $r->prestamos_dias->map(fn (PrestamosDias $d): array => [
                 'id' => $d->id,
                 'date' => $d->date,
@@ -149,6 +154,9 @@ class PrestamosController extends Controller
         // puede resolver (superusuario, o grupo sin ciudad todavía) se respeta
         // lo que el formulario haya enviado (ahí sí queda un selector visible).
         $data['country_id'] = static::obtenerPaisActivo() ?? $data['country_id'];
+        // Todo préstamo nace pendiente de aprobación — no puede recibir un
+        // pago informado hasta que alguien con `prestamos.aprobar` lo apruebe.
+        $data['aprobacion_estatus_id'] = Prestamos::APROBACION_PENDIENTE;
         $Prestamos = Prestamos::create($data);
 
         // $PrestamosDias = new PrestamosDias();
@@ -289,6 +297,37 @@ class PrestamosController extends Controller
         ])->setPaper('a4', 'portrait');
 
         return $pdf->stream("carton-prestamo-{$prestamo->id}.pdf");
+    }
+
+    /**
+     * Aprueba o rechaza el préstamo: mientras no esté aprobado, no puede
+     * recibir un pago informado (`PaymentReportService::verifiedPrestamosAprobados()`,
+     * y `scopePrestamoActivo()` lo oculta de "Informar un pago").
+     */
+    /** @return array{success: bool, aprobacion_estatus_id: int, message: string} */
+    public function aprobar(Prestamos $prestamo): array
+    {
+        $prestamo->aprobacion_estatus_id = Prestamos::APROBACION_APROBADO;
+        $prestamo->save();
+
+        return [
+            'success' => true,
+            'aprobacion_estatus_id' => $prestamo->aprobacion_estatus_id,
+            'message' => 'Préstamo aprobado',
+        ];
+    }
+
+    /** @return array{success: bool, aprobacion_estatus_id: int, message: string} */
+    public function rechazar(Prestamos $prestamo): array
+    {
+        $prestamo->aprobacion_estatus_id = Prestamos::APROBACION_RECHAZADO;
+        $prestamo->save();
+
+        return [
+            'success' => true,
+            'aprobacion_estatus_id' => $prestamo->aprobacion_estatus_id,
+            'message' => 'Préstamo rechazado',
+        ];
     }
 
     /**

@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\ReporteInformesPagoController;
 use App\Http\Controllers\ReportePrestamosController;
+use App\Models\Prestamos;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -175,6 +176,117 @@ class PanelSmokeTest extends TestCase
         // revertir
         DB::table('prestamos_dias')->where('prestamo_id', $prestamo->id)->delete();
         DB::table('prestamos')->where('id', $prestamo->id)->delete();
+    }
+
+    /** Todo préstamo nace "Pendiente de aprobación" — no puede recibir un pago informado. */
+    public function test_prestamo_nuevo_nace_pendiente_de_aprobacion(): void
+    {
+        $cliente = DB::table('clientes')->first();
+        $this->assertNotNull($cliente);
+
+        $this->actingAs($this->cliente())->put('/prestamos', [
+            'clienteSelected' => (array) $cliente,
+            'country_id' => 'COL',
+            'tipo_prestamo_id' => 1,
+            'monto_prestamo' => 100000,
+            'cuota' => 100000,
+            'tasa' => 10,
+            'total' => 110000,
+            'utilidad' => 10000,
+            'date_first_pay' => now()->addDays(7)->toDateString(),
+            'date_last_pay' => now()->addDays(37)->toDateString(),
+            'list_pays' => [
+                ['cuota' => 100000, 'date' => now()->addDays(7)->toDateString()],
+            ],
+        ])->assertRedirect();
+
+        $prestamo = DB::table('prestamos')->orderByDesc('id')->first();
+        $this->assertSame(Prestamos::APROBACION_PENDIENTE, (int) $prestamo->aprobacion_estatus_id);
+
+        // revertir
+        DB::table('prestamos_dias')->where('prestamo_id', $prestamo->id)->delete();
+        DB::table('prestamos')->where('id', $prestamo->id)->delete();
+    }
+
+    /** Aprobar / rechazar un préstamo: gateado por `prestamos.aprobar` (ningún rol lo tiene por defecto). */
+    public function test_prestamos_aprobar_rechazar(): void
+    {
+        $id = DB::table('prestamos')->orderByDesc('id')->value('id');
+
+        $this->actingAs($this->cliente())->putJson("/prestamos/{$id}/aprobar")->assertForbidden();
+
+        $this->actingAs($this->super())->putJson("/prestamos/{$id}/rechazar")
+            ->assertOk()->assertJson(['success' => true, 'aprobacion_estatus_id' => Prestamos::APROBACION_RECHAZADO]);
+        $this->assertSame(Prestamos::APROBACION_RECHAZADO, (int) DB::table('prestamos')->where('id', $id)->value('aprobacion_estatus_id'));
+
+        $this->actingAs($this->super())->putJson("/prestamos/{$id}/aprobar")
+            ->assertOk()->assertJson(['aprobacion_estatus_id' => Prestamos::APROBACION_APROBADO]);
+        $this->assertSame(Prestamos::APROBACION_APROBADO, (int) DB::table('prestamos')->where('id', $id)->value('aprobacion_estatus_id'));
+    }
+
+    /**
+     * No se puede informar un pago de cuotas contra un préstamo Pendiente de
+     * aprobación o Rechazado — ni bypaseando la UI (que ya lo oculta del
+     * buscador de "Informar un pago" vía `scopePrestamoActivo`).
+     */
+    public function test_no_se_puede_informar_pago_de_prestamo_no_aprobado(): void
+    {
+        $cliente = DB::table('clientes')->first();
+        $this->assertNotNull($cliente);
+
+        $cuota = DB::table('prestamos_dias as d')
+            ->join('prestamos as p', 'p.id', '=', 'd.prestamo_id')
+            ->where('p.cliente_id', $cliente->id)
+            ->where('d.apply', true)->where('d.pagado', false)
+            ->orderBy('d.id')->first(['d.id', 'd.cuota', 'p.id as prestamo_id', 'p.aprobacion_estatus_id']);
+        $this->assertNotNull($cuota);
+
+        DB::table('prestamos')->where('id', $cuota->prestamo_id)->update(['aprobacion_estatus_id' => Prestamos::APROBACION_PENDIENTE]);
+
+        try {
+            $before = DB::table('payment_reports')->count();
+
+            $res = $this->actingAs($this->super())->postJson('/payment_report', [
+                'data' => json_encode([
+                    'cliente' => (array) $cliente,
+                    'tipoPago' => 1,
+                    'cuotas' => [['id' => $cuota->id, 'cuota' => (float) $cuota->cuota]],
+                    'dataPayments' => [[
+                        'payment_method_id' => DB::table('payment_methods')->value('id'),
+                        'valor_importe' => (float) $cuota->cuota,
+                        'bank_id' => null, 'franquicia_id' => null, 'referencia' => null, 'support_image' => [],
+                    ]],
+                ]),
+            ]);
+
+            $res->assertOk()->assertJson(['success' => false]);
+            $this->assertStringContainsString('no está aprobado', $res->json('message'));
+            $this->assertSame($before, DB::table('payment_reports')->count());
+        } finally {
+            DB::table('prestamos')->where('id', $cuota->prestamo_id)->update(['aprobacion_estatus_id' => $cuota->aprobacion_estatus_id]);
+        }
+    }
+
+    /** `scopePrestamoActivo` (consumido por "Informar un pago") oculta préstamos no aprobados. */
+    public function test_informar_pago_no_ofrece_prestamos_no_aprobados(): void
+    {
+        $prestamo = DB::table('prestamos')
+            ->where('pagado', false)->where('anulado', false)->where('perdido', false)->where('estatus', 1)
+            ->whereExists(fn ($q) => $q->select(DB::raw(1))->from('prestamos_dias')->whereColumn('prestamos_dias.prestamo_id', 'prestamos.id'))
+            ->first();
+        $this->assertNotNull($prestamo);
+
+        $antes = $this->actingAs($this->super())->getJson("/prestamos/obtenerPrestamosActivos/{$prestamo->cliente_id}")->json();
+        $this->assertContains($prestamo->id, collect($antes)->pluck('id')->all());
+
+        DB::table('prestamos')->where('id', $prestamo->id)->update(['aprobacion_estatus_id' => Prestamos::APROBACION_PENDIENTE]);
+
+        try {
+            $despues = $this->actingAs($this->super())->getJson("/prestamos/obtenerPrestamosActivos/{$prestamo->cliente_id}")->json();
+            $this->assertNotContains($prestamo->id, collect($despues)->pluck('id')->all());
+        } finally {
+            DB::table('prestamos')->where('id', $prestamo->id)->update(['aprobacion_estatus_id' => $prestamo->aprobacion_estatus_id]);
+        }
     }
 
     /**

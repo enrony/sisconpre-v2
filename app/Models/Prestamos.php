@@ -22,6 +22,13 @@ class Prestamos extends Model
 {
     use HasFactory;
 
+    /** Préstamo recién creado: no puede recibir un pago informado todavía. */
+    public const APROBACION_PENDIENTE = 1;
+
+    public const APROBACION_APROBADO = 2;
+
+    public const APROBACION_RECHAZADO = 3;
+
     protected $fillable = [
         'cliente_id',
         'grupos_trabajos_user_id',
@@ -31,6 +38,7 @@ class Prestamos extends Model
         'anulado',
         'perdido',
         'estatus',
+        'aprobacion_estatus_id',
         'cliente',
         'tasa',
         'form',
@@ -96,7 +104,9 @@ class Prestamos extends Model
 
     public function scopePrestamoActivo($query, $cliente)
     {
-        return $query->where('cliente_id', $cliente)->where('pagado', false)->where('anulado', false)->where('perdido', false)->where('estatus', 1)->whereHas('prestamos_dias');
+        return $query->where('cliente_id', $cliente)->where('pagado', false)->where('anulado', false)->where('perdido', false)->where('estatus', 1)
+            ->where('aprobacion_estatus_id', self::APROBACION_APROBADO)
+            ->whereHas('prestamos_dias');
     }
 
     public function scopeCliente($query, $id)
@@ -145,6 +155,14 @@ class Prestamos extends Model
         return $this->belongsTo(PrestamosEstatu::class, 'estatus');
     }
 
+    /**
+     * @return BelongsTo<PrestamoAprobacionEstatus, $this>
+     */
+    public function aprobacionEstatus(): BelongsTo
+    {
+        return $this->belongsTo(PrestamoAprobacionEstatus::class, 'aprobacion_estatus_id');
+    }
+
     /** Columnas por las que la grilla puede ordenar → columna real (evita inyección en `orderBy`). */
     private const ORDENABLES = [
         'id' => 'prestamos.id',
@@ -190,6 +208,7 @@ class Prestamos extends Model
                 'prestamos.utilidad',
                 'prestamos.total',
                 'prestamos.estatus',
+                'prestamos.aprobacion_estatus_id',
                 'prestamos.date_first_pay',
                 'prestamos.date_last_pay',
                 'prestamos.pause_surcharge',
@@ -202,6 +221,7 @@ class Prestamos extends Model
             ->with([
                 'prestamos_dias:id,prestamo_id,cuota,pagado,date,apply,dom,festivo,sigla',
                 'p_estatus:id,type_tag',
+                'aprobacionEstatus:id,description,type_tag',
             ])
             ->when($request->filled(['fecha_registro1', 'fecha_registro2']), function ($query) use ($request) {
                 $query->whereBetween('prestamos.created_at', [

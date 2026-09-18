@@ -7,6 +7,7 @@ use App\Models\CustomerMovementHistory;
 use App\Models\PaymentReport;
 use App\Models\PaymentReportsMovement;
 use App\Models\PaymentReportsSupportMovement;
+use App\Models\Prestamos;
 use App\Models\PrestamosDias;
 use App\Models\SelectedPaymentReport;
 use App\Models\SummaryCustomerMovement;
@@ -113,6 +114,36 @@ class PaymentReportService
 
         if ($noDisponibles->isNotEmpty()) {
             throw new \Exception('La(s) cuota(s) #'.$noDisponibles->implode(', #').' ya no está(n) disponible(s) para informar un pago (ya fue(ron) pagada(s) o tiene(n) un informe de pago en curso).');
+        }
+    }
+
+    /**
+     * Bloquea informar un pago de cuotas contra un préstamo que no esté
+     * aprobado (pendiente de aprobación o rechazado). `scopePrestamoActivo()`
+     * ya lo oculta del buscador de "Informar un pago", pero eso no protege
+     * contra un llamado directo al endpoint. No aplica a saldo a favor (sin
+     * cuotas, sin préstamo referenciado).
+     */
+    public function verifiedPrestamosAprobados(): void
+    {
+        if (($this->data['tipoPago'] ?? null) != 1) {
+            return;
+        }
+
+        $cuotaIds = array_column($this->data['cuotas'] ?? [], 'id');
+
+        if (empty($cuotaIds)) {
+            return;
+        }
+
+        $prestamoIds = PrestamosDias::whereIn('id', $cuotaIds)->pluck('prestamo_id')->unique();
+
+        $noAprobados = Prestamos::whereIn('id', $prestamoIds)
+            ->where('aprobacion_estatus_id', '!=', Prestamos::APROBACION_APROBADO)
+            ->pluck('id');
+
+        if ($noAprobados->isNotEmpty()) {
+            throw new \Exception('El préstamo #'.$noAprobados->implode(', #').' todavía no está aprobado — no se le puede informar un pago.');
         }
     }
 

@@ -227,6 +227,9 @@ class PaymentReportController extends Controller
             // Bloquea informar pago sobre cuotas ya pagadas o reservadas por otro informe en curso
             $this->PaymentReportService->verifiedCuotasDisponibles();
 
+            // Bloquea informar pago sobre un préstamo que no está aprobado
+            $this->PaymentReportService->verifiedPrestamosAprobados();
+
             // Registra encabezado del pago reportado
             $this->PaymentReportService->createPaymentReport($request);
 

@@ -343,6 +343,37 @@ Verificado con un fixture descartable (viewport 375px, requiere `<meta name="vie
 del fixture — sin eso el navegador emulado renderiza a 980px de todos modos) — insignia visible junto al título,
 igual que en escritorio.
 
+### 3.10 Aprobación de préstamo — no se puede informar un pago sobre uno no aprobado (2026-09-18)
+
+Pedido del usuario: "no se puede aplicar un informe de pago a un préstamo que no esté aprobado". Investigación
+previa (sin tocar código) encontró un conflicto real: `prestamos.estatus` (catálogo `prestamos_estatus`, 4
+filas: Pendiente/Pagado/Anulado/Perdido) ya usa "Pendiente" con otro significado — préstamo **en curso de
+cobro**, no "pendiente de aprobación" — y lo consumen Dashboard/reportes/filtros. Reutilizarlo habría roto esas
+tres pantallas. Tampoco existía ningún flujo de aprobación de préstamos, ni en este sistema ni en el legado
+`prestamos_16` — es feature nueva, confirmado con el usuario junto con el resto del diseño antes de escribir
+código:
+
+- **Eje de datos separado**: nueva tabla/catálogo `prestamos_aprobacion_estatus` (3 filas fijas: Pendiente de
+  aprobación=1/info, Aprobado=2/success, Rechazado=3/danger) + columna `prestamos.aprobacion_estatus_id`
+  (constantes `Prestamos::APROBACION_*`). No toca `estatus` para nada.
+- **Datos existentes**: los ~60 préstamos ya en producción se migran automáticamente a "Aprobado" — la regla
+  nueva solo aplica hacia adelante. Todo préstamo creado desde ahora nace "Pendiente de aprobación"
+  (`PrestamosController::store()`).
+- **Aprobar/rechazar**: `PUT /prestamos/{id}/aprobar|rechazar`, gateado por el permiso nuevo `prestamos.aprobar`
+  (nadie lo tiene asignado todavía — se otorga desde Roles y permisos). Botones en el dropdown de Acciones y en
+  las tarjetas móviles de `/prestamos`, visibles según el estado actual (no se ofrece "Aprobar" si ya está
+  aprobado, ni "Rechazar" si ya está rechazado). Columna/insignia "Aprobación" nueva en la tabla — solo se
+  resalta en la tarjeta móvil cuando NO está aprobado (evita ruido en el caso normal).
+- **Validación real (defensa en profundidad, dos capas)**: 1) `Prestamos::scopePrestamoActivo()` — usado por
+  "Informar un pago" para buscar préstamos activos del cliente — ahora exige `aprobacion_estatus_id = Aprobado`,
+  así que un préstamo no aprobado ni siquiera aparece como opción; 2) `PaymentReportService::verifiedPrestamosAprobados()`
+  bloquea también el llamado directo al endpoint (mismo patrón que `verifiedCuotasDisponibles()`). No aplica al
+  "saldo a favor" (sin cuotas, sin préstamo referenciado) — un informe de pago puede además referenciar cuotas
+  de más de un préstamo a la vez (relación indirecta vía `selected_payment_reports → PrestamosDias → Prestamo`).
+
+**Tests:** `test_prestamo_nuevo_nace_pendiente_de_aprobacion`, `test_prestamos_aprobar_rechazar`,
+`test_no_se_puede_informar_pago_de_prestamo_no_aprobado`, `test_informar_pago_no_ofrece_prestamos_no_aprobados`.
+
 ---
 
 ## 4. No priorizado (queda en el backlog, sin fecha)

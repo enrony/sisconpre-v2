@@ -16,6 +16,7 @@ const { lista, loading } = storeToRefs(store);
 const paymentReportStore = usePaymentReportStore();
 
 const puedeEditar = can('prestamos.editar');
+const puedeAprobar = can('prestamos.aprobar');
 const puedeInformarPago =
     can('payment_report.registrar') ||
     can('payment_report.gestionar-informe-de-pago');
@@ -51,6 +52,27 @@ async function togglePausa(row: PrestamoRow) {
     }
 }
 
+const APROBADO = 2;
+const RECHAZADO = 3;
+
+async function aprobar(row: PrestamoRow) {
+    try {
+        const res = await store.aprobarPrestamo(row.id);
+        ElNotification[res.success ? 'success' : 'error'](res.message);
+    } catch {
+        ElNotification.error('No se pudo aprobar el préstamo');
+    }
+}
+
+async function rechazar(row: PrestamoRow) {
+    try {
+        const res = await store.rechazarPrestamo(row.id);
+        ElNotification[res.success ? 'success' : 'error'](res.message);
+    } catch {
+        ElNotification.error('No se pudo rechazar el préstamo');
+    }
+}
+
 function onSortChange({
     prop,
     order,
@@ -74,9 +96,16 @@ const TAG_TYPES: TagType[] = [
     'danger',
 ];
 
-function tagType(row: PrestamoRow): TagType {
-    const t = row.p_estatus?.type_tag?.type ?? '';
+function badgeType(t: string | undefined): TagType {
     return TAG_TYPES.includes(t as TagType) ? (t as TagType) : 'info';
+}
+
+function tagType(row: PrestamoRow): TagType {
+    return badgeType(row.p_estatus?.type_tag?.type);
+}
+
+function aprobacionTagType(row: PrestamoRow): TagType {
+    return badgeType(row.aprobacion_estatus?.type_tag?.type);
 }
 
 const clienteNombre = (row: PrestamoRow): string =>
@@ -123,6 +152,15 @@ const fields: ListField<PrestamoRow>[] = [
                 >
                     #{{ row.id }}
                 </el-tag>
+                <el-tag
+                    v-if="
+                        (row as PrestamoRow).aprobacion_estatus?.id !== APROBADO
+                    "
+                    :type="aprobacionTagType(row as PrestamoRow)"
+                    size="small"
+                >
+                    {{ (row as PrestamoRow).aprobacion_estatus?.description }}
+                </el-tag>
                 <el-tooltip
                     v-if="row.pause_surcharge"
                     content="Recargo por mora pausado"
@@ -162,6 +200,30 @@ const fields: ListField<PrestamoRow>[] = [
                 @click="imprimirCarton(row as PrestamoRow)"
             >
                 Imprimir cartón
+            </el-button>
+            <el-button
+                v-if="
+                    puedeAprobar &&
+                    (row as PrestamoRow).aprobacion_estatus?.id !== APROBADO
+                "
+                size="default"
+                type="success"
+                plain
+                @click="aprobar(row as PrestamoRow)"
+            >
+                Aprobar
+            </el-button>
+            <el-button
+                v-if="
+                    puedeAprobar &&
+                    (row as PrestamoRow).aprobacion_estatus?.id !== RECHAZADO
+                "
+                size="default"
+                type="danger"
+                plain
+                @click="rechazar(row as PrestamoRow)"
+            >
+                Rechazar
             </el-button>
         </template>
 
@@ -222,6 +284,19 @@ const fields: ListField<PrestamoRow>[] = [
                 <el-table-column label="Cliente" min-width="180">
                     <template #default="{ row }">
                         {{ row.cliente?.nombre }} {{ row.cliente?.apellido }}
+                    </template>
+                </el-table-column>
+                <el-table-column label="Aprobación" width="150" align="center">
+                    <template #default="{ row }">
+                        <el-tag
+                            :type="aprobacionTagType(row as PrestamoRow)"
+                            size="small"
+                        >
+                            {{
+                                (row as PrestamoRow).aprobacion_estatus
+                                    ?.description
+                            }}
+                        </el-tag>
                     </template>
                 </el-table-column>
                 <el-table-column
@@ -313,13 +388,40 @@ const fields: ListField<PrestamoRow>[] = [
                                         }}
                                     </el-dropdown-item>
                                     <el-dropdown-item
-                                        divided
                                         :icon="Printer"
                                         @click="
                                             imprimirCarton(row as PrestamoRow)
                                         "
                                     >
                                         Imprimir cartón
+                                    </el-dropdown-item>
+                                    <el-dropdown-item
+                                        v-if="
+                                            (row as PrestamoRow)
+                                                .aprobacion_estatus?.id !==
+                                            APROBADO
+                                        "
+                                        divided
+                                        :disabled="!puedeAprobar"
+                                        @click="aprobar(row as PrestamoRow)"
+                                    >
+                                        Aprobar préstamo
+                                    </el-dropdown-item>
+                                    <el-dropdown-item
+                                        v-if="
+                                            (row as PrestamoRow)
+                                                .aprobacion_estatus?.id !==
+                                            RECHAZADO
+                                        "
+                                        :divided="
+                                            (row as PrestamoRow)
+                                                .aprobacion_estatus?.id ===
+                                            APROBADO
+                                        "
+                                        :disabled="!puedeAprobar"
+                                        @click="rechazar(row as PrestamoRow)"
+                                    >
+                                        Rechazar préstamo
                                     </el-dropdown-item>
                                 </el-dropdown-menu>
                             </template>
