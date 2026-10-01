@@ -202,7 +202,8 @@ export const usePaymentReportStore = defineStore('paymentReport', {
             tipoPago: 1,
             cuotas: [] as { id: number; cuota: number }[],
             dataPayments: [nuevoPago()],
-            saldoFavor: 0,
+            /** Pagar las cuotas con el saldo a favor (aprobación inmediata, sin métodos de pago). */
+            pagoConSaldo: false,
         },
     }),
 
@@ -219,22 +220,16 @@ export const usePaymentReportStore = defineStore('paymentReport', {
                 0,
             );
         },
-        /** Tope de saldo a aplicar: lo disponible, sin superar las cuotas elegidas. */
-        saldoAplicable(state): number {
-            if (state.informar.tipoPago !== 1 || !state.saldoCliente) {
-                return 0;
-            }
-            const cuotas = state.informar.cuotas.reduce(
-                (a, c) => a + Number(c.cuota),
-                0,
-            );
-
-            return Math.max(0, Math.min(state.saldoCliente.disponible, cuotas));
+        saldoDisponible(state): number {
+            return state.saldoCliente?.disponible ?? 0;
         },
-        saldoAplicado(state): number {
-            return state.informar.tipoPago === 1
-                ? Number(state.informar.saldoFavor || 0)
-                : 0;
+        /** Pago de cuotas con saldo a favor (solo aplica a "Pago de cuotas"). */
+        conSaldo(state): boolean {
+            return state.informar.tipoPago === 1 && state.informar.pagoConSaldo;
+        },
+        /** Saldo que queda libre para seguir eligiendo cuotas. */
+        saldoRestante(): number {
+            return this.saldoDisponible - this.totalCuotas;
         },
         clienteInformar(state): ClienteFull | undefined {
             return state.clientesAll.find(
@@ -462,7 +457,7 @@ export const usePaymentReportStore = defineStore('paymentReport', {
                 tipoPago: 1,
                 cuotas: [],
                 dataPayments: [nuevoPago()],
-                saldoFavor: 0,
+                pagoConSaldo: false,
             };
             this.prestamosActivos = [];
             this.saldoCliente = null;
@@ -490,7 +485,7 @@ export const usePaymentReportStore = defineStore('paymentReport', {
 
         async cargarActivos(): Promise<void> {
             this.informar.cuotas = [];
-            this.informar.saldoFavor = 0;
+            this.informar.pagoConSaldo = false;
             this.saldoCliente = null;
             if (!this.informar.clienteId) {
                 this.prestamosActivos = [];
@@ -516,8 +511,24 @@ export const usePaymentReportStore = defineStore('paymentReport', {
             }
         },
 
-        usarSaldoMaximo(): void {
-            this.informar.saldoFavor = this.saldoAplicable;
+        /**
+         * Cambia la modalidad. Al pasar a saldo a favor se vacía la selección
+         * si ya no entra en el saldo disponible.
+         */
+        setPagoConSaldo(v: boolean): void {
+            this.informar.pagoConSaldo = v;
+            if (v && this.totalCuotas > this.saldoDisponible) {
+                this.informar.cuotas = [];
+            }
+        },
+
+        /** Con saldo a favor, una cuota no elegida que ya no entra en el saldo se bloquea. */
+        cuotaSuperaSaldo(c: CuotaPendiente): boolean {
+            return (
+                this.conSaldo &&
+                !this.cuotaSeleccionada(c.id) &&
+                Number(c.cuota) > this.saldoRestante
+            );
         },
 
         toggleCuota(c: CuotaPendiente): void {
@@ -526,14 +537,9 @@ export const usePaymentReportStore = defineStore('paymentReport', {
             const i = this.informar.cuotas.findIndex((x) => x.id === c.id);
             if (i >= 0) {
                 this.informar.cuotas.splice(i, 1);
-            } else {
+            } else if (!this.cuotaSuperaSaldo(c)) {
                 this.informar.cuotas.push({ id: c.id, cuota: Number(c.cuota) });
             }
-            // Si se quitan cuotas, el saldo aplicado no puede quedar por encima del total.
-            this.informar.saldoFavor = Math.min(
-                this.informar.saldoFavor,
-                this.saldoAplicable,
-            );
         },
 
         cuotaSeleccionada(id: number): boolean {
@@ -565,13 +571,15 @@ export const usePaymentReportStore = defineStore('paymentReport', {
                             this.informar.tipoPago === 1
                                 ? this.informar.cuotas
                                 : [],
-                        saldoFavor: this.saldoAplicado,
-                        dataPayments: this.informar.dataPayments
-                            .filter((p) => !pagoVacio(p))
-                            .map((p) => ({
-                                ...p,
-                                support_image: p.support_image ?? [],
-                            })),
+                        pagoConSaldo: this.conSaldo,
+                        dataPayments: this.conSaldo
+                            ? []
+                            : this.informar.dataPayments
+                                  .filter((p) => !pagoVacio(p))
+                                  .map((p) => ({
+                                      ...p,
+                                      support_image: p.support_image ?? [],
+                                  })),
                     }),
                 );
 

@@ -328,14 +328,14 @@ class PanelSmokeTest extends TestCase
     }
 
     /** @param  list<array{0: int, 1: float}>  $cuotas  [id, monto] */
-    private function informarPago(int $clienteId, array $cuotas, float $efectivo, float $saldoFavor = 0): TestResponse
+    private function informarPago(int $clienteId, array $cuotas, float $efectivo, bool $conSaldo = false): TestResponse
     {
         return $this->actingAs($this->super())->postJson('/payment_report', [
             'data' => json_encode([
                 'cliente' => (array) DB::table('clientes')->where('id', $clienteId)->first(),
                 'tipoPago' => 1,
                 'cuotas' => array_map(fn ($c) => ['id' => $c[0], 'cuota' => $c[1]], $cuotas),
-                'saldoFavor' => $saldoFavor,
+                'pagoConSaldo' => $conSaldo,
                 'dataPayments' => $efectivo > 0 ? [[
                     'payment_method_id' => 1, 'valor_importe' => $efectivo,
                     'bank_id' => null, 'franquicia_id' => null, 'referencia' => null, 'support_image' => [],
@@ -368,46 +368,63 @@ class PanelSmokeTest extends TestCase
         DB::table('prestamos')->where('id', $prestamoId)->delete();
     }
 
+    /** Pago con dinero: no puede ser menor que las cuotas; el excedente queda como saldo a favor. */
+    public function test_pago_con_dinero_no_puede_ser_menor_que_las_cuotas(): void
+    {
+        $prestamoId = $this->crearPrestamo(1, [50000]);
+        $cuota = (int) DB::table('prestamos_dias')->where('prestamo_id', $prestamoId)->value('id');
+
+        try {
+            $res = $this->informarPago(1, [[$cuota, 50000]], 40000);
+            $res->assertJson(['success' => false]);
+            $this->assertStringContainsString('faltan 10.000', $res->json('message'));
+
+            // El monto de la cuota sale de la BD, no de lo que manda el front.
+            $this->informarPago(1, [[$cuota, 1000]], 40000)->assertJson(['success' => false]);
+
+            $this->informarPago(1, [[$cuota, 50000]], 60000)->assertJson(['success' => true]);
+            $informe = DB::table('payment_reports')->orderByDesc('id')->first();
+            $this->assertSame(10000.0, (float) $informe->importe);
+            $this->assertNull($informe->payment_reports_movements_estatus_id); // queda pendiente de gestión
+        } finally {
+            $this->borrarPrestamoConInformes($prestamoId);
+        }
+    }
+
     /**
-     * Saldo a favor de punta a punta: se reserva al informar, no se puede usar
-     * dos veces, se descuenta al aprobar (movimiento "Pago") — y al aprobarse
-     * el pago de la última cuota el préstamo pasa solo a "Pagado".
+     * Pago con saldo a favor: las cuotas no pueden superar el saldo disponible
+     * y se aprueba en el acto (cuotas pagadas + movimiento "Pago"). Al pagarse
+     * la última cuota, el préstamo pasa solo a "Pagado".
      */
-    public function test_saldo_a_favor_y_cierre_automatico_del_prestamo(): void
+    public function test_pago_con_saldo_a_favor_y_cierre_automatico_del_prestamo(): void
     {
         $clienteId = 1;
         $resumenOriginal = DB::table('summary_customer_movements')->where('cliente_id', $clienteId)->first();
         $this->assertNotNull($resumenOriginal);
-        DB::table('summary_customer_movements')->where('cliente_id', $clienteId)->update(['balance' => 45000]);
+        DB::table('summary_customer_movements')->where('cliente_id', $clienteId)->update(['balance' => 70000]);
 
         $prestamoId = $this->crearPrestamo($clienteId, [50000, 50000]);
         [$cuota1, $cuota2] = DB::table('prestamos_dias')->where('prestamo_id', $prestamoId)->orderBy('date')->pluck('id')->all();
 
         try {
-            $reservadoAntes = (float) $this->actingAs($this->super())->getJson("/clientes/{$clienteId}/saldo-favor")->json('reservado');
-
-            // No se puede aplicar más saldo que el total de las cuotas.
-            $this->informarPago($clienteId, [[$cuota1, 50000]], 0, 60000)->assertJson(['success' => false]);
-
-            // 40.000 de saldo + 10.000 en efectivo cubren la cuota 1.
-            $this->informarPago($clienteId, [[$cuota1, 50000]], 10000, 40000)->assertJson(['success' => true]);
-            $informe1 = (int) DB::table('payment_reports')->orderByDesc('id')->value('id');
-            $this->assertSame(40000.0, (float) DB::table('payment_reports')->where('id', $informe1)->value('saldo_favor_aplicado'));
-            $this->assertSame(0.0, (float) DB::table('payment_reports')->where('id', $informe1)->value('importe'));
-
-            $saldo = $this->actingAs($this->super())->getJson("/clientes/{$clienteId}/saldo-favor")->json();
-            $this->assertSame($reservadoAntes + 40000, (float) $saldo['reservado']);
-
-            // Lo reservado no se puede volver a usar mientras el informe está en curso.
-            $res = $this->informarPago($clienteId, [[$cuota2, 50000]], 40000, max(10000, (float) $saldo['disponible'] + 1));
+            // Las dos cuotas (100.000) superan el saldo (70.000).
+            $res = $this->informarPago($clienteId, [[$cuota1, 50000], [$cuota2, 50000]], 0, conSaldo: true);
             $res->assertJson(['success' => false]);
-            $this->assertStringContainsString('saldo a favor disponible', $res->json('message'));
+            $this->assertStringContainsString('saldo a favor disponible es 70.000', $res->json('message'));
 
-            // Al aprobar se descuenta el saldo y la cuota queda pagada; el préstamo sigue en curso.
-            $this->aprobarInforme($informe1)->assertJson(['success' => true]);
-            $this->assertSame(5000.0, (float) DB::table('summary_customer_movements')->where('cliente_id', $clienteId)->value('balance'));
-            $this->assertSame(40000.0, (float) DB::table('customer_movement_histories')
-                ->where('payment_report_id', $informe1)->where('type_movement_id', 1)->value('amount'));
+            // Sin mezcla: el pago con saldo no lleva métodos de pago.
+            $this->informarPago($clienteId, [[$cuota1, 50000]], 10000, conSaldo: true)->assertJson(['success' => false]);
+
+            // Una cuota con saldo: aprobada en el acto.
+            $this->informarPago($clienteId, [[$cuota1, 50000]], 0, conSaldo: true)
+                ->assertJson(['success' => true, 'message' => 'Cuotas pagadas con saldo a favor']);
+            $informe1 = DB::table('payment_reports')->orderByDesc('id')->first();
+            $this->assertSame(50000.0, (float) $informe1->saldo_favor_aplicado);
+            $this->assertSame(2, (int) $informe1->payment_reports_movements_estatus_id);
+            $this->assertSame(2, (int) DB::table('payment_reports_movements')->where('payment_report_id', $informe1->id)->value('estatus'));
+            $this->assertSame(20000.0, (float) DB::table('summary_customer_movements')->where('cliente_id', $clienteId)->value('balance'));
+            $this->assertSame(50000.0, (float) DB::table('customer_movement_histories')
+                ->where('payment_report_id', $informe1->id)->where('type_movement_id', 1)->value('amount'));
             $this->assertTrue((bool) DB::table('prestamos_dias')->where('id', $cuota1)->value('pagado'));
             $this->assertSame(Prestamos::ESTATUS_PENDIENTE, (int) DB::table('prestamos')->where('id', $prestamoId)->value('estatus'));
 

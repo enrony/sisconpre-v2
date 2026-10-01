@@ -23,6 +23,9 @@ class PaymentReportService
     /** `types_movements` 01 "Pago" (resta del saldo a favor). */
     private const MOVIMIENTO_PAGO = 1;
 
+    /** `payment_reports_movements_estatus` 2 "Aprobado". */
+    private const ESTADO_APROBADO = 2;
+
     public $data;
 
     public $PaymentReport;
@@ -161,37 +164,91 @@ class PaymentReportService
     }
 
     /**
-     * Saldo a favor aplicado al pago de cuotas: solo con cuotas seleccionadas,
-     * nunca más que el total de esas cuotas (no se usa saldo para generar más
-     * saldo) ni más que lo disponible (saldo menos lo reservado por otros
-     * informes en curso). Deja el monto validado en `saldo_favor_aplicado`.
+     * Dos modalidades de pago de cuotas, sin mezcla:
+     * - Con dinero: lo informado no puede ser menor que las cuotas elegidas;
+     *   el excedente queda como saldo a favor.
+     * - Con saldo a favor (`pagoConSaldo`): sin métodos de pago; las cuotas no
+     *   pueden superar el saldo disponible. Se aprueba en el acto
+     *   (`aprobarPagoConSaldo()`), porque ese dinero ya se verificó al entrar.
+     *
+     * Los montos de las cuotas se toman de la BD, no de lo que manda el front.
      */
-    public function verifiedSaldoFavor(): void
+    public function verifiedImportes(): void
     {
-        $saldo = round((float) ($this->data['saldoFavor'] ?? 0), 3);
         $this->data['saldo_favor_aplicado'] = 0;
+        $pagoConSaldo = (bool) ($this->data['pagoConSaldo'] ?? false);
 
-        if ($saldo <= 0) {
+        if (($this->data['tipoPago'] ?? null) != 1) {
+            if ($pagoConSaldo) {
+                throw new \Exception('El saldo a favor solo se puede usar para pagar cuotas.');
+            }
+
             return;
         }
 
-        if (($this->data['tipoPago'] ?? null) != 1) {
-            throw new \Exception('El saldo a favor solo se puede aplicar al pago de cuotas.');
+        $montos = PrestamosDias::whereIn('id', array_column($this->data['cuotas'] ?? [], 'id'))->pluck('cuota', 'id');
+        $this->data['cuotas'] = array_map(
+            fn (array $c): array => ['id' => $c['id'], 'cuota' => (float) ($montos[$c['id']] ?? 0)],
+            $this->data['cuotas'] ?? [],
+        );
+        $totalCuotas = round(array_sum(array_column($this->data['cuotas'], 'cuota')), 3);
+
+        if ($pagoConSaldo) {
+            if (! empty($this->data['dataPayments'])) {
+                throw new \Exception('El pago con saldo a favor no lleva métodos de pago.');
+            }
+
+            $disponible = (new SaldoFavorService)->resumen((int) ($this->data['cliente']['id'] ?? 0))['disponible'];
+
+            if ($totalCuotas > $disponible + 0.001) {
+                throw new \Exception('Las cuotas elegidas suman '.$this->formato($totalCuotas).' y el saldo a favor disponible es '.$this->formato($disponible).'.');
+            }
+
+            $this->data['saldo_favor_aplicado'] = $totalCuotas;
+
+            return;
         }
 
-        $totalCuotas = (float) PrestamosDias::whereIn('id', array_column($this->data['cuotas'] ?? [], 'id'))->sum('cuota');
+        $totalPagos = round(array_sum(array_column($this->data['dataPayments'] ?? [], 'valor_importe')), 3);
 
-        if ($saldo > $totalCuotas + 0.001) {
-            throw new \Exception('El saldo a favor aplicado no puede superar el total de las cuotas seleccionadas.');
+        if ($totalPagos + 0.001 < $totalCuotas) {
+            throw new \Exception('El pago informado ('.$this->formato($totalPagos).') no cubre las cuotas elegidas ('.$this->formato($totalCuotas).'): faltan '.$this->formato($totalCuotas - $totalPagos).'.');
+        }
+    }
+
+    public function esPagoConSaldo(): bool
+    {
+        return (float) ($this->data['saldo_favor_aplicado'] ?? 0) > 0;
+    }
+
+    /** Un pago con saldo a favor nace aprobado; uno con dinero, pendiente de gestión. */
+    public function registerMovimientoInicial(): void
+    {
+        if (! $this->esPagoConSaldo()) {
+            $this->registerPaymentMovement();
+
+            return;
         }
 
-        $disponible = (new SaldoFavorService)->resumen((int) ($this->data['cliente']['id'] ?? 0))['disponible'];
+        $this->registerPaymentMovement(self::ESTADO_APROBADO, 'Pagado con saldo a favor (aprobación automática)');
+        $this->PaymentReport->payment_reports_movements_estatus_id = self::ESTADO_APROBADO;
+        $this->PaymentReport->save();
+    }
 
-        if ($saldo > $disponible + 0.001) {
-            throw new \Exception('El cliente tiene '.number_format($disponible, 0, ',', '.').' de saldo a favor disponible; no alcanza para aplicar '.number_format($saldo, 0, ',', '.').'.');
+    /** Marca las cuotas pagadas, descuenta el saldo y cierra el préstamo si quedó saldado. */
+    public function aprobarPagoConSaldo(): void
+    {
+        if (! $this->esPagoConSaldo()) {
+            return;
         }
 
-        $this->data['saldo_favor_aplicado'] = $saldo;
+        $this->data['estatus_selected'] = self::ESTADO_APROBADO;
+        $this->processReportPaymentAproved();
+    }
+
+    private function formato(float $monto): string
+    {
+        return number_format($monto, 0, ',', '.');
     }
 
     public function createPaymentReport(Request $request)

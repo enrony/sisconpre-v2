@@ -242,8 +242,8 @@ class PaymentReportController extends Controller
             // Bloquea informar pago sobre un préstamo que no está aprobado
             $this->PaymentReportService->verifiedPrestamosAprobados();
 
-            // Valida el saldo a favor aplicado contra lo disponible del cliente
-            $this->PaymentReportService->verifiedSaldoFavor();
+            // Con dinero: el pago cubre las cuotas. Con saldo a favor: las cuotas no superan el saldo
+            $this->PaymentReportService->verifiedImportes();
 
             // Registra encabezado del pago reportado
             $this->PaymentReportService->createPaymentReport($request);
@@ -251,8 +251,8 @@ class PaymentReportController extends Controller
             // Registrar metodos de pagos
             $this->PaymentReportService->registerPaymentMehods();
 
-            // Registrar estado inicial del informe de pago
-            $this->PaymentReportService->registerPaymentMovement();
+            // Estado inicial: Pendiente (con dinero) o Aprobado (con saldo a favor)
+            $this->PaymentReportService->registerMovimientoInicial();
 
             // Registrar soporte para metodos de pagos
             $this->PaymentReportService->registerSupportPaymentMehods();
@@ -263,19 +263,24 @@ class PaymentReportController extends Controller
             // Registro de saldo a favor
             $this->PaymentReportService->registerPositiveBalance();
 
+            // Pago con saldo a favor: cuotas pagadas y saldo descontado en el acto
+            $this->PaymentReportService->aprobarPagoConSaldo();
+
             DB::commit();
         } catch (\Exception $e) {
             DB::rollBack();
 
             return [
                 'success' => false,
-                'message' => 'Falló el registro del pago, intente nuevamente!!!'.$e->getMessage(),
+                'message' => 'No se pudo registrar el pago: '.$e->getMessage(),
             ];
         }
 
         return [
             'success' => true,
-            'message' => 'Pago registrado con éxito',
+            'message' => $this->PaymentReportService->esPagoConSaldo()
+                ? 'Cuotas pagadas con saldo a favor'
+                : 'Pago registrado con éxito',
         ];
     }
 

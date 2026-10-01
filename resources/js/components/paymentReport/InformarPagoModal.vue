@@ -3,7 +3,10 @@ import { storeToRefs } from 'pinia';
 import { computed } from 'vue';
 import SupportUpload from '@/components/paymentReport/SupportUpload.vue';
 import { formatNumber } from '@/lib/format';
-import { usePaymentReportStore } from '@/stores/paymentReport';
+import {
+    type CuotaPendiente,
+    usePaymentReportStore,
+} from '@/stores/paymentReport';
 
 const store = usePaymentReportStore();
 const {
@@ -19,9 +22,7 @@ const {
     saldoCliente,
 } = storeToRefs(store);
 
-const diferencia = computed(
-    () => store.totalPagos + store.saldoAplicado - store.totalCuotas,
-);
+const diferencia = computed(() => store.totalPagos - store.totalCuotas);
 
 function metodo(id: number | null) {
     return paymentMethods.value.find((m) => m.id === id);
@@ -29,13 +30,23 @@ function metodo(id: number | null) {
 
 const puedeRegistrar = computed(() => {
     if (!informar.value.clienteId) return false;
-    if (store.totalPagos + store.saldoAplicado <= 0) return false;
-    if (informar.value.tipoPago === 1 && informar.value.cuotas.length === 0) {
-        return false;
-    }
-    if (store.saldoAplicado > store.saldoAplicable) return false;
 
-    // Las filas de método vacías se ignoran (el saldo puede cubrir todo).
+    if (store.conSaldo) {
+        return (
+            informar.value.cuotas.length > 0 &&
+            store.totalCuotas <= store.saldoDisponible
+        );
+    }
+
+    if (store.totalPagos <= 0) return false;
+    if (informar.value.tipoPago === 1) {
+        // Con dinero, el pago no puede ser menor que las cuotas elegidas.
+        if (informar.value.cuotas.length === 0 || diferencia.value < 0) {
+            return false;
+        }
+    }
+
+    // Las filas de método vacías se ignoran al enviar.
     return informar.value.dataPayments.every(
         (p) =>
             (!p.payment_method_id && !Number(p.valor_importe)) ||
@@ -43,7 +54,30 @@ const puedeRegistrar = computed(() => {
     );
 });
 
+function tooltipCuota(d: CuotaPendiente): string {
+    if (d.pendientesPago2) {
+        return `Pendiente de confirmación — informe #${d.payment_report_id_pendiente}`;
+    }
+    return 'Supera el saldo a favor que queda disponible';
+}
+
 async function registrar() {
+    if (store.conSaldo) {
+        try {
+            await ElMessageBox.confirm(
+                `Se pagarán ${informar.value.cuotas.length} cuota(s) por ${formatNumber(store.totalCuotas)} con el saldo a favor del cliente. El pago queda aprobado en el acto y no se puede deshacer.`,
+                'Pagar con saldo a favor',
+                {
+                    confirmButtonText: 'Pagar con saldo a favor',
+                    cancelButtonText: 'Cancelar',
+                    type: 'warning',
+                },
+            );
+        } catch {
+            return;
+        }
+    }
+
     try {
         const res = await store.submitInformar();
         if (res.success) {
@@ -97,9 +131,49 @@ async function registrar() {
                     >
                     <el-radio-group v-model="informar.tipoPago" size="small">
                         <el-radio :value="1">Pago de cuotas</el-radio>
-                        <el-radio :value="2">Saldo a favor</el-radio>
+                        <el-radio :value="2">Abonar a saldo a favor</el-radio>
                     </el-radio-group>
                 </div>
+            </div>
+
+            <!-- Modalidad: con dinero o con el saldo a favor del cliente -->
+            <div
+                v-if="
+                    informar.tipoPago === 1 &&
+                    informar.clienteId &&
+                    store.saldoDisponible > 0
+                "
+                class="border-border bg-muted/40 rounded-md border px-3 py-2.5"
+            >
+                <div class="flex flex-wrap items-center justify-between gap-2">
+                    <span class="text-sm font-semibold">¿Cómo paga?</span>
+                    <el-radio-group
+                        :model-value="informar.pagoConSaldo"
+                        size="small"
+                        @change="store.setPagoConSaldo(Boolean($event))"
+                    >
+                        <el-radio-button :value="false"
+                            >Con dinero</el-radio-button
+                        >
+                        <el-radio-button :value="true"
+                            >Con saldo a favor</el-radio-button
+                        >
+                    </el-radio-group>
+                </div>
+                <p class="text-muted-foreground mt-1 text-xs tabular-nums">
+                    Saldo a favor disponible:
+                    <b class="text-foreground">{{
+                        formatNumber(store.saldoDisponible)
+                    }}</b>
+                    <template v-if="(saldoCliente?.reservado ?? 0) > 0">
+                        · {{ formatNumber(saldoCliente?.reservado) }} reservado
+                        en pagos por aprobar
+                    </template>
+                    <template v-if="store.conSaldo">
+                        · elija cuotas que no superen ese monto; el pago se
+                        aprueba en el acto.
+                    </template>
+                </p>
             </div>
 
             <!-- Cuotas pendientes -->
@@ -128,18 +202,28 @@ async function registrar() {
                                     (x) => x.apply && !x.pagado,
                                 )"
                                 :key="d.id"
-                                :disabled="!d.pendientesPago2"
-                                :content="`Pendiente de confirmación — informe #${d.payment_report_id_pendiente}`"
+                                :disabled="
+                                    !d.pendientesPago2 &&
+                                    !store.cuotaSuperaSaldo(d)
+                                "
+                                :content="tooltipCuota(d)"
                             >
                                 <label
                                     class="flex items-center gap-2 rounded border p-1 text-xs"
-                                    :class="{ 'opacity-50': d.pendientesPago2 }"
+                                    :class="{
+                                        'opacity-50':
+                                            d.pendientesPago2 ||
+                                            store.cuotaSuperaSaldo(d),
+                                    }"
                                 >
                                     <el-checkbox
                                         :model-value="
                                             store.cuotaSeleccionada(d.id)
                                         "
-                                        :disabled="d.pendientesPago2"
+                                        :disabled="
+                                            d.pendientesPago2 ||
+                                            store.cuotaSuperaSaldo(d)
+                                        "
                                         @change="store.toggleCuota(d)"
                                     />
                                     <span
@@ -153,55 +237,8 @@ async function registrar() {
                 </el-collapse>
             </div>
 
-            <!-- Saldo a favor del cliente -->
-            <div
-                v-if="
-                    informar.clienteId && saldoCliente && saldoCliente.saldo > 0
-                "
-                class="border-border bg-muted/40 flex flex-wrap items-end justify-between gap-3 rounded-md border px-3 py-2.5"
-            >
-                <div class="text-sm">
-                    <div class="font-semibold">Saldo a favor del cliente</div>
-                    <div class="text-muted-foreground text-xs tabular-nums">
-                        Disponible {{ formatNumber(saldoCliente.disponible) }}
-                        <template v-if="saldoCliente.reservado > 0">
-                            ·
-                            {{ formatNumber(saldoCliente.reservado) }} reservado
-                            en pagos por aprobar
-                        </template>
-                    </div>
-                </div>
-                <div
-                    v-if="
-                        informar.tipoPago === 1 && saldoCliente.disponible > 0
-                    "
-                    class="flex items-end gap-2"
-                >
-                    <div>
-                        <label class="text-muted-foreground text-xs"
-                            >Aplicar a las cuotas</label
-                        >
-                        <el-input-number
-                            v-model="informar.saldoFavor"
-                            size="small"
-                            :min="0"
-                            :max="store.saldoAplicable"
-                            :disabled="store.saldoAplicable <= 0"
-                            controls-position="right"
-                        />
-                    </div>
-                    <el-button
-                        size="small"
-                        :disabled="store.saldoAplicable <= 0"
-                        @click="store.usarSaldoMaximo()"
-                    >
-                        Usar el máximo
-                    </el-button>
-                </div>
-            </div>
-
-            <!-- Métodos de pago -->
-            <div>
+            <!-- Métodos de pago (no aplican al pago con saldo a favor) -->
+            <div v-if="!store.conSaldo">
                 <div class="mb-2 flex items-center justify-between">
                     <span class="text-sm font-semibold">Métodos de pago</span>
                     <el-button size="small" @click="store.addPago()"
@@ -305,35 +342,54 @@ async function registrar() {
 
             <!-- Totales -->
             <div class="flex justify-end">
-                <div class="text-right text-sm">
+                <div class="text-right text-sm tabular-nums">
                     <div v-if="informar.tipoPago === 1">
                         <b>Total cuotas:</b>
                         {{ formatNumber(store.totalCuotas) }}
                     </div>
-                    <div>
-                        <b>Total pagos:</b> {{ formatNumber(store.totalPagos) }}
-                    </div>
-                    <div v-if="store.saldoAplicado > 0">
-                        <b>Saldo a favor aplicado:</b>
-                        {{ formatNumber(store.saldoAplicado) }}
-                    </div>
-                    <div
-                        v-if="informar.tipoPago === 1"
-                        :class="
-                            diferencia >= 0 ? 'text-green-600' : 'text-red-600'
-                        "
-                    >
-                        <b
-                            >{{
-                                diferencia > 0
-                                    ? 'Excedente (queda como saldo a favor)'
-                                    : diferencia === 0
-                                      ? 'Diferencia'
-                                      : 'Faltante'
-                            }}:</b
+
+                    <template v-if="store.conSaldo">
+                        <div>
+                            <b>Saldo a favor disponible:</b>
+                            {{ formatNumber(store.saldoDisponible) }}
+                        </div>
+                        <div class="text-green-600">
+                            <b>Saldo que queda:</b>
+                            {{ formatNumber(store.saldoRestante) }}
+                        </div>
+                    </template>
+
+                    <template v-else>
+                        <div>
+                            <b>Total pagos:</b>
+                            {{ formatNumber(store.totalPagos) }}
+                        </div>
+                        <div
+                            v-if="informar.tipoPago === 1"
+                            :class="
+                                diferencia >= 0
+                                    ? 'text-green-600'
+                                    : 'text-destructive'
+                            "
                         >
-                        {{ formatNumber(Math.abs(diferencia)) }}
-                    </div>
+                            <b
+                                >{{
+                                    diferencia > 0
+                                        ? 'Excedente (queda como saldo a favor)'
+                                        : diferencia === 0
+                                          ? 'Diferencia'
+                                          : 'Faltan'
+                                }}:</b
+                            >
+                            {{ formatNumber(Math.abs(diferencia)) }}
+                        </div>
+                        <p
+                            v-if="informar.tipoPago === 1 && diferencia < 0"
+                            class="text-destructive text-xs"
+                        >
+                            El pago no puede ser menor que las cuotas elegidas.
+                        </p>
+                    </template>
                 </div>
             </div>
         </div>
@@ -346,7 +402,11 @@ async function registrar() {
                 :disabled="!puedeRegistrar"
                 @click="registrar"
             >
-                Registrar pago
+                {{
+                    store.conSaldo
+                        ? 'Pagar con saldo a favor'
+                        : 'Registrar pago'
+                }}
             </el-button>
         </template>
     </el-dialog>

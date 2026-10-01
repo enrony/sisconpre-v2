@@ -400,21 +400,35 @@ Reglas confirmadas con el usuario antes de implementar:
 - Al **aprobar** un informe se exige que sus préstamos sigan en curso y aprobados: no se aprueba un pago sobre
   un préstamo anulado o perdido entre medio. Aprobar/rechazar el préstamo también se limita a préstamos en
   curso. En la UI, las acciones de aprobación y de recargo se ocultan en préstamos finalizados.
-- **Saldo a favor dentro de "Informar un pago"** (sin método de pago nuevo): columna
-  `payment_reports.saldo_favor_aplicado`. Tope: lo disponible (saldo menos lo reservado por informes en curso)
-  y nunca más que el total de las cuotas elegidas. Pasa por la misma aprobación: al aprobar se descuenta con un
-  movimiento "Pago" (tipo 01, resta). Si el informe se rechaza, el saldo simplemente deja de estar reservado.
-  No suma a "monto recibido" en reportes porque no es dinero nuevo. El modal muestra el saldo disponible y lo
-  reservado, con un botón "Usar el máximo".
 - Validación agregada de paso: las cuotas informadas tienen que ser de préstamos **del mismo cliente** del
   informe; antes el backend no lo verificaba, y con saldo a favor eso habría permitido gastar el saldo de un
   cliente en cuotas de otro.
 
-**Tests:** `test_saldo_a_favor_y_cierre_automatico_del_prestamo`, `test_no_se_informan_cuotas_de_otro_cliente`,
-`test_anular_perdido_y_reactivar_prestamo`.
+**Pago de cuotas: dos modalidades, sin mezcla** (definidas por el usuario el 2026-10-01). Reemplaza el primer
+diseño de este mismo ítem, que permitía mezclar saldo y dinero con aprobación diferida:
 
-**Sigue pendiente (no era parte de este pedido):** "Informar un pago" acepta un **faltante** (pagos menores
-que las cuotas) y aun así, al aprobarse, marca todas las cuotas como pagadas.
+| Modalidad             | Regla                                                                                                                                  | Aprobación                                                                   |
+| --------------------- | -------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------- |
+| **Con dinero**        | Lo informado **no puede ser menor** que las cuotas elegidas (se cierra el hueco del "faltante"); el excedente queda como saldo a favor | Gestión normal (Pendiente → Aprobado/Rechazado)                              |
+| **Con saldo a favor** | Sin métodos de pago; las cuotas elegidas **no pueden superar** el saldo disponible                                                     | **Inmediata**: nace "Aprobado", cuotas pagadas y saldo descontado en el acto |
+
+- Backend: `PaymentReportService::verifiedImportes()` (los montos de las cuotas se toman de la BD, no del
+  front), `registerMovimientoInicial()` y `aprobarPagoConSaldo()`, que reusa `processReportPaymentAproved()`:
+  marca las cuotas, descuenta el saldo con un movimiento "Pago" (tipo 01) y cierra el préstamo si quedó saldado.
+  La aplicación queda guardada en `payment_reports.saldo_favor_aplicado` y no suma a "monto recibido" en los
+  reportes, porque no es dinero nuevo.
+- La aprobación inmediata la puede hacer quien tenga permiso para informar pagos: ese dinero ya se verificó
+  cuando entró como saldo a favor. La pantalla pide confirmación porque no se puede deshacer.
+- UI: selector "¿Cómo paga?" (solo si el cliente tiene saldo disponible). En modo saldo se ocultan los métodos de
+  pago y se bloquean las cuotas que ya no entran en el saldo; en modo dinero, el botón no se habilita mientras
+  falte plata. El destino "Saldo a favor" pasó a llamarse **"Abonar a saldo a favor"**, para no confundirlo con
+  pagar con saldo.
+- La reserva de saldo por informes en curso (`SaldoFavorService`) se mantiene como resguardo, aunque con
+  aprobación inmediata en la práctica queda en 0.
+
+**Tests:** `test_pago_con_dinero_no_puede_ser_menor_que_las_cuotas`,
+`test_pago_con_saldo_a_favor_y_cierre_automatico_del_prestamo`, `test_no_se_informan_cuotas_de_otro_cliente`,
+`test_anular_perdido_y_reactivar_prestamo`.
 
 ---
 
