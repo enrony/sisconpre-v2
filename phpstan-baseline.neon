@@ -391,26 +391,8 @@ parameters:
 			path: app/Http/Controllers/ClientesController.php
 
 		-
-			message: '#^Call to an undefined method App\\Models\\Clientes\|Illuminate\\Database\\Eloquent\\Collection\<int, App\\Models\\Clientes\>\:\:update\(\)\.$#'
-			identifier: method.notFound
-			count: 1
-			path: app/Http/Controllers/ClientesController.php
-
-		-
 			message: '#^Method App\\Http\\Controllers\\ClientesController\:\:actualizaCliente\(\) has no return type specified\.$#'
 			identifier: missingType.return
-			count: 1
-			path: app/Http/Controllers/ClientesController.php
-
-		-
-			message: '#^Method App\\Http\\Controllers\\ClientesController\:\:consultaPrestamos\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: app/Http/Controllers/ClientesController.php
-
-		-
-			message: '#^Method App\\Http\\Controllers\\ClientesController\:\:consultaPrestamos\(\) has parameter \$id_cliente with no type specified\.$#'
-			identifier: missingType.parameter
 			count: 1
 			path: app/Http/Controllers/ClientesController.php
 
@@ -446,12 +428,6 @@ parameters:
 
 		-
 			message: '#^Method App\\Http\\Controllers\\ClientesController\:\:index\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: app/Http/Controllers/ClientesController.php
-
-		-
-			message: '#^Method App\\Http\\Controllers\\ClientesController\:\:listaClientes2\(\) has no return type specified\.$#'
 			identifier: missingType.return
 			count: 1
 			path: app/Http/Controllers/ClientesController.php
@@ -507,12 +483,6 @@ parameters:
 		-
 			message: '#^Method App\\Http\\Controllers\\Controller\:\:obtenerGrupoTrabajo\(\) invoked with 1 parameter, 0 required\.$#'
 			identifier: arguments.count
-			count: 2
-			path: app/Http/Controllers/ClientesController.php
-
-		-
-			message: '#^Parameter \#1 \$id of method App\\Http\\Controllers\\Controller\:\:isSuperUsuario\(\) expects int, int\|string\|null given\.$#'
-			identifier: argument.type
 			count: 1
 			path: app/Http/Controllers/ClientesController.php
 
@@ -520,12 +490,6 @@ parameters:
 			message: '#^Relation ''city'' is not found in App\\Models\\Clientes model\.$#'
 			identifier: larastan.relationExistence
 			count: 1
-			path: app/Http/Controllers/ClientesController.php
-
-		-
-			message: '#^Unreachable statement \- code above always terminates\.$#'
-			identifier: deadCode.unreachable
-			count: 2
 			path: app/Http/Controllers/ClientesController.php
 
 		-
@@ -1300,12 +1264,6 @@ parameters:
 			message: '#^Access to an undefined property App\\Models\\PaymentReport\:\:\$support_image\.$#'
 			identifier: property.notFound
 			count: 1
-			path: app/Http/Controllers/PaymentReportController.php
-
-		-
-			message: '#^Access to an undefined property App\\Models\\PaymentReport\|Illuminate\\Database\\Eloquent\\Collection\<int, App\\Models\\PaymentReport\>\:\:\$selected_payment_reports\.$#'
-			identifier: property.notFound
-			count: 2
 			path: app/Http/Controllers/PaymentReportController.php
 
 		-

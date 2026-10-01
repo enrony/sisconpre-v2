@@ -4,6 +4,7 @@ namespace App\Actions\Fortify;
 
 use App\Concerns\PasswordValidationRules;
 use App\Concerns\ProfileValidationRules;
+use App\Models\Clientes;
 use App\Models\GruposTrabajo;
 use App\Models\GruposTrabajoUser;
 use App\Models\User;
@@ -60,6 +61,9 @@ class CreateNewUser implements CreatesNewUsers
             'estatus' => 1,
             'current_grupo' => 1,
         ]);
+
+        // Si ya es cliente (ficha con su email), entra viendo solo su cartera.
+        Clientes::vincularConUsuario($user);
 
         return $user;
     }

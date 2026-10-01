@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\PaymentReport;
 use App\Models\Prestamos;
+use App\Services\AlcanceCartera;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
@@ -38,6 +39,8 @@ class DashboardController extends Controller
     /** Meses de historial para la serie de desembolsos/cobros. */
     private const MESES_SERIE = 12;
 
+    public function __construct(private AlcanceCartera $alcance) {}
+
     public function index(): Response
     {
         $paisActivo = static::obtenerPaisActivo();
@@ -58,14 +61,14 @@ class DashboardController extends Controller
      */
     private function kpis(?string $paisActivo): array
     {
-        $cartera = Prestamos::query()
+        $cartera = $this->alcance->prestamos(Prestamos::query())
             ->where('estatus', self::ESTATUS_PENDIENTE)
             ->when($paisActivo, fn ($query, $pais) => $query->where('country_id', $pais))
             ->selectRaw('count(*) as cantidad, coalesce(sum(total), 0) as monto')
             ->first();
 
-        $vencidas = DB::table('prestamos_dias')
-            ->join('prestamos', 'prestamos.id', '=', 'prestamos_dias.prestamo_id')
+        $vencidas = $this->alcance->prestamos(DB::table('prestamos_dias')
+            ->join('prestamos', 'prestamos.id', '=', 'prestamos_dias.prestamo_id'))
             ->where('prestamos.estatus', self::ESTATUS_PENDIENTE)
             ->where('prestamos_dias.apply', true)
             ->where('prestamos_dias.pagado', false)
@@ -74,7 +77,7 @@ class DashboardController extends Controller
             ->selectRaw('count(*) as cantidad, coalesce(sum(prestamos_dias.cuota), 0) as monto')
             ->first();
 
-        $informesPorRevisar = PaymentReport::query()
+        $informesPorRevisar = $this->alcance->informes(PaymentReport::query())
             ->where('estatus', 1)
             ->whereIn('payment_reports_movements_estatus_id', self::ESTADOS_INFORME_SIN_RESOLVER)
             ->when(
@@ -110,7 +113,7 @@ class DashboardController extends Controller
     private function carteraPorEstado(?string $paisActivo): array
     {
         return array_values(
-            DB::table('prestamos')
+            $this->alcance->prestamos(DB::table('prestamos'))
                 ->join('prestamos_estatus', 'prestamos_estatus.id', '=', 'prestamos.estatus')
                 ->when($paisActivo, fn ($query, $pais) => $query->where('prestamos.country_id', $pais))
                 ->selectRaw('prestamos_estatus.id as estatus, prestamos_estatus.description as label, count(*) as cantidad')
@@ -143,15 +146,15 @@ class DashboardController extends Controller
         // sin ir arrastrando meses de una iteración a la siguiente.
         $desde = CarbonImmutable::now()->subMonths(self::MESES_SERIE - 1)->startOfMonth();
 
-        $desembolsos = Prestamos::query()
+        $desembolsos = $this->alcance->prestamos(Prestamos::query())
             ->where('created_at', '>=', $desde)
             ->when($paisActivo, fn ($query, $pais) => $query->where('country_id', $pais))
             ->selectRaw("date_format(created_at, '%Y-%m') as mes, coalesce(sum(monto_prestamo), 0) as monto")
             ->groupBy('mes')
             ->pluck('monto', 'mes');
 
-        $cobros = DB::table('prestamos_dias')
-            ->join('prestamos', 'prestamos.id', '=', 'prestamos_dias.prestamo_id')
+        $cobros = $this->alcance->prestamos(DB::table('prestamos_dias')
+            ->join('prestamos', 'prestamos.id', '=', 'prestamos_dias.prestamo_id'))
             ->where('prestamos_dias.apply', true)
             ->where('prestamos_dias.pagado', true)
             ->where('prestamos_dias.date', '>=', $desde->toDateString())

@@ -454,6 +454,46 @@ diseño de este mismo ítem, que permitía mezclar saldo y dinero con aprobació
 
 ---
 
+### 3.13 Alcance de la cartera por grupo / por cliente (2026-10-01)
+
+Previo a la pantalla de cuotas (§3.14), que la necesita. Al analizarla se encontró que **un usuario cliente ya
+podía ver los préstamos e informes de pago de todos los clientes de su país** (su rol tiene `prestamos.listar` y
+`payment_report.listar`, y los listados solo filtraban por país), además de la lista de clientes completa en
+los selectores. Decisiones del usuario: vínculo usuario↔cliente por email como vínculo fijo, alcance por
+permiso, y la misma regla en todas las pantallas.
+
+- **`App\Services\AlcanceCartera`**, una sola regla para todo:
+    - super-usuario → todo;
+    - `cartera.ver-grupo` → lo registrado por cualquier miembro de sus grupos de trabajo (uno o varios);
+    - usuario vinculado a una ficha → solo lo suyo;
+    - cualquier otro → nada.
+
+    Se suma al filtro por país que ya existía. Se aplica en: listado de préstamos y sus acciones (cartón,
+    aprobar, anular, perdido, reactivar, pausar recargo), alta de préstamo (el cliente tiene que estar en la
+    cartera), informes de pago (listado, detalle, gestión, informar un pago), clientes (listado, selectores,
+    ficha, edición, baja), saldo a favor, Dashboard y los dos reportes.
+
+- **Vínculo usuario↔cliente:** `clientes.user_id` (único, no asignable masivamente). La migración lo completó
+  por email cuando identifica a una sola ficha. Además se vincula solo al registrarse un usuario o al
+  crear/editar una ficha con su email, y a mano desde **Usuarios** (nueva columna "Cliente vinculado").
+- **Permiso `cartera.ver-grupo`:** la migración se lo asignó a "Prestamista V", "Prestamista S/V",
+  "Administrador" y "Super Usuario", para que el personal no pierda visibilidad al desplegar. Otros roles de
+  personal (p. ej. "Inversionista …") lo necesitan asignado a mano.
+- **Endpoints legados eliminados:** `listaClientes2` (devolvía _todos_ los clientes sin filtro) y
+  `consultaPrestamos` (tenía un `dd()` que volcaba datos). Ninguna pantalla los usaba.
+- **Bug de diseño corregido durante los tests:** el servicio se inyecta en controladores que Laravel cachea en
+  la ruta; con memoria por instancia, un segundo usuario en el mismo proceso heredaba el alcance del primero.
+  La memoria quedó atada al usuario autenticado.
+- **Corregido de paso:** el listado de informes no enviaba `saldo_favor_aplicado` (de §3.11), así que el
+  "+ X saldo" nunca se mostraba.
+- Burn-down: 7 entradas del baseline de PHPStan resueltas y eliminadas.
+
+**Tests:** `test_cliente_solo_ve_su_cartera`, `test_prestamista_ve_su_grupo_y_sin_alcance_no_ve_nada`,
+`test_vincular_ficha_de_cliente_desde_usuarios`; varios tests existentes ajustados porque usaban a la usuaria
+cliente como "usuario normal de Colombia" (ahora usan un prestamista temporal del grupo).
+
+---
+
 ## 4. No priorizado (queda en el backlog, sin fecha)
 
 - Guardar filtros aplicados (JSON por tipo).

@@ -13,6 +13,12 @@ interface UsuarioRow {
     email: string;
     roles: string[];
     paises: string[];
+    cliente_id: number | null;
+}
+
+interface ClienteOption {
+    id: number;
+    nombre: string;
 }
 
 interface PaisOption {
@@ -28,6 +34,9 @@ const usuarios = computed(
 const rolesDisponibles = computed(() => (page.props.roles ?? []) as string[]);
 const paisesDisponibles = computed(
     () => (page.props.paises ?? []) as PaisOption[],
+);
+const clientesDisponibles = computed(
+    () => (page.props.clientes ?? []) as ClienteOption[],
 );
 
 const puedeEditar = can('profile.editar');
@@ -51,11 +60,19 @@ onBeforeUnmount(() => clearTimeout(debounce));
 
 const guardando = ref<number | null>(null);
 
-function guardar(row: UsuarioRow, campo: 'roles' | 'paises', valor: string[]) {
+function guardar(
+    row: UsuarioRow,
+    campo: 'roles' | 'paises' | 'cliente_id',
+    valor: string[] | number | null | undefined | '',
+) {
     guardando.value = row.id;
     router.put(
         `/profile/usuarios/${row.id}`,
-        { [campo]: valor, page: usuarios.value?.current_page ?? 1 },
+        {
+            // Al limpiar el select llega vacío: se manda null para desvincular.
+            [campo]: valor === undefined || valor === '' ? null : valor,
+            page: usuarios.value?.current_page ?? 1,
+        },
         {
             preserveScroll: true,
             preserveState: true,
@@ -74,7 +91,7 @@ function guardar(row: UsuarioRow, campo: 'roles' | 'paises', valor: string[]) {
         <div class="mb-4 flex items-center justify-between">
             <Heading
                 title="Usuarios y roles"
-                description="Asigna roles, y en qué países puede cada usuario crear un grupo de trabajo nuevo"
+                description="Roles, países donde puede crear grupos y, si es cliente, su ficha"
             />
             <Link href="/profile">
                 <el-button text>Roles y permisos</el-button>
@@ -151,6 +168,28 @@ function guardar(row: UsuarioRow, campo: 'roles' | 'paises', valor: string[]) {
                             :key="p.id"
                             :label="p.Name"
                             :value="p.id"
+                        />
+                    </el-select>
+                    <p class="text-muted-foreground mt-2.5 text-xs">
+                        Ficha de cliente (ve solo sus préstamos y cuotas)
+                    </p>
+                    <el-select
+                        :model-value="(row as UsuarioRow).cliente_id"
+                        filterable
+                        clearable
+                        class="mt-1 w-full"
+                        :disabled="!puedeEditar"
+                        :loading="guardando === (row as UsuarioRow).id"
+                        placeholder="No es cliente"
+                        @change="
+                            guardar(row as UsuarioRow, 'cliente_id', $event)
+                        "
+                    >
+                        <el-option
+                            v-for="c in clientesDisponibles"
+                            :key="c.id"
+                            :label="c.nombre"
+                            :value="c.id"
                         />
                     </el-select>
                 </template>
@@ -249,6 +288,47 @@ function guardar(row: UsuarioRow, campo: 'roles' | 'paises', valor: string[]) {
                                         :key="p.id"
                                         :label="p.Name"
                                         :value="p.id"
+                                    />
+                                </el-select>
+                            </template>
+                        </el-table-column>
+                        <el-table-column min-width="240">
+                            <template #header>
+                                <span class="inline-flex items-center gap-1">
+                                    Cliente vinculado
+                                    <el-tooltip
+                                        content="Si el usuario es un cliente: su ficha. Con ella ve solo sus préstamos, cuotas e informes de pago."
+                                        placement="top"
+                                    >
+                                        <CircleHelp
+                                            class="text-muted-foreground size-3.5"
+                                        />
+                                    </el-tooltip>
+                                </span>
+                            </template>
+                            <template #default="{ row }">
+                                <el-select
+                                    :model-value="row.cliente_id"
+                                    filterable
+                                    clearable
+                                    size="small"
+                                    class="w-full"
+                                    :disabled="!puedeEditar"
+                                    :loading="guardando === row.id"
+                                    placeholder="No es cliente"
+                                    @change="
+                                        guardar(
+                                            row as UsuarioRow,
+                                            'cliente_id',
+                                            $event,
+                                        )
+                                    "
+                                >
+                                    <el-option
+                                        v-for="c in clientesDisponibles"
+                                        :key="c.id"
+                                        :label="c.nombre"
+                                        :value="c.id"
                                     />
                                 </el-select>
                             </template>

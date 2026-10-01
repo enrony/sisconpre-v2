@@ -6,6 +6,7 @@ use App\Http\Requests\StorePaymentReportRequest;
 use App\Http\Requests\UpdatePaymentReportRequest;
 use App\Models\PaymentReport;
 use App\Models\Prestamos;
+use App\Services\AlcanceCartera;
 use App\Services\PaymentReportService;
 use App\Services\SaldoFavorService;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
@@ -19,7 +20,8 @@ class PaymentReportController extends Controller
     private PaymentReportService $PaymentReportService;
 
     public function __construct(
-        PaymentReportService $PaymentReportService
+        PaymentReportService $PaymentReportService,
+        private AlcanceCartera $alcance,
     ) {
         $this->PaymentReportService = $PaymentReportService;
     }
@@ -52,7 +54,7 @@ class PaymentReportController extends Controller
         // ocultarlo (mismo criterio que el resto de la app: dato incompleto no
         // filtra, no oculta). Un informe puede además tocar cuotas de más de
         // un préstamo -> whereHas basta con que UNA coincida con el país activo.
-        $lista = $PaymentReport::lista($request, $PaymentReport)
+        $lista = $this->alcance->informes($PaymentReport::lista($request, $PaymentReport))
             ->when(
                 static::obtenerPaisActivo(),
                 fn ($query, $pais) => $query->where(
@@ -91,6 +93,7 @@ class PaymentReportController extends Controller
             'payment_report_id' => $r->payment_report_id,
             'motivo' => $r->motivo,
             'importe' => $r->importe,
+            'saldo_favor_aplicado' => (float) $r->saldo_favor_aplicado,
             'estatus' => $r->estatus,
             'payment_reports_movements_estatus_id' => $r->payment_reports_movements_estatus_id,
             'created' => optional($r->created_at)->format('Y-m-d H:i:s'),
@@ -133,6 +136,8 @@ class PaymentReportController extends Controller
      */
     public function saldoFavor(int $cliente, SaldoFavorService $saldos): array
     {
+        $this->alcance->exigirCliente($cliente);
+
         return $saldos->resumen($cliente);
     }
 
@@ -140,7 +145,8 @@ class PaymentReportController extends Controller
     {
 
         // 1 y 2. Eager loading anidado y manejador de fallos
-        $paymentReport = PaymentReport::with('selected_payment_reports.PrestamosDias')->findOrFail($id);
+        $paymentReport = PaymentReport::with('selected_payment_reports.PrestamosDias')->findOrFail((int) $id);
+        $this->alcance->exigirInforme($paymentReport);
 
         // 3. Uso directo de colecciones de Eloquent sin "collect()"
         $idPrestamos = $paymentReport->selected_payment_reports
@@ -203,6 +209,11 @@ class PaymentReportController extends Controller
             // Verificamos estado del documento por el cual se va a cambiar
             $this->PaymentReportService->verifiedCurrentStatus();
 
+            // Solo se gestionan informes de la propia cartera
+            if (! $this->alcance->puedeVerInforme($this->PaymentReportService->PaymentReport)) {
+                throw new \Exception('Este informe de pago no pertenece a su cartera.');
+            }
+
             // Obtiene los datos del reporte de pago seleccionado
             $this->PaymentReportService->changeStatePaymentReport();
 
@@ -235,6 +246,11 @@ class PaymentReportController extends Controller
 
             // Parseamos la data recibida desde el Front
             $this->PaymentReportService->parseaRequest($request);
+
+            // Solo se informan pagos de clientes de la propia cartera (un cliente, solo los suyos)
+            if (! $this->alcance->puedeVerCliente((int) ($this->PaymentReportService->data['cliente']['id'] ?? 0))) {
+                throw new \Exception('Este cliente no pertenece a su cartera.');
+            }
 
             // Bloquea informar pago sobre cuotas ya pagadas o reservadas por otro informe en curso
             $this->PaymentReportService->verifiedCuotasDisponibles();
@@ -326,6 +342,7 @@ class PaymentReportController extends Controller
 
     public function obtenerReportPaymentActivos(PaymentReport $PaymentReport, $cliente)
     {
+        $this->alcance->exigirCliente((int) $cliente);
 
         $table = 'payment_reports';
 

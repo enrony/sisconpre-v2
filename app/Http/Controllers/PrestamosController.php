@@ -8,6 +8,7 @@ use App\Models\Prestamos;
 use App\Models\PrestamosDias;
 use App\Models\PrestamosEstatu;
 use App\Models\TipoPrestamo;
+use App\Services\AlcanceCartera;
 use App\Services\PrestamoEstadoService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
@@ -21,6 +22,8 @@ use Inertia;
 
 class PrestamosController extends Controller
 {
+    public function __construct(private AlcanceCartera $alcance) {}
+
     /**
      * Display a listing of the resource.
      *
@@ -48,7 +51,7 @@ class PrestamosController extends Controller
      */
     public function records(Request $request, Prestamos $Prestamos): array
     {
-        $lista = Prestamos::lista($request, $Prestamos)
+        $lista = $this->alcance->prestamos(Prestamos::lista($request, $Prestamos))
             ->when(
                 static::obtenerPaisActivo(),
                 fn ($query, $paisActivo) => $query->where('prestamos.country_id', $paisActivo),
@@ -148,6 +151,9 @@ class PrestamosController extends Controller
 
         $data = $request->all();
         $data['cliente'] = $data['clienteSelected'];
+        // El cliente del préstamo es el de la ficha elegida (y tiene que ser de la cartera de quien registra).
+        $data['cliente_id'] = (int) ($data['clienteSelected']['id'] ?? 0);
+        $this->alcance->exigirCliente($data['cliente_id']);
         $data['form'] = null;
 
         $GruposTrabajoUser = $this->obtenerGrupoTrabajo();
@@ -252,6 +258,8 @@ class PrestamosController extends Controller
 
     public function obtenerPrestamosActivos(Prestamos $prestamos, $cliente)
     {
+        $this->alcance->exigirCliente((int) $cliente);
+
         return $this->transformData($prestamos->with(['prestamos_dias' => function ($prestamos) {
             $prestamos->with(['pendientesPago']);
         }])->select('*', 'created_at as created')->PrestamoActivo($cliente)->get());
@@ -265,6 +273,8 @@ class PrestamosController extends Controller
      */
     public function imprimirCarton(Prestamos $prestamo): Response
     {
+        $this->alcance->exigirPrestamo($prestamo);
+
         $prestamo->load([
             'datoCliente',
             'p_estatus',
@@ -329,6 +339,8 @@ class PrestamosController extends Controller
      */
     private function cambiarAprobacion(Prestamos $prestamo, int $aprobacion, string $mensaje): array
     {
+        $this->alcance->exigirPrestamo($prestamo);
+
         if ((int) $prestamo->estatus !== Prestamos::ESTATUS_PENDIENTE) {
             return [
                 'success' => false,
@@ -350,6 +362,7 @@ class PrestamosController extends Controller
     /** @return array{success: bool, message: string} */
     public function anular(Request $request, Prestamos $prestamo, PrestamoEstadoService $estados): array
     {
+        $this->alcance->exigirPrestamo($prestamo);
         $motivo = $this->motivoRequerido($request);
 
         return $this->cambiarEstado(fn () => $estados->anular($prestamo, $motivo), 'Préstamo anulado');
@@ -358,6 +371,7 @@ class PrestamosController extends Controller
     /** @return array{success: bool, message: string} */
     public function marcarPerdido(Request $request, Prestamos $prestamo, PrestamoEstadoService $estados): array
     {
+        $this->alcance->exigirPrestamo($prestamo);
         $motivo = $this->motivoRequerido($request);
 
         return $this->cambiarEstado(fn () => $estados->marcarPerdido($prestamo, $motivo), 'Préstamo marcado como perdido');
@@ -366,6 +380,7 @@ class PrestamosController extends Controller
     /** @return array{success: bool, message: string} */
     public function reactivar(Request $request, Prestamos $prestamo, PrestamoEstadoService $estados): array
     {
+        $this->alcance->exigirPrestamo($prestamo);
         $request->validate(['motivo' => ['nullable', 'string', 'max:500']]);
         $motivo = $request->filled('motivo') ? $request->string('motivo')->trim()->toString() : null;
 
@@ -400,6 +415,7 @@ class PrestamosController extends Controller
      */
     public function togglePausaRecargo(Prestamos $prestamo)
     {
+        $this->alcance->exigirPrestamo($prestamo);
         $prestamo->pause_surcharge = ! $prestamo->pause_surcharge;
         $prestamo->save();
 

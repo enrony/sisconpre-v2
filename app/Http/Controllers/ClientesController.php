@@ -6,7 +6,7 @@ use App\Models\City;
 use App\Models\Clientes;
 use App\Models\Country;
 use App\Models\Department;
-use App\Models\Prestamos;
+use App\Services\AlcanceCartera;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
@@ -17,26 +17,21 @@ use stdClass;
 
 class ClientesController extends Controller
 {
+    public function __construct(private AlcanceCartera $alcance) {}
+
     /**
-     * Listado de clientes (Inertia). Filtra por grupo de trabajo salvo super
-     * usuario. Usa el query builder (sin los `$appends` del modelo, que
+     * Listado de clientes (Inertia), acotado a la cartera del usuario
+     * (`AlcanceCartera`). Usa el query builder (sin los `$appends` del modelo, que
      * disparan N+1 y fallan si falta la ciudad) — la pantalla solo necesita
      * los campos de despliegue.
      */
     public function index(Request $request)
     {
-        $GruposTrabajoUser = $this->obtenerGrupoTrabajo($request);
-        $su = $this->isSuperUsuario($request->user()->id);
-
-        $lista = DB::table('clientes as c')
+        $query = DB::table('clientes as c')
             ->join('tipos_documentos as td', 'td.id', '=', 'c.idtipo_documento')
-            ->join('grupos_trabajos_users as gtu', function ($j) use ($GruposTrabajoUser, $su) {
-                $j->on('gtu.id', '=', 'c.grupos_trabajos_user_id');
-                if (! $su) {
-                    $j->where('gtu.idgrupo_trabajo', $GruposTrabajoUser->idgrupo_trabajo);
-                }
-            })
-            ->where('c.estatus', 1)
+            ->where('c.estatus', 1);
+
+        $lista = $this->alcance->clientes($query, 'c')
             ->when($request->term, function ($q, $term) {
                 $q->where(function ($w) use ($term) {
                     $w->where('c.nombre', 'like', '%'.$term.'%')
@@ -60,37 +55,22 @@ class ClientesController extends Controller
 
     public function listaClientesJson(Clientes $clientes)
     {
-
-        $GruposTrabajoUser = $this->obtenerGrupoTrabajo();
-        $su = $this->isSuperUsuario(auth()->user()->id);
-
-        $clien = $clientes::selectRaw('clientes.id, clientes.documento, clientes.nombre, clientes.nombre_segundo, clientes.apellido, clientes.apellido_segundo, clientes.telefono, clientes.direccion, clientes.grupos_trabajos_user_id, clientes.idtipo_documento, clientes.email, clientes.city_id, clientes.email_verified_at, clientes.created_at as created_at, td.sigla')
+        $query = $clientes::selectRaw('clientes.id, clientes.documento, clientes.nombre, clientes.nombre_segundo, clientes.apellido, clientes.apellido_segundo, clientes.telefono, clientes.direccion, clientes.grupos_trabajos_user_id, clientes.idtipo_documento, clientes.email, clientes.city_id, clientes.email_verified_at, clientes.created_at as created_at, td.sigla')
             ->join('tipos_documentos as td', function ($join) {
                 $join->on('td.id', '=', 'clientes.idtipo_documento');
-            })
-            ->join('grupos_trabajos_users', function ($j) use ($GruposTrabajoUser, $su) {
-                $j->on('grupos_trabajos_users.id', '=', 'clientes.grupos_trabajos_user_id');
-                if (! $su) {
-                    $j->where('grupos_trabajos_users.idgrupo_trabajo', $GruposTrabajoUser->idgrupo_trabajo);
-                }
-            })->orderBy('clientes.nombre')->get();
+            });
+
+        $clien = $this->alcance->clientes($query)->orderBy('clientes.nombre')->get();
 
         return compact('clien');
     }
 
     public function listaClientesJsonBasic(Request $request, Clientes $clientes)
     {
-        $gruposTrabajoUser = $this->obtenerGrupoTrabajo();
-        $esSuperUsuario = $this->isSuperUsuario(auth()->id());
+        $query = $clientes::selectRaw('clientes.id, clientes.documento, clientes.nombre, clientes.nombre_segundo, clientes.apellido, clientes.apellido_segundo, clientes.telefono, clientes.direccion, clientes.grupos_trabajos_user_id, clientes.idtipo_documento, clientes.email, clientes.city_id, clientes.email_verified_at, clientes.created_at as created_at, td.sigla')
+            ->join('tipos_documentos as td', 'td.id', '=', 'clientes.idtipo_documento');
 
-        $clien = $clientes::selectRaw('clientes.id, clientes.documento, clientes.nombre, clientes.nombre_segundo, clientes.apellido, clientes.apellido_segundo, clientes.telefono, clientes.direccion, clientes.grupos_trabajos_user_id, clientes.idtipo_documento, clientes.email, clientes.city_id, clientes.email_verified_at, clientes.created_at as created_at, td.sigla')
-            ->join('tipos_documentos as td', 'td.id', '=', 'clientes.idtipo_documento')
-            ->join('grupos_trabajos_users as gtu', function ($join) use ($gruposTrabajoUser, $esSuperUsuario) {
-                $join->on('gtu.id', '=', 'clientes.grupos_trabajos_user_id');
-                if (! $esSuperUsuario) {
-                    $join->where('gtu.idgrupo_trabajo', $gruposTrabajoUser->idgrupo_trabajo);
-                }
-            })
+        $clien = $this->alcance->clientes($query)
             ->when($request->filled('cliente'), function ($query) use ($request) {
                 $cliente = '%'.$request->input('cliente').'%';
                 $query->where(function ($q) use ($cliente) {
@@ -105,20 +85,6 @@ class ClientesController extends Controller
             ->map(fn ($cli) => collect($cli)->except(['informes_pandientes_activos', 'pretamos']));
 
         return compact('clien');
-    }
-
-    public function listaClientes2(Clientes $clientes)
-    {
-        //
-        return $clientes::get();
-        // return Inertia\Inertia::render('Clientes');
-
-        return Inertia\Inertia::render(
-            'Clientes',
-            [
-                'lista' => $clientes->latest()->get(),
-            ]
-        );
     }
 
     public function actualizaCliente(Request $request, Clientes $clientes)
@@ -187,7 +153,10 @@ class ClientesController extends Controller
         // $dCliente = $clientes::find($request->id);
         if ($request->has('id') && $request->input('id') > 0) {
             $id = $request->input('id');
-            Clientes::find($request->input('id'))->update($request->all());
+            $this->alcance->exigirCliente((int) $id);
+            $cliente = Clientes::findOrFail((int) $id);
+            $cliente->update($request->all());
+            $cliente->vincularUsuarioPorEmail();
             if (! $request->otherForm) {
                 session()->flash('flash.message', 'Registro actualizado!');
             }
@@ -196,6 +165,7 @@ class ClientesController extends Controller
             $GruposTrabajoUser = $this->obtenerGrupoTrabajo($request);
             $request['grupos_trabajos_user_id'] = $GruposTrabajoUser->id;
             $new = Clientes::create($request->all());
+            $new->vincularUsuarioPorEmail();
             $id = $new->id;
             if (! $request->otherForm) {
                 session()->flash('flash.message', 'Registro creado!');
@@ -211,17 +181,6 @@ class ClientesController extends Controller
                 'id' => $id,
             ];
         }
-    }
-
-    public function consultaPrestamos(Request $request, Clientes $clientes, $id_cliente)
-    {
-        $clientes = $clientes->find($id_cliente);
-        // dd($clientes);
-
-        $prestamos = Prestamos::Cliente($id_cliente);
-        dd($prestamos);
-
-        return compact('exito');
     }
 
     /**
@@ -256,6 +215,7 @@ class ClientesController extends Controller
 
     public function record(Clientes $clientes, $id)
     {
+        $this->alcance->exigirCliente((int) $id);
         $record = $clientes->with(['city'])->findOrFail($id);
 
         return compact('record');
@@ -286,6 +246,7 @@ class ClientesController extends Controller
      */
     public function destroy(Clientes $clientes, $id, $page)
     {
+        $this->alcance->exigirCliente((int) $id);
         $clientes->findOrFail($id)->forceFill(['estatus' => 0])->save();
         session()->flash('flash.type', 'success');
         session()->flash('flash.message', 'Registro eliminado!');

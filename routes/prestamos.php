@@ -17,10 +17,8 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::prefix('/user')->middleware(['auth', 'verified'])->group(function () {
-    Route::post('/lista-clientes', [ClientesController::class, 'listaClientes2']);
     Route::put('/actualizaCliente', [ClientesController::class, 'actualizaCliente'])
         ->middleware('permission:clientes.registrar|clientes.editar');
-    Route::get('/consultaPrestamos/{id_cliente}', [ClientesController::class, 'consultaPrestamos']);
 });
 
 Route::prefix('/prestamos')->middleware(['auth'])->group(function () {

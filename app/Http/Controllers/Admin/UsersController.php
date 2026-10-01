@@ -3,11 +3,13 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Clientes;
 use App\Models\Country;
 use App\Models\User;
 use App\Models\UserCountry;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Redirect;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -25,6 +27,9 @@ class UsersController extends Controller
 {
     public function index(Request $request): Response
     {
+        // Ficha de cliente vinculada a cada usuario (ver AlcanceCartera).
+        $clientePorUsuario = DB::table('clientes')->whereNotNull('user_id')->pluck('id', 'user_id');
+
         $usuarios = User::query()
             ->select('id', 'name', 'email')
             ->with(['roles:id,name', 'ownedUserCountry:id,user_id,country_id'])
@@ -43,12 +48,18 @@ class UsersController extends Controller
                 'email' => $u->email,
                 'roles' => $u->roles->pluck('name')->values(),
                 'paises' => $u->ownedUserCountry->pluck('country_id')->values(),
+                'cliente_id' => isset($clientePorUsuario[$u->id]) ? (int) $clientePorUsuario[$u->id] : null,
             ]);
 
         return Inertia::render('admin/Usuarios', [
             'usuarios' => $usuarios,
             'roles' => Role::orderBy('name')->pluck('name'),
             'paises' => Country::where('estatus', 1)->orderBy('Name')->get(['id', 'Name']),
+            'clientes' => DB::table('clientes')
+                ->where('estatus', 1)
+                ->orderBy('nombre')
+                ->selectRaw("id, concat_ws(' ', nombre, apellido, concat('(', documento, ')')) as nombre")
+                ->get(),
             'messages' => __('messages'),
         ]);
     }
@@ -60,7 +71,21 @@ class UsersController extends Controller
             'roles.*' => ['string', 'exists:roles,name'],
             'paises' => ['sometimes', 'array'],
             'paises.*' => ['string', 'exists:countries,id'],
+            'cliente_id' => ['sometimes', 'nullable', 'integer', 'exists:clientes,id'],
         ]);
+
+        if (array_key_exists('cliente_id', $data)) {
+            // Un usuario tiene a lo sumo una ficha, y una ficha a lo sumo un usuario.
+            DB::transaction(function () use ($user, $data): void {
+                Clientes::where('user_id', $user->id)->update(['user_id' => null]);
+
+                if ($data['cliente_id']) {
+                    Clientes::whereKey($data['cliente_id'])->update(['user_id' => $user->id]);
+                }
+            });
+
+            $mensaje = $data['cliente_id'] ? 'Cliente vinculado.' : 'Cliente desvinculado.';
+        }
 
         if (array_key_exists('roles', $data)) {
             $user->syncRoles($data['roles']);

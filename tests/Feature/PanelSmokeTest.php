@@ -7,6 +7,7 @@ use App\Http\Controllers\ReporteInformesPagoController;
 use App\Http\Controllers\ReportePrestamosController;
 use App\Models\Prestamos;
 use App\Models\User;
+use App\Services\AlcanceCartera;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -48,6 +49,44 @@ class PanelSmokeTest extends TestCase
     private function cliente(): User
     {
         return User::where('email', 'ruiztovarmariaeugenia@gmail.com')->firstOrFail();
+    }
+
+    private ?User $prestamistaTemporal = null;
+
+    /**
+     * Prestamista ("Prestamista V", con `cartera.ver-grupo`) del grupo 1, el
+     * mismo de los datos importados. Se crea por test y se borra en tearDown.
+     */
+    private function prestamista(): User
+    {
+        if ($this->prestamistaTemporal) {
+            return $this->prestamistaTemporal;
+        }
+
+        $u = User::create([
+            'name' => 'Prestamista QA',
+            'email' => 'prestamista.qa.'.uniqid().'@test.local',
+            'password' => 'secreto-qa-123',
+        ]);
+        $u->assignRole('Prestamista V');
+        DB::table('grupos_trabajos_users')->insert([
+            'iduser' => $u->id, 'idgrupo_trabajo' => 1, 'estatus' => 1, 'current_grupo' => 1,
+            'created_at' => now(), 'updated_at' => now(),
+        ]);
+
+        return $this->prestamistaTemporal = $u;
+    }
+
+    protected function tearDown(): void
+    {
+        if ($this->prestamistaTemporal) {
+            DB::table('grupos_trabajos_users')->where('iduser', $this->prestamistaTemporal->id)->delete();
+            $this->prestamistaTemporal->roles()->detach();
+            $this->prestamistaTemporal->delete();
+            $this->prestamistaTemporal = null;
+        }
+
+        parent::tearDown();
     }
 
     /**
@@ -149,7 +188,8 @@ class PanelSmokeTest extends TestCase
      */
     public function test_prestamos_store_fuerza_pais_del_grupo_activo(): void
     {
-        $cliente = DB::table('clientes')->first();
+        // Un cliente solo registra préstamos a su propio nombre (AlcanceCartera).
+        $cliente = DB::table('clientes')->where('user_id', $this->cliente()->id)->first();
         $this->assertNotNull($cliente);
 
         $antes = DB::table('prestamos')->count();
@@ -179,10 +219,91 @@ class PanelSmokeTest extends TestCase
         DB::table('prestamos')->where('id', $prestamo->id)->delete();
     }
 
+    /** Un cliente ve y opera solo su propia cartera, en todas las pantallas y endpoints. */
+    public function test_cliente_solo_ve_su_cartera(): void
+    {
+        $cliente = $this->cliente(); // ficha 2
+        $prestamoAjeno = DB::table('prestamos')->where('cliente_id', 1)->value('id');
+        $informeAjeno = DB::table('payment_reports')->where('cliente_id', '!=', 2)->value('id');
+
+        $prestamos = collect($this->actingAs($cliente)->postJson('/prestamos/records')->json('lista.data'));
+        $this->assertNotEmpty($prestamos);
+        $this->assertSame([2], $prestamos->pluck('cliente_id')->unique()->values()->all());
+
+        $selector = collect($this->actingAs($cliente)->getJson('/clientes/lista-clientes-json-basic')->json('clien'));
+        $this->assertSame([2], $selector->pluck('id')->all());
+
+        $this->actingAs($cliente)->getJson('/prestamos/obtenerPrestamosActivos/1')->assertForbidden();
+        $this->actingAs($cliente)->getJson('/clientes/1/saldo-favor')->assertForbidden();
+        $this->actingAs($cliente)->getJson('/payment_report/obtenerReportPaymentActivos/1')->assertForbidden();
+        $this->actingAs($cliente)->getJson("/payment_report/record/{$informeAjeno}")->assertForbidden();
+        $this->actingAs($cliente)->get("/prestamos/{$prestamoAjeno}/carton")->assertForbidden();
+
+        $res = $this->actingAs($cliente)->postJson('/payment_report', ['data' => json_encode([
+            'cliente' => (array) DB::table('clientes')->where('id', 1)->first(),
+            'tipoPago' => 2,
+            'cuotas' => [],
+            'dataPayments' => [['payment_method_id' => 1, 'valor_importe' => 1000, 'support_image' => []]],
+        ])]);
+        $res->assertJson(['success' => false]);
+        $this->assertStringContainsString('no pertenece a su cartera', $res->json('message'));
+
+        // Dashboard: la cartera activa es la suya (en su país activo, COL).
+        $kpis = null;
+        $this->actingAs($cliente)->get('/dashboard')->assertInertia(function ($page) use (&$kpis) {
+            $kpis = $page->toArray()['props']['kpis'];
+        });
+        $this->assertSame(
+            DB::table('prestamos')->where('cliente_id', 2)->where('country_id', 'COL')->where('estatus', Prestamos::ESTATUS_PENDIENTE)->count(),
+            $kpis['cartera_activa']['cantidad'],
+        );
+    }
+
+    /** El prestamista ve lo de su grupo (y su país); un usuario sin grupo ni ficha no ve nada. */
+    public function test_prestamista_ve_su_grupo_y_sin_alcance_no_ve_nada(): void
+    {
+        $esperado = DB::table('prestamos')
+            ->where('country_id', 'COL')
+            ->whereIn('grupos_trabajos_user_id', DB::table('grupos_trabajos_users')->where('idgrupo_trabajo', 1)->pluck('id'))
+            ->count();
+
+        $total = $this->actingAs($this->prestamista())->postJson('/prestamos/records')->json('lista.total');
+        $this->assertSame($esperado, $total);
+
+        $sinAlcance = User::create(['name' => 'Sin alcance QA', 'email' => 'sin.alcance.'.uniqid().'@test.local', 'password' => 'secreto-qa-123']);
+
+        try {
+            $this->actingAs($sinAlcance);
+            $alcance = app(AlcanceCartera::class);
+            $this->assertSame(AlcanceCartera::NADA, $alcance->tipo());
+            $this->assertSame(0, $alcance->prestamos(Prestamos::query())->count());
+        } finally {
+            $sinAlcance->delete();
+        }
+    }
+
+    /** Vincular / desvincular a mano la ficha de cliente de un usuario (pantalla Usuarios). */
+    public function test_vincular_ficha_de_cliente_desde_usuarios(): void
+    {
+        $usuario = $this->prestamista();
+        $ficha = (int) DB::table('clientes')->whereNull('user_id')->value('id');
+        $this->assertGreaterThan(0, $ficha);
+
+        try {
+            $this->actingAs($this->super())->put("/profile/usuarios/{$usuario->id}", ['cliente_id' => $ficha])->assertRedirect();
+            $this->assertSame($usuario->id, (int) DB::table('clientes')->where('id', $ficha)->value('user_id'));
+
+            $this->actingAs($this->super())->put("/profile/usuarios/{$usuario->id}", ['cliente_id' => null])->assertRedirect();
+            $this->assertNull(DB::table('clientes')->where('id', $ficha)->value('user_id'));
+        } finally {
+            DB::table('clientes')->where('id', $ficha)->update(['user_id' => null]);
+        }
+    }
+
     /** Todo préstamo nace "Pendiente de aprobación" — no puede recibir un pago informado. */
     public function test_prestamo_nuevo_nace_pendiente_de_aprobacion(): void
     {
-        $cliente = DB::table('clientes')->first();
+        $cliente = DB::table('clientes')->where('user_id', $this->cliente()->id)->first();
         $this->assertNotNull($cliente);
 
         $this->actingAs($this->cliente())->put('/prestamos', [
@@ -593,12 +714,12 @@ class PanelSmokeTest extends TestCase
             collect($resTodos->json('lista.data'))->pluck('pais')->unique()->count(),
         );
 
-        // "Cliente Verficado" no tiene el permiso del reporte (ver gate arriba);
-        // se llama al controlador directo para probar igual el filtro de país,
-        // ignorando el ?pais= que se le pase.
-        $this->actingAs($this->cliente());
+        // Un prestamista sin el permiso del reporte: se llama al controlador
+        // directo para probar igual el filtro de país (su país activo manda,
+        // se ignora el ?pais= que se le pase).
+        $this->actingAs($this->prestamista());
         $req = Request::create('/reporte_prestamos/records', 'GET', ['pais' => 'VEN']);
-        $lista = (new ReportePrestamosController)->records($req)['lista'];
+        $lista = app(ReportePrestamosController::class)->records($req)['lista'];
         $this->assertNotEmpty($lista->items());
         $this->assertSame(['Colombia'], collect($lista->items())->pluck('pais')->unique()->values()->all());
     }
@@ -710,9 +831,9 @@ class PanelSmokeTest extends TestCase
         $resSuper->assertOk();
         $this->assertSame(16, $resSuper->json('lista.total'));
 
-        $this->actingAs($this->cliente());
+        $this->actingAs($this->prestamista());
         $req = Request::create('/reporte_informes_pago/records', 'GET', ['pais' => 'VEN']);
-        $lista = (new ReporteInformesPagoController)->records($req)['lista'];
+        $lista = app(ReporteInformesPagoController::class)->records($req)['lista'];
         $this->assertSame(12, $lista->total());
         $this->assertNotContains('Venezuela', collect($lista->items())->pluck('pais')->unique()->all());
 
@@ -801,12 +922,16 @@ class PanelSmokeTest extends TestCase
         $this->assertSame(0, (int) DB::table('prestamos')->where('id', $id)->value('pause_surcharge'));
     }
 
-    /** PDF del cartón de pagos: gateado igual que el resto de `/prestamos` (`prestamos.listar`). */
+    /** PDF del cartón de pagos: el cliente imprime el suyo, no el de otro cliente. */
     public function test_prestamos_imprimir_carton(): void
     {
-        $id = DB::table('prestamos')
-            ->whereExists(fn ($q) => $q->select(DB::raw(1))->from('prestamos_dias')->whereColumn('prestamos_dias.prestamo_id', 'prestamos.id'))
-            ->value('id');
+        $conCuotas = fn ($q) => $q->select(DB::raw(1))->from('prestamos_dias')->whereColumn('prestamos_dias.prestamo_id', 'prestamos.id');
+        $id = DB::table('prestamos')->where('cliente_id', 2)->whereExists($conCuotas)->value('id');
+        $ajeno = DB::table('prestamos')->where('cliente_id', '!=', 2)->whereExists($conCuotas)->value('id');
+        $this->assertNotNull($id);
+        $this->assertNotNull($ajeno);
+
+        $this->actingAs($this->cliente())->get("/prestamos/{$ajeno}/carton")->assertForbidden();
 
         $pdf = $this->actingAs($this->cliente())->get("/prestamos/{$id}/carton");
         $pdf->assertOk();
@@ -874,9 +999,16 @@ class PanelSmokeTest extends TestCase
             ->getJson('/payment_report/records')->json('lista.total');
         $this->assertSame(16, $totalSuper);
 
-        $totalCliente = $this->actingAs($this->cliente())
+        // Prestamista de Colombia: lo de su grupo, filtrado por su país activo.
+        $totalPrestamista = $this->actingAs($this->prestamista())
             ->getJson('/payment_report/records')->json('lista.total');
-        $this->assertSame(12, $totalCliente);
+        $this->assertSame(12, $totalPrestamista);
+
+        // Cliente: solo sus propios informes.
+        $filasCliente = collect($this->actingAs($this->cliente())
+            ->getJson('/payment_report/records')->json('lista.data'));
+        $this->assertNotEmpty($filasCliente);
+        $this->assertSame([2], $filasCliente->pluck('cliente_id')->unique()->values()->all());
     }
 
     /** Detalle de un informe: préstamos informados + cuotas con `p_seleccionado`. */

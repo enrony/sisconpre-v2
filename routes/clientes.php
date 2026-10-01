@@ -22,7 +22,6 @@ Route::prefix('/clientes')->middleware(['auth', 'verified'])->group(function () 
         ->middleware('permission:clientes.registrar|clientes.editar');
     Route::delete('/{id}/{page}', [ClientesController::class, 'destroy'])
         ->middleware('permission:clientes.eliminar');
-    Route::post('/lista-clientes', [ClientesController::class, 'listaClientes2']);
     Route::get('/record/{id}', [ClientesController::class, 'record']);
     // `/clientes/tables`, `/clientes/lista-clientes-json[-basic]` viven en
     // routes/shared.php (los consumen Préstamos e Informes de pago, no solo Clientes).

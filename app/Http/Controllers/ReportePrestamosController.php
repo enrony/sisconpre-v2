@@ -7,6 +7,7 @@ use App\Models\GruposTrabajo;
 use App\Models\GruposTrabajoUser;
 use App\Models\Prestamos;
 use App\Models\PrestamosEstatu;
+use App\Services\AlcanceCartera;
 use Carbon\Carbon;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
@@ -23,6 +24,8 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
  */
 class ReportePrestamosController extends Controller
 {
+    public function __construct(private AlcanceCartera $alcance) {}
+
     use ExportsReport;
 
     /**
@@ -69,7 +72,7 @@ class ReportePrestamosController extends Controller
 
         $paisActivo = static::obtenerPaisActivo();
 
-        return Prestamos::query()
+        return $this->alcance->prestamos(Prestamos::query())
             ->when($paisActivo, fn ($q, $pais) => $q->where('prestamos.country_id', $pais))
             ->when(! $paisActivo && $request->filled('pais'), fn ($q) => $q->where('prestamos.country_id', $request->pais))
             ->when($request->filled(['fecha_registro1', 'fecha_registro2']), function ($q) use ($request) {

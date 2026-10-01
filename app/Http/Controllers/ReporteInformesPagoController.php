@@ -6,6 +6,7 @@ use App\Http\Controllers\Concerns\ExportsReport;
 use App\Models\GruposTrabajo;
 use App\Models\GruposTrabajoUser;
 use App\Models\PaymentReport;
+use App\Services\AlcanceCartera;
 use Carbon\Carbon;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
@@ -23,6 +24,8 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
  */
 class ReporteInformesPagoController extends Controller
 {
+    public function __construct(private AlcanceCartera $alcance) {}
+
     use ExportsReport;
 
     /**
@@ -80,7 +83,7 @@ class ReporteInformesPagoController extends Controller
                 ),
         );
 
-        return PaymentReport::query()
+        return $this->alcance->informes(PaymentReport::query())
             ->where('payment_reports.estatus', 1)
             ->when($paisActivo, $porPais)
             ->when(! $paisActivo && $request->filled('pais'), fn ($q) => $porPais($q, $request->string('pais')->toString()))
