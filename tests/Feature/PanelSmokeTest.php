@@ -385,8 +385,61 @@ class PanelSmokeTest extends TestCase
             $this->informarPago(1, [[$cuota, 50000]], 60000)->assertJson(['success' => true]);
             $informe = DB::table('payment_reports')->orderByDesc('id')->first();
             $this->assertSame(10000.0, (float) $informe->importe);
-            $this->assertNull($informe->payment_reports_movements_estatus_id); // queda pendiente de gestión
+            $this->assertSame(1, (int) $informe->payment_reports_movements_estatus_id); // Pendiente: lo cuenta el KPI
         } finally {
+            $this->borrarPrestamoConInformes($prestamoId);
+        }
+    }
+
+    /** El KPI "Informes por revisar" lleva al listado filtrado por Pendiente/En revisión: tienen que coincidir. */
+    public function test_kpi_informes_por_revisar_coincide_con_el_listado(): void
+    {
+        foreach ([$this->super(), $this->cliente()] as $usuario) {
+            $kpi = null;
+            $this->actingAs($usuario)->get('/dashboard')->assertInertia(function ($page) use (&$kpi) {
+                $kpi = $page->toArray()['props']['kpis']['informes_por_revisar'];
+            });
+
+            $listado = $this->actingAs($usuario)->getJson('/payment_report/records?estados=1,4')->json('lista.total');
+
+            $this->assertSame($kpi, $listado, "Usuario {$usuario->email}");
+        }
+    }
+
+    /** Rechazar un pago exige motivo y soporte, también llamando directo al endpoint. */
+    public function test_rechazar_pago_exige_motivo_y_soporte(): void
+    {
+        Storage::fake('supports_change_estatus_report');
+        $prestamoId = $this->crearPrestamo(1, [50000]);
+        $cuota = (int) DB::table('prestamos_dias')->where('prestamo_id', $prestamoId)->value('id');
+
+        try {
+            $this->informarPago(1, [[$cuota, 50000]], 50000)->assertJson(['success' => true]);
+            $informe = (int) DB::table('payment_reports')->orderByDesc('id')->value('id');
+
+            $rechazar = fn (?string $motivo, array $soporte) => $this->actingAs($this->super())
+                ->postJson('/payment_report/change_estatus_report', ['data' => json_encode([
+                    'id' => $informe, 'estatus_actual' => 1, 'estatus_selected' => 3,
+                    'motivo' => $motivo, 'support_image' => $soporte,
+                ])]);
+            $png = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=';
+
+            $sinMotivo = $rechazar(null, []);
+            $sinMotivo->assertJson(['success' => false]);
+            $this->assertStringContainsString('indique el motivo', $sinMotivo->json('message'));
+
+            $sinSoporte = $rechazar('Transferencia no acreditada', []);
+            $sinSoporte->assertJson(['success' => false]);
+            $this->assertStringContainsString('adjunte el soporte', $sinSoporte->json('message'));
+
+            $rechazar('Transferencia no acreditada', [['name' => 'sop.png', 'extension' => 'png', 'base64' => $png]])
+                ->assertJson(['success' => true]);
+            $this->assertSame(3, (int) DB::table('payment_reports')->where('id', $informe)->value('payment_reports_movements_estatus_id'));
+        } finally {
+            $informeIds = DB::table('selected_payment_reports')->where('prestamos_dia_id', $cuota)->pluck('payment_report_id');
+            DB::table('payment_reports_support_movements')
+                ->whereIn('payment_reports_movement_id', DB::table('payment_reports_movements')->whereIn('payment_report_id', $informeIds)->pluck('id'))
+                ->delete();
             $this->borrarPrestamoConInformes($prestamoId);
         }
     }

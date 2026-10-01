@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { FileClock, TriangleAlert, Wallet } from '@lucide/vue';
-import { Head } from '@inertiajs/vue3';
+import { ChevronRight, FileClock, TriangleAlert, Wallet } from '@lucide/vue';
+import { Head, Link } from '@inertiajs/vue3';
 import CarteraPorEstadoChart, {
     type EstadoCartera,
 } from '@/components/dashboard/CarteraPorEstadoChart.vue';
@@ -8,7 +8,12 @@ import SerieMensualChart, {
     type MesSerie,
 } from '@/components/dashboard/SerieMensualChart.vue';
 import { dashboard } from '@/routes';
+import { can } from '@/lib/can';
 import { formatNumber } from '@/lib/format';
+
+/** Mismos estados que cuenta el KPI (`DashboardController`): Pendiente y En revisión. */
+const urlInformesPorRevisar = '/payment_report?estados=1,4';
+const puedeVerInformes = can('payment_report.listar');
 
 defineOptions({
     layout: {
@@ -71,22 +76,38 @@ defineProps<{
                 </p>
             </div>
 
-            <div
-                class="border-sidebar-border/70 dark:border-sidebar-border rounded-xl border p-4"
+            <component
+                :is="puedeVerInformes ? Link : 'div'"
+                v-bind="puedeVerInformes ? { href: urlInformesPorRevisar } : {}"
+                class="border-sidebar-border/70 dark:border-sidebar-border group rounded-xl border p-4"
+                :class="
+                    puedeVerInformes
+                        ? 'hover:border-foreground/25 hover:bg-accent/40 focus-visible:ring-ring/50 transition-colors outline-none focus-visible:ring-[3px]'
+                        : ''
+                "
             >
                 <div class="flex items-center gap-2">
                     <FileClock class="size-4" style="color: #0073c3" />
                     <p class="text-muted-foreground text-sm">
                         Informes por revisar
                     </p>
+                    <ChevronRight
+                        v-if="puedeVerInformes"
+                        class="text-muted-foreground ml-auto size-4 transition-transform group-hover:translate-x-0.5"
+                        aria-hidden="true"
+                    />
                 </div>
                 <p class="mt-2 text-2xl font-semibold" style="color: #0073c3">
                     {{ formatNumber(kpis.informes_por_revisar) }}
                 </p>
                 <p class="text-muted-foreground mt-1 text-xs">
-                    Pagos informados a la espera de gestión
+                    {{
+                        puedeVerInformes
+                            ? 'Pagos informados a la espera de gestión · ver listado'
+                            : 'Pagos informados a la espera de gestión'
+                    }}
                 </p>
-            </div>
+            </component>
         </div>
 
         <div class="grid flex-1 gap-4 md:grid-cols-2">

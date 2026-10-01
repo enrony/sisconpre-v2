@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\CustomerMovementHistory;
 use App\Models\PaymentReport;
 use App\Models\PaymentReportsMovement;
+use App\Models\PaymentReportsMovementsEstatu;
 use App\Models\PaymentReportsSupportMovement;
 use App\Models\Prestamos;
 use App\Models\PrestamosDias;
@@ -23,7 +24,9 @@ class PaymentReportService
     /** `types_movements` 01 "Pago" (resta del saldo a favor). */
     private const MOVIMIENTO_PAGO = 1;
 
-    /** `payment_reports_movements_estatus` 2 "Aprobado". */
+    /** `payment_reports_movements_estatus`: 1 "Pendiente", 2 "Aprobado". */
+    private const ESTADO_PENDIENTE = 1;
+
     private const ESTADO_APROBADO = 2;
 
     public $data;
@@ -70,6 +73,30 @@ class PaymentReportService
 
         if ($movement && $movement->estatus == $this->data['estatus_selected']) {
             throw new \Exception('El estado seleccionado para el reporte indicado ya fue procesado anteriormente, actualice la pagina.');
+        }
+
+        $this->verifiedMotivoYSoporte();
+    }
+
+    /**
+     * Motivo y soporte según lo que pide el estado destino (flags `motivo` /
+     * `soporte` del catálogo, p. ej. Rechazado pide ambos). La pantalla ya lo
+     * exige; esto cubre el llamado directo al endpoint.
+     */
+    private function verifiedMotivoYSoporte(): void
+    {
+        $destino = PaymentReportsMovementsEstatu::find((int) ($this->data['estatus_selected'] ?? 0));
+
+        if (! $destino) {
+            throw new \Exception('El estado seleccionado no existe.');
+        }
+
+        if ($destino->motivo && trim((string) ($this->data['motivo'] ?? '')) === '') {
+            throw new \Exception("Para pasar el informe a \"{$destino->description}\" indique el motivo.");
+        }
+
+        if ($destino->soporte && empty($this->data['support_image'])) {
+            throw new \Exception("Para pasar el informe a \"{$destino->description}\" adjunte el soporte.");
         }
     }
 
@@ -224,14 +251,16 @@ class PaymentReportService
     /** Un pago con saldo a favor nace aprobado; uno con dinero, pendiente de gestión. */
     public function registerMovimientoInicial(): void
     {
-        if (! $this->esPagoConSaldo()) {
-            $this->registerPaymentMovement();
+        $estado = $this->esPagoConSaldo() ? self::ESTADO_APROBADO : self::ESTADO_PENDIENTE;
 
-            return;
-        }
+        $this->registerPaymentMovement(
+            $estado,
+            $this->esPagoConSaldo() ? 'Pagado con saldo a favor (aprobación automática)' : null,
+        );
 
-        $this->registerPaymentMovement(self::ESTADO_APROBADO, 'Pagado con saldo a favor (aprobación automática)');
-        $this->PaymentReport->payment_reports_movements_estatus_id = self::ESTADO_APROBADO;
+        // El estado actual también va en el encabezado: lo usan el KPI "Informes
+        // por revisar" y el filtro por estado del listado.
+        $this->PaymentReport->payment_reports_movements_estatus_id = $estado;
         $this->PaymentReport->save();
     }
 

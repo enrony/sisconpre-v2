@@ -11,6 +11,16 @@ import { usePaymentReportStore } from '@/stores/paymentReport';
 const store = usePaymentReportStore();
 
 onMounted(() => {
+    // `?estados=1,4`: viene del KPI "Informes por revisar" del Dashboard.
+    const estados = new URLSearchParams(window.location.search).get('estados');
+    if (estados) {
+        store.resetFiltro();
+        store.filtro.estado = estados
+            .split(',')
+            .map(Number)
+            .filter((n) => n > 0);
+    }
+
     void store.fetchList(1);
     void store.fetchEstados();
 });

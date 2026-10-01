@@ -21,6 +21,16 @@ const paymentReportStore = usePaymentReportStore();
 onMounted(() => {
     void store.fetchList(1);
     void store.fetchEstados();
+
+    // `?nuevo=<cliente>`: viene de "Nuevo préstamo" en la lista de clientes.
+    const nuevo = Number(
+        new URLSearchParams(window.location.search).get('nuevo'),
+    );
+    if (nuevo && can('prestamos.registrar')) {
+        void store.abrirModal(nuevo);
+        // Sin el parámetro, recargar la página no vuelve a abrir el asistente.
+        window.history.replaceState(window.history.state, '', '/prestamos');
+    }
 });
 </script>
 

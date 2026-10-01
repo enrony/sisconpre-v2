@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { router } from '@inertiajs/vue3';
 import ResponsiveList, {
     type ListField,
 } from '@/components/data/ResponsiveList.vue';
@@ -13,6 +14,13 @@ const store = useClientesStore();
 
 const puedeEditar = can('clientes.editar');
 const puedeEliminar = can('clientes.eliminar');
+const puedeRegistrarPrestamo = can('prestamos.registrar');
+const hayAcciones = puedeEditar || puedeEliminar || puedeRegistrarPrestamo;
+
+/** Abre el asistente de préstamos con este cliente ya elegido (paso 2). */
+function nuevoPrestamo(row: ClienteRow) {
+    router.visit(`/prestamos?nuevo=${row.id}`);
+}
 
 function eliminar(row: ClienteRow) {
     void ElMessageBox.confirm(
@@ -40,7 +48,16 @@ const fields: ListField<ClienteRow>[] = [
         :subtitle="(row) => `#${row.id}`"
         empty="Sin clientes."
     >
-        <template v-if="puedeEditar || puedeEliminar" #actions="{ row }">
+        <template v-if="hayAcciones" #actions="{ row }">
+            <el-button
+                v-if="puedeRegistrarPrestamo"
+                size="default"
+                type="primary"
+                plain
+                @click="nuevoPrestamo(row as ClienteRow)"
+            >
+                Nuevo préstamo
+            </el-button>
             <el-button
                 v-if="puedeEditar"
                 size="default"
@@ -92,14 +109,23 @@ const fields: ListField<ClienteRow>[] = [
                     width="150"
                 />
                 <el-table-column
-                    v-if="puedeEditar || puedeEliminar"
+                    v-if="hayAcciones"
                     label="Operaciones"
-                    width="150"
+                    :width="puedeRegistrarPrestamo ? 270 : 150"
                     align="center"
                     fixed="right"
                 >
                     <template #default="{ row }">
                         <div class="flex justify-center gap-1">
+                            <el-button
+                                v-if="puedeRegistrarPrestamo"
+                                size="small"
+                                type="primary"
+                                plain
+                                @click="nuevoPrestamo(row as ClienteRow)"
+                            >
+                                Nuevo préstamo
+                            </el-button>
                             <el-button
                                 v-if="puedeEditar"
                                 size="small"

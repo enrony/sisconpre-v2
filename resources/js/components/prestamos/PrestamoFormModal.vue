@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import dayjs from 'dayjs';
 import { storeToRefs } from 'pinia';
 import { computed } from 'vue';
 import CuotasGrid from '@/components/prestamos/CuotasGrid.vue';
@@ -22,6 +23,26 @@ const puedeAvanzar = computed(() => {
 const textoBoton = computed(() =>
     form.value.stepActive === 0 ? 'Paso 2' : 'Registrar',
 );
+
+/** El primer pago cae domingo pero el préstamo no cobra domingos. */
+const primerPagoEnDomingo = computed(
+    () =>
+        Boolean(form.value.date_first_pay) &&
+        dayjs(form.value.date_first_pay).day() === 0 &&
+        !form.value.incluir_domingos,
+);
+
+function generar() {
+    if (primerPagoEnDomingo.value) {
+        void ElMessageBox.alert(
+            'La 1ª cuota cae domingo y el préstamo no incluye domingos. Cambie la fecha de la 1ª cuota o marque "Incluir domingos".',
+            'Primer pago en domingo',
+            { type: 'warning', confirmButtonText: 'Entendido' },
+        );
+        return;
+    }
+    store.generar();
+}
 
 function volver() {
     store.generado = false;
@@ -211,6 +232,12 @@ function siguiente() {
                         :disabled="generado"
                         @change="store.calcularUltimaFecha()"
                     />
+                    <p
+                        v-if="primerPagoEnDomingo && !generado"
+                        class="text-destructive mt-1 text-xs"
+                    >
+                        Cae domingo y el préstamo no incluye domingos.
+                    </p>
                 </div>
                 <div>
                     <label class="text-muted-foreground text-xs font-semibold"
@@ -244,7 +271,7 @@ function siguiente() {
                         type="primary"
                         size="small"
                         :disabled="!store.puedeGenerar"
-                        @click="store.generar()"
+                        @click="generar"
                     >
                         Generar
                     </el-button>

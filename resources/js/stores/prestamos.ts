@@ -403,10 +403,20 @@ export const usePrestamosStore = defineStore('prestamos', {
         //  Asistente de alta de préstamo
         // --------------------------------------------------------------
 
-        async abrirModal(): Promise<void> {
+        /**
+         * Abre el asistente de alta. Con `clienteId` (p. ej. desde la lista de
+         * clientes) lo deja elegido y arranca directo en el paso 2.
+         */
+        async abrirModal(clienteId: number | null = null): Promise<void> {
             this.resetForm();
             this.modalOpen = true;
             await Promise.all([this.fetchTables(), this.fetchClientesAll()]);
+
+            if (clienteId && this.clientesAll.some((c) => c.id === clienteId)) {
+                this.form.cliente_id = clienteId;
+                this.seleccionarCliente();
+                this.form.stepActive = 1;
+            }
         },
 
         cerrarModal(): void {
