@@ -35,6 +35,7 @@ return Application::configure(basePath: dirname(__DIR__))
                 'type_payment_record' => 'TypePaymentRecord.php',
                 'cities' => 'cities.php',
                 'clientes' => 'clientes.php',
+                'cuotas' => 'cuotas.php',
                 'departamentos' => 'departamentos.php',
                 'festivos' => 'festivos.php',
                 'frecuencias' => 'frecuencias.php',

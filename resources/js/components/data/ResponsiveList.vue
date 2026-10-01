@@ -119,7 +119,7 @@ function activate(row: TRow): void {
 
                         <div
                             v-if="$slots.actions"
-                            class="border-border mt-3 flex flex-wrap gap-2 border-t pt-2.5"
+                            class="border-border mt-3 flex flex-wrap gap-2 border-t pt-2.5 [&_.el-button+.el-button]:!ml-0"
                             @click.stop
                         >
                             <slot name="actions" :row="row" />

@@ -45,7 +45,7 @@ Estas 4 quedan como **próximas a abordar**, en el orden que se decida al arranc
 
 ### 2.4 Lista de cuotas a pagar por rango de fechas (default: día actual)
 
-❌ **No existe** pantalla dedicada con filtros de rango de fechas / cliente / estado (demoradas, próximas). El modelo `PrestamosDias` ya tiene las columnas necesarias y el Dashboard ya cuenta "cuotas vencidas" como KPI agregado, pero no hay listado navegable. No priorizada todavía.
+✅ **Hecho (2026-10-01) → §3.14.** Pantalla "Cuotas pendientes": cuotas por cobrar (prestamista, su grupo) y por pagar (cliente, las suyas).
 
 ### 2.5 Tabla de pagos en gestión
 
@@ -491,6 +491,36 @@ permiso, y la misma regla en todas las pantallas.
 **Tests:** `test_cliente_solo_ve_su_cartera`, `test_prestamista_ve_su_grupo_y_sin_alcance_no_ve_nada`,
 `test_vincular_ficha_de_cliente_desde_usuarios`; varios tests existentes ajustados porque usaban a la usuaria
 cliente como "usuario normal de Colombia" (ahora usan un prestamista temporal del grupo).
+
+---
+
+### 3.14 Cuotas pendientes: por cobrar / por pagar (2026-10-01)
+
+Definido por el usuario: una sola pantalla que le sirve al **prestamista** (qué cobros tiene que hacer, de
+todos los grupos a los que pertenece) y al **cliente**, que también entra al sistema (qué cuotas debe pagar).
+Se apoya en el alcance de §3.13.
+
+- Ruta `/cuotas` (módulo `cuotas` en el `$panel` map, permiso `cuotas.listar`). Ítem de menú **"Cuotas
+  pendientes"** en Procesos, con un nombre neutro porque lo ven los dos tipos de usuario. El permiso se
+  asignó a los roles de personal y a "Cliente Verficado" / "Cliente S/V".
+- **Qué cuenta:** cuotas cobrables (`apply`), no pagadas, de préstamos en curso y aprobados. Por defecto
+  muestra las de **hoy más todas las vencidas** ("demoradas"). Filtros: rango de fechas (con atajos Hoy /
+  Próximos 7 días / Este mes), "Incluir vencidas anteriores" y clientes (solo el personal). Totales del filtro:
+  vencido / vence hoy / próximas.
+- Una cuota con un **pago informado sin resolver** sigue en la lista, marcada "En revisión #N" y sin el botón
+  de informar (no se puede informar dos veces).
+- **Prestamista:** cliente, teléfono (con enlace `tel:` y botón "Llamar" en el celular), dirección, préstamo,
+  "Informar un pago". **Cliente:** título "Mis cuotas por pagar", la fecha de vencimiento como encabezado de la
+  tarjeta e "Informar un pago" para las suyas. El personal opera en su país activo; al cliente **no** se le
+  aplica el filtro de país (sus cuotas son suyas sin importar el país del préstamo).
+- En el celular, los totales se muestran como una franja compacta, para que la lista quede a la vista.
+- Arreglado de paso en `ResponsiveList` (afecta a todas las pantallas): el segundo botón de acción quedaba
+  corrido a la derecha al bajar de línea, por el margen que element-plus le pone a botones contiguos.
+
+**Tests:** `test_cuotas_pendientes_filtros_y_en_revision`, `test_cuotas_pendientes_cliente_ve_solo_las_suyas`.
+
+**Para decidir:** en Préstamos, Informes de pago y el Dashboard, el cliente todavía ve sus datos filtrados por
+el país de su grupo (heredado del criterio de país del personal). En esta pantalla no se aplica.
 
 ---
 

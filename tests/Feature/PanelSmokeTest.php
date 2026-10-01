@@ -300,6 +300,66 @@ class PanelSmokeTest extends TestCase
         }
     }
 
+    /** Cuotas pendientes: por defecto hoy + vencidas; el rango y "vencidas" filtran; "en revisión" se marca. */
+    public function test_cuotas_pendientes_filtros_y_en_revision(): void
+    {
+        $prestamoId = $this->crearPrestamo(1, [10000, 20000, 30000, 40000]);
+        $ids = DB::table('prestamos_dias')->where('prestamo_id', $prestamoId)->orderBy('id')->pluck('id')->all();
+        [$ayer, $hoy, $en3, $en20] = $ids;
+        foreach ([$ayer => -1, $hoy => 0, $en3 => 3, $en20 => 20] as $id => $dias) {
+            DB::table('prestamos_dias')->where('id', $id)->update(['date' => now()->addDays($dias)->toDateString()]);
+        }
+
+        $consultar = fn (array $q) => collect($this->actingAs($this->prestamista())
+            ->getJson('/cuotas/records?'.http_build_query($q + ['clientes' => '1']))
+            ->assertOk()->json('lista.data'))->pluck('id');
+
+        try {
+            $soloHoy = $consultar(['desde' => now()->toDateString(), 'hasta' => now()->toDateString(), 'vencidas' => 0]);
+            $this->assertContains($hoy, $soloHoy);
+            $this->assertNotContains($ayer, $soloHoy);
+            $this->assertNotContains($en3, $soloHoy);
+
+            $semana = $consultar(['desde' => now()->toDateString(), 'hasta' => now()->addDays(7)->toDateString(), 'vencidas' => 0]);
+            $this->assertContains($en3, $semana);
+            $this->assertNotContains($en20, $semana);
+
+            // Por defecto (hoy + vencidas): la de ayer cuenta como vencida.
+            $porDefecto = $this->actingAs($this->prestamista())->getJson('/cuotas/records?clientes=1')->json('totales');
+            $this->assertGreaterThanOrEqual(1, $porDefecto['vencido']['cantidad']);
+            $this->assertGreaterThanOrEqual(1, $porDefecto['hoy']['cantidad']);
+
+            // Con un pago informado, la cuota sigue listada pero "en revisión".
+            $this->informarPago(1, [[$en3, 30000]], 30000)->assertJson(['success' => true]);
+            $informe = (int) DB::table('payment_reports')->orderByDesc('id')->value('id');
+            $fila = collect($this->actingAs($this->prestamista())
+                ->getJson('/cuotas/records?'.http_build_query(['desde' => now()->toDateString(), 'hasta' => now()->addDays(7)->toDateString(), 'vencidas' => 0, 'clientes' => '1']))
+                ->json('lista.data'))->firstWhere('id', $en3);
+            $this->assertSame($informe, $fila['informe_en_revision']);
+            $this->assertSame('proxima', $fila['estado']);
+        } finally {
+            $this->borrarPrestamoConInformes($prestamoId);
+        }
+    }
+
+    /** El cliente ve solo sus cuotas (y no puede filtrar por otros clientes). */
+    public function test_cuotas_pendientes_cliente_ve_solo_las_suyas(): void
+    {
+        $filas = collect($this->actingAs($this->cliente())
+            ->getJson('/cuotas/records?desde=2000-01-01&hasta=2100-12-31&clientes=1')
+            ->assertOk()->json('lista.data'));
+
+        $this->assertNotEmpty($filas);
+        $this->assertSame([2], $filas->pluck('cliente_id')->unique()->values()->all());
+
+        $this->actingAs($this->cliente())->get('/cuotas')->assertInertia(
+            fn ($page) => $page->component('Cuotas')->where('esCliente', true),
+        );
+        $this->actingAs($this->prestamista())->get('/cuotas')->assertInertia(
+            fn ($page) => $page->where('esCliente', false),
+        );
+    }
+
     /** Todo préstamo nace "Pendiente de aprobación" — no puede recibir un pago informado. */
     public function test_prestamo_nuevo_nace_pendiente_de_aprobacion(): void
     {
