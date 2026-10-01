@@ -40,6 +40,7 @@ class PaymentReport extends Model
         'motivo',
         'estatus',
         'importe',
+        'saldo_favor_aplicado',
         'payment_reports_movements_estatus_id',
     ];
 
@@ -224,6 +225,7 @@ class PaymentReport extends Model
                 "{$table}.payment_report_id",
                 "{$table}.motivo",
                 "{$table}.importe",
+                "{$table}.saldo_favor_aplicado",
                 "{$table}.estatus",
                 "{$table}.payment_reports_movements_estatus_id",
                 "{$table}.created_at",

@@ -23,6 +23,7 @@ export interface GestionReporteRow {
     destination_text: string;
     number_cuotas: number;
     importe: string | number;
+    saldo_favor_aplicado?: string | number;
     value_amount: number;
     estatus?: number;
     status_description?: {
@@ -54,6 +55,7 @@ export interface InformePagoRow {
     value_amount: number;
     number_cuotas: number;
     importe: string | number;
+    saldo_favor_aplicado?: string | number;
     status_description?: {
         id: number;
         desc: string;
@@ -143,6 +145,19 @@ const nuevoPago = (): PagoRow => ({
     support_image: [],
 });
 
+/** Saldo a favor del cliente: `reservado` = aplicado en informes aún en curso. */
+export interface SaldoFavorCliente {
+    saldo: number;
+    reservado: number;
+    disponible: number;
+}
+
+/** Fila de método de pago sin método ni importe: se ignora al validar y enviar. */
+const pagoVacio = (p: {
+    payment_method_id: number | null;
+    valor_importe: number | string | null;
+}): boolean => !p.payment_method_id && !Number(p.valor_importe);
+
 interface ClienteFull {
     id: number;
     documento: string;
@@ -181,11 +196,13 @@ export const usePaymentReportStore = defineStore('paymentReport', {
         franquicias: [] as { id: number; description: string }[],
         prestamosActivos: [] as PrestamoActivo[],
         loadingActivos: false,
+        saldoCliente: null as SaldoFavorCliente | null,
         informar: {
             clienteId: null as number | null,
             tipoPago: 1,
             cuotas: [] as { id: number; cuota: number }[],
             dataPayments: [nuevoPago()],
+            saldoFavor: 0,
         },
     }),
 
@@ -201,6 +218,23 @@ export const usePaymentReportStore = defineStore('paymentReport', {
                 (a, p) => a + Number(p.valor_importe || 0),
                 0,
             );
+        },
+        /** Tope de saldo a aplicar: lo disponible, sin superar las cuotas elegidas. */
+        saldoAplicable(state): number {
+            if (state.informar.tipoPago !== 1 || !state.saldoCliente) {
+                return 0;
+            }
+            const cuotas = state.informar.cuotas.reduce(
+                (a, c) => a + Number(c.cuota),
+                0,
+            );
+
+            return Math.max(0, Math.min(state.saldoCliente.disponible, cuotas));
+        },
+        saldoAplicado(state): number {
+            return state.informar.tipoPago === 1
+                ? Number(state.informar.saldoFavor || 0)
+                : 0;
         },
         clienteInformar(state): ClienteFull | undefined {
             return state.clientesAll.find(
@@ -428,8 +462,10 @@ export const usePaymentReportStore = defineStore('paymentReport', {
                 tipoPago: 1,
                 cuotas: [],
                 dataPayments: [nuevoPago()],
+                saldoFavor: 0,
             };
             this.prestamosActivos = [];
+            this.saldoCliente = null;
             this.informarOpen = true;
 
             const [pm, bk, fr, cl] = await Promise.all([
@@ -454,6 +490,8 @@ export const usePaymentReportStore = defineStore('paymentReport', {
 
         async cargarActivos(): Promise<void> {
             this.informar.cuotas = [];
+            this.informar.saldoFavor = 0;
+            this.saldoCliente = null;
             if (!this.informar.clienteId) {
                 this.prestamosActivos = [];
 
@@ -461,15 +499,25 @@ export const usePaymentReportStore = defineStore('paymentReport', {
             }
             this.loadingActivos = true;
             try {
-                const { data } = await http.get(
-                    `/prestamos/obtenerPrestamosActivos/${this.informar.clienteId}`,
-                );
-                this.prestamosActivos = Array.isArray(data)
-                    ? data
-                    : (data.data ?? []);
+                const [activos, saldo] = await Promise.all([
+                    http.get(
+                        `/prestamos/obtenerPrestamosActivos/${this.informar.clienteId}`,
+                    ),
+                    http.get(
+                        `/clientes/${this.informar.clienteId}/saldo-favor`,
+                    ),
+                ]);
+                this.prestamosActivos = Array.isArray(activos.data)
+                    ? activos.data
+                    : (activos.data.data ?? []);
+                this.saldoCliente = saldo.data;
             } finally {
                 this.loadingActivos = false;
             }
+        },
+
+        usarSaldoMaximo(): void {
+            this.informar.saldoFavor = this.saldoAplicable;
         },
 
         toggleCuota(c: CuotaPendiente): void {
@@ -481,6 +529,11 @@ export const usePaymentReportStore = defineStore('paymentReport', {
             } else {
                 this.informar.cuotas.push({ id: c.id, cuota: Number(c.cuota) });
             }
+            // Si se quitan cuotas, el saldo aplicado no puede quedar por encima del total.
+            this.informar.saldoFavor = Math.min(
+                this.informar.saldoFavor,
+                this.saldoAplicable,
+            );
         },
 
         cuotaSeleccionada(id: number): boolean {
@@ -512,10 +565,13 @@ export const usePaymentReportStore = defineStore('paymentReport', {
                             this.informar.tipoPago === 1
                                 ? this.informar.cuotas
                                 : [],
-                        dataPayments: this.informar.dataPayments.map((p) => ({
-                            ...p,
-                            support_image: p.support_image ?? [],
-                        })),
+                        saldoFavor: this.saldoAplicado,
+                        dataPayments: this.informar.dataPayments
+                            .filter((p) => !pagoVacio(p))
+                            .map((p) => ({
+                                ...p,
+                                support_image: p.support_image ?? [],
+                            })),
                     }),
                 );
 

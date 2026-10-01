@@ -17,6 +17,7 @@ const paymentReportStore = usePaymentReportStore();
 
 const puedeEditar = can('prestamos.editar');
 const puedeAprobar = can('prestamos.aprobar');
+const puedeCambiarEstado = can('prestamos.cambiar-estado');
 const puedeInformarPago =
     can('payment_report.registrar') ||
     can('payment_report.gestionar-informe-de-pago');
@@ -70,6 +71,71 @@ async function rechazar(row: PrestamoRow) {
         ElNotification[res.success ? 'success' : 'error'](res.message);
     } catch {
         ElNotification.error('No se pudo rechazar el préstamo');
+    }
+}
+
+// `estatus` (avance del cobro): 1 en curso · 2 pagado · 3 anulado · 4 perdido
+const EN_CURSO = 1;
+const PERDIDO = 4;
+
+const enCurso = (row: PrestamoRow): boolean => row.p_estatus?.id === EN_CURSO;
+const tieneCuotasPagadas = (row: PrestamoRow): boolean =>
+    (row.prestamos_dias ?? []).some((d) => d.pagado);
+
+const ACCIONES_ESTADO = {
+    anular: {
+        titulo: 'Anular préstamo',
+        pregunta: 'Indique por qué se anula (p. ej. se registró por error).',
+        motivoObligatorio: true,
+    },
+    perdido: {
+        titulo: 'Marcar como perdido',
+        pregunta: 'Indique por qué se da por perdido (incobrable).',
+        motivoObligatorio: true,
+    },
+    reactivar: {
+        titulo: 'Reactivar préstamo',
+        pregunta:
+            'El préstamo vuelve a estar en curso de cobro. Motivo (opcional):',
+        motivoObligatorio: false,
+    },
+} as const;
+
+async function cambiarEstado(
+    row: PrestamoRow,
+    accion: keyof typeof ACCIONES_ESTADO,
+) {
+    const cfg = ACCIONES_ESTADO[accion];
+    let motivo: string;
+    try {
+        const r = await ElMessageBox.prompt(
+            cfg.pregunta,
+            `${cfg.titulo} #${row.id}`,
+            {
+                confirmButtonText: cfg.titulo,
+                cancelButtonText: 'Cancelar',
+                inputType: 'textarea',
+                inputPlaceholder: 'Motivo',
+                inputValidator: (v: string) =>
+                    !cfg.motivoObligatorio ||
+                    v.trim().length > 0 ||
+                    'El motivo es obligatorio',
+            },
+        );
+        motivo = r.value.trim();
+    } catch {
+        return; // cancelado
+    }
+
+    try {
+        const res = await store.cambiarEstadoPrestamo(
+            row.id,
+            accion,
+            motivo || null,
+        );
+        ElNotification[res.success ? 'success' : 'error'](res.message);
+    } catch {
+        ElNotification.error('No se pudo cambiar el estado del préstamo');
     }
 }
 
@@ -153,6 +219,13 @@ const fields: ListField<PrestamoRow>[] = [
                     #{{ row.id }}
                 </el-tag>
                 <el-tag
+                    v-if="!enCurso(row as PrestamoRow)"
+                    :type="tagType(row as PrestamoRow)"
+                    size="small"
+                >
+                    {{ (row as PrestamoRow).p_estatus?.description }}
+                </el-tag>
+                <el-tag
                     v-if="
                         (row as PrestamoRow).aprobacion_estatus?.id !== APROBADO
                     "
@@ -184,7 +257,7 @@ const fields: ListField<PrestamoRow>[] = [
                 Informar un pago
             </el-button>
             <el-button
-                v-if="puedeEditar"
+                v-if="puedeEditar && enCurso(row as PrestamoRow)"
                 size="default"
                 plain
                 @click="togglePausa(row as PrestamoRow)"
@@ -204,6 +277,7 @@ const fields: ListField<PrestamoRow>[] = [
             <el-button
                 v-if="
                     puedeAprobar &&
+                    enCurso(row as PrestamoRow) &&
                     (row as PrestamoRow).aprobacion_estatus?.id !== APROBADO
                 "
                 size="default"
@@ -216,6 +290,7 @@ const fields: ListField<PrestamoRow>[] = [
             <el-button
                 v-if="
                     puedeAprobar &&
+                    enCurso(row as PrestamoRow) &&
                     (row as PrestamoRow).aprobacion_estatus?.id !== RECHAZADO
                 "
                 size="default"
@@ -225,6 +300,40 @@ const fields: ListField<PrestamoRow>[] = [
             >
                 Rechazar
             </el-button>
+            <template v-if="puedeCambiarEstado">
+                <el-button
+                    v-if="
+                        enCurso(row as PrestamoRow) &&
+                        !tieneCuotasPagadas(row as PrestamoRow)
+                    "
+                    size="default"
+                    type="warning"
+                    plain
+                    @click="cambiarEstado(row as PrestamoRow, 'anular')"
+                >
+                    Anular
+                </el-button>
+                <el-button
+                    v-if="
+                        enCurso(row as PrestamoRow) &&
+                        (row as PrestamoRow).aprobacion_estatus?.id === APROBADO
+                    "
+                    size="default"
+                    type="danger"
+                    plain
+                    @click="cambiarEstado(row as PrestamoRow, 'perdido')"
+                >
+                    Marcar perdido
+                </el-button>
+                <el-button
+                    v-if="(row as PrestamoRow).p_estatus?.id === PERDIDO"
+                    size="default"
+                    plain
+                    @click="cambiarEstado(row as PrestamoRow, 'reactivar')"
+                >
+                    Reactivar
+                </el-button>
+            </template>
         </template>
 
         <template #table>
@@ -284,6 +393,19 @@ const fields: ListField<PrestamoRow>[] = [
                 <el-table-column label="Cliente" min-width="180">
                     <template #default="{ row }">
                         {{ row.cliente?.nombre }} {{ row.cliente?.apellido }}
+                    </template>
+                </el-table-column>
+                <el-table-column label="Estado" width="110" align="center">
+                    <template #default="{ row }">
+                        <el-tag
+                            :type="tagType(row as PrestamoRow)"
+                            size="small"
+                        >
+                            {{
+                                (row as PrestamoRow).p_estatus?.description ??
+                                '—'
+                            }}
+                        </el-tag>
                     </template>
                 </el-table-column>
                 <el-table-column label="Aprobación" width="150" align="center">
@@ -378,6 +500,7 @@ const fields: ListField<PrestamoRow>[] = [
                                         Novedades
                                     </el-dropdown-item>
                                     <el-dropdown-item
+                                        v-if="enCurso(row as PrestamoRow)"
                                         :disabled="!puedeEditar"
                                         @click="togglePausa(row as PrestamoRow)"
                                     >
@@ -397,9 +520,10 @@ const fields: ListField<PrestamoRow>[] = [
                                     </el-dropdown-item>
                                     <el-dropdown-item
                                         v-if="
+                                            enCurso(row as PrestamoRow) &&
                                             (row as PrestamoRow)
                                                 .aprobacion_estatus?.id !==
-                                            APROBADO
+                                                APROBADO
                                         "
                                         divided
                                         :disabled="!puedeAprobar"
@@ -409,9 +533,10 @@ const fields: ListField<PrestamoRow>[] = [
                                     </el-dropdown-item>
                                     <el-dropdown-item
                                         v-if="
+                                            enCurso(row as PrestamoRow) &&
                                             (row as PrestamoRow)
                                                 .aprobacion_estatus?.id !==
-                                            RECHAZADO
+                                                RECHAZADO
                                         "
                                         :divided="
                                             (row as PrestamoRow)
@@ -422,6 +547,62 @@ const fields: ListField<PrestamoRow>[] = [
                                         @click="rechazar(row as PrestamoRow)"
                                     >
                                         Rechazar préstamo
+                                    </el-dropdown-item>
+                                    <el-dropdown-item
+                                        v-if="
+                                            enCurso(row as PrestamoRow) &&
+                                            !tieneCuotasPagadas(
+                                                row as PrestamoRow,
+                                            )
+                                        "
+                                        divided
+                                        :disabled="!puedeCambiarEstado"
+                                        @click="
+                                            cambiarEstado(
+                                                row as PrestamoRow,
+                                                'anular',
+                                            )
+                                        "
+                                    >
+                                        Anular préstamo
+                                    </el-dropdown-item>
+                                    <el-dropdown-item
+                                        v-if="
+                                            enCurso(row as PrestamoRow) &&
+                                            (row as PrestamoRow)
+                                                .aprobacion_estatus?.id ===
+                                                APROBADO
+                                        "
+                                        :divided="
+                                            tieneCuotasPagadas(
+                                                row as PrestamoRow,
+                                            )
+                                        "
+                                        :disabled="!puedeCambiarEstado"
+                                        @click="
+                                            cambiarEstado(
+                                                row as PrestamoRow,
+                                                'perdido',
+                                            )
+                                        "
+                                    >
+                                        Marcar como perdido
+                                    </el-dropdown-item>
+                                    <el-dropdown-item
+                                        v-if="
+                                            (row as PrestamoRow).p_estatus
+                                                ?.id === PERDIDO
+                                        "
+                                        divided
+                                        :disabled="!puedeCambiarEstado"
+                                        @click="
+                                            cambiarEstado(
+                                                row as PrestamoRow,
+                                                'reactivar',
+                                            )
+                                        "
+                                    >
+                                        Reactivar préstamo
                                     </el-dropdown-item>
                                 </el-dropdown-menu>
                             </template>

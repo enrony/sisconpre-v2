@@ -77,6 +77,14 @@ const totalCuotasSel = computed(() =>
             <div>
                 <span class="font-semibold">Monto:</span>
                 {{ formatNumber(detalleRow.value_amount) }}
+                <span
+                    v-if="Number(detalleRow.saldo_favor_aplicado) > 0"
+                    class="block text-xs"
+                >
+                    +
+                    {{ formatNumber(detalleRow.saldo_favor_aplicado) }} de saldo
+                    a favor
+                </span>
             </div>
             <div>
                 <span class="font-semibold">Estado:</span>

@@ -20,6 +20,9 @@ use Symfony\Component\HttpFoundation\Request;
 
 class PaymentReportService
 {
+    /** `types_movements` 01 "Pago" (resta del saldo a favor). */
+    private const MOVIMIENTO_PAGO = 1;
+
     public $data;
 
     public $PaymentReport;
@@ -98,6 +101,16 @@ class PaymentReportService
             return;
         }
 
+        // Las cuotas tienen que ser de préstamos del cliente del informe (el
+        // saldo a favor y la cartera son por cliente).
+        $ajenas = PrestamosDias::whereIn('id', $cuotaIds)
+            ->whereHas('Prestamo', fn ($q) => $q->where('cliente_id', '!=', (int) ($this->data['cliente']['id'] ?? 0)))
+            ->pluck('id');
+
+        if ($ajenas->isNotEmpty()) {
+            throw new \Exception('La(s) cuota(s) #'.$ajenas->implode(', #').' no pertenece(n) a un préstamo de este cliente.');
+        }
+
         $noDisponibles = PrestamosDias::with('pendientesPago.paymentReport.payment_reports_movement_first.estatus_description')
             ->whereIn('id', $cuotaIds)
             ->get()
@@ -145,6 +158,40 @@ class PaymentReportService
         if ($noAprobados->isNotEmpty()) {
             throw new \Exception('El préstamo #'.$noAprobados->implode(', #').' todavía no está aprobado — no se le puede informar un pago.');
         }
+    }
+
+    /**
+     * Saldo a favor aplicado al pago de cuotas: solo con cuotas seleccionadas,
+     * nunca más que el total de esas cuotas (no se usa saldo para generar más
+     * saldo) ni más que lo disponible (saldo menos lo reservado por otros
+     * informes en curso). Deja el monto validado en `saldo_favor_aplicado`.
+     */
+    public function verifiedSaldoFavor(): void
+    {
+        $saldo = round((float) ($this->data['saldoFavor'] ?? 0), 3);
+        $this->data['saldo_favor_aplicado'] = 0;
+
+        if ($saldo <= 0) {
+            return;
+        }
+
+        if (($this->data['tipoPago'] ?? null) != 1) {
+            throw new \Exception('El saldo a favor solo se puede aplicar al pago de cuotas.');
+        }
+
+        $totalCuotas = (float) PrestamosDias::whereIn('id', array_column($this->data['cuotas'] ?? [], 'id'))->sum('cuota');
+
+        if ($saldo > $totalCuotas + 0.001) {
+            throw new \Exception('El saldo a favor aplicado no puede superar el total de las cuotas seleccionadas.');
+        }
+
+        $disponible = (new SaldoFavorService)->resumen((int) ($this->data['cliente']['id'] ?? 0))['disponible'];
+
+        if ($saldo > $disponible + 0.001) {
+            throw new \Exception('El cliente tiene '.number_format($disponible, 0, ',', '.').' de saldo a favor disponible; no alcanza para aplicar '.number_format($saldo, 0, ',', '.').'.');
+        }
+
+        $this->data['saldo_favor_aplicado'] = $saldo;
     }
 
     public function createPaymentReport(Request $request)
@@ -256,6 +303,13 @@ class PaymentReportService
     public function processReportPaymentAproved()
     {
         if ($this->data['estatus_selected'] == 2) { // Si esta aprobado
+            $prestamoIds = $this->PaymentReport->selected_payment_reports()
+                ->join('prestamos_dias', 'prestamos_dias.id', '=', 'selected_payment_reports.prestamos_dia_id')
+                ->pluck('prestamos_dias.prestamo_id')
+                ->unique();
+
+            $this->verifiedPrestamosEnCurso($prestamoIds->all());
+
             if ($this->PaymentReport->destination == 1) { // Pago de cutoas
                 if ($this->PaymentReport->selected_payment_reports && count($this->PaymentReport->selected_payment_reports) > 0) {
                     $this->processPaymentCouotas($this->PaymentReport->selected_payment_reports->pluck('prestamos_dia_id')->toArray());
@@ -269,15 +323,60 @@ class PaymentReportService
                 }
             }
 
+            // Descontamos el saldo a favor que se aplicó a las cuotas
+            $this->processSaldoFavorAplicado();
+
             // Registramos saldo a favor
             if ($this->PaymentReport->importe > 0) {
                 $data = $this->processBalance($this->PaymentReport);
                 $this->processSummaryCustomer($data);
             }
+
+            // El préstamo que quedó con todas sus cuotas pagadas pasa a "Pagado"
+            $estados = new PrestamoEstadoService;
+            foreach ($prestamoIds as $prestamoId) {
+                $estados->cerrarSiSaldado((int) $prestamoId);
+            }
         }
     }
 
-    public function processBalance($PaymentReport, $refer_grupos_trabajos_user_id = null, $tipo_movimiento = 4)
+    /**
+     * No se aprueba un pago sobre un préstamo que, desde que se informó, dejó
+     * de estar en curso (anulado / perdido / pagado) o perdió la aprobación.
+     *
+     * @param  array<int, mixed>  $prestamoIds
+     */
+    private function verifiedPrestamosEnCurso(array $prestamoIds): void
+    {
+        $noOperativos = Prestamos::whereIn('id', $prestamoIds)
+            ->where(fn ($q) => $q->where('estatus', '!=', Prestamos::ESTATUS_PENDIENTE)
+                ->orWhere('aprobacion_estatus_id', '!=', Prestamos::APROBACION_APROBADO))
+            ->pluck('id');
+
+        if ($noOperativos->isNotEmpty()) {
+            throw new \Exception('No se puede aprobar: el préstamo #'.$noOperativos->implode(', #').' ya no está en curso o no está aprobado.');
+        }
+    }
+
+    private function processSaldoFavorAplicado(): void
+    {
+        $saldo = (float) $this->PaymentReport->saldo_favor_aplicado;
+
+        if ($saldo <= 0) {
+            return;
+        }
+
+        $balance = (float) SummaryCustomerMovement::where('cliente_id', $this->PaymentReport->cliente_id)->value('balance');
+
+        if ($saldo > $balance + 0.001) {
+            throw new \Exception('El cliente ya no tiene saldo a favor suficiente para cubrir '.number_format($saldo, 0, ',', '.').'.');
+        }
+
+        $movimiento = $this->processBalance($this->PaymentReport, null, self::MOVIMIENTO_PAGO, $saldo);
+        $this->processSummaryCustomer($movimiento);
+    }
+
+    public function processBalance($PaymentReport, $refer_grupos_trabajos_user_id = null, $tipo_movimiento = 4, ?float $monto = null)
     {
 
         $grupos_trabajos_user_id = $refer_grupos_trabajos_user_id;
@@ -286,7 +385,11 @@ class PaymentReportService
             $grupos_trabajos_user_id = $this->grupos_trabajos_user_id;
         }
 
-        $CustomerMovementHistory = CustomerMovementHistory::where('payment_report_id', $PaymentReport->id)->first();
+        // Un mismo informe puede generar un débito (saldo aplicado) y un
+        // crédito (excedente): lo que no puede repetirse es el mismo tipo.
+        $CustomerMovementHistory = CustomerMovementHistory::where('payment_report_id', $PaymentReport->id)
+            ->where('type_movement_id', $tipo_movimiento)
+            ->first();
 
         if ($CustomerMovementHistory) {
             throw new \Exception('No se puede procesar este informe de pago, ya se encuentra asignado.');
@@ -297,7 +400,7 @@ class PaymentReportService
         $CustomerMovementHistory->grupos_trabajos_user_id = $grupos_trabajos_user_id;
         $CustomerMovementHistory->date_movement = now();
         $CustomerMovementHistory->payment_report_id = $PaymentReport->id;
-        $CustomerMovementHistory->amount = $PaymentReport->importe;
+        $CustomerMovementHistory->amount = $monto ?? $PaymentReport->importe;
         $CustomerMovementHistory->type_movement_id = $tipo_movimiento;
         $CustomerMovementHistory->save();
 
@@ -344,7 +447,7 @@ class PaymentReportService
         if ($this->data['tipoPago'] == 1) { // cuotas
             $importePagos = array_sum(array_column($this->data['dataPayments'] ?? [], 'valor_importe'));
             $importeCuotas = array_sum(array_column($this->data['cuotas'] ?? [], 'cuota'));
-            $importe = $importePagos - $importeCuotas;
+            $importe = $importePagos + (float) ($this->data['saldo_favor_aplicado'] ?? 0) - $importeCuotas;
 
             if ($importe > 0) {
                 $this->PaymentReport->importe = $importe;

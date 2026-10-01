@@ -4,6 +4,7 @@ use App\Http\Controllers\BankController;
 use App\Http\Controllers\ClientesController;
 use App\Http\Controllers\FranquiciaController;
 use App\Http\Controllers\PaymentMethodController;
+use App\Http\Controllers\PaymentReportController;
 use App\Http\Controllers\PrestamosController;
 use App\Http\Controllers\ReporteFiltrosController;
 use Illuminate\Support\Facades\Route;
@@ -32,6 +33,7 @@ Route::middleware(['web', 'auth', 'verified'])->group(function () {
     Route::get('/clientes/lista-clientes-json-basic', [ClientesController::class, 'listaClientesJsonBasic']);
 
     Route::get('/prestamos/obtenerPrestamosActivos/{cliente}', [PrestamosController::class, 'obtenerPrestamosActivos']);
+    Route::get('/clientes/{cliente}/saldo-favor', [PaymentReportController::class, 'saldoFavor'])->whereNumber('cliente');
 
     // Filtros en cascada país -> ciudad/grupo de trabajo -> responsable,
     // compartidos por todos los módulos de "Reportes".

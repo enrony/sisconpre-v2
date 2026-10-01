@@ -16,9 +16,12 @@ const {
     prestamosActivos,
     loadingActivos,
     informarSubmitting,
+    saldoCliente,
 } = storeToRefs(store);
 
-const diferencia = computed(() => store.totalPagos - store.totalCuotas);
+const diferencia = computed(
+    () => store.totalPagos + store.saldoAplicado - store.totalCuotas,
+);
 
 function metodo(id: number | null) {
     return paymentMethods.value.find((m) => m.id === id);
@@ -26,12 +29,17 @@ function metodo(id: number | null) {
 
 const puedeRegistrar = computed(() => {
     if (!informar.value.clienteId) return false;
-    if (store.totalPagos <= 0) return false;
+    if (store.totalPagos + store.saldoAplicado <= 0) return false;
     if (informar.value.tipoPago === 1 && informar.value.cuotas.length === 0) {
         return false;
     }
+    if (store.saldoAplicado > store.saldoAplicable) return false;
+
+    // Las filas de método vacías se ignoran (el saldo puede cubrir todo).
     return informar.value.dataPayments.every(
-        (p) => p.payment_method_id && Number(p.valor_importe) > 0,
+        (p) =>
+            (!p.payment_method_id && !Number(p.valor_importe)) ||
+            (p.payment_method_id && Number(p.valor_importe) > 0),
     );
 });
 
@@ -143,6 +151,53 @@ async function registrar() {
                         </div>
                     </el-collapse-item>
                 </el-collapse>
+            </div>
+
+            <!-- Saldo a favor del cliente -->
+            <div
+                v-if="
+                    informar.clienteId && saldoCliente && saldoCliente.saldo > 0
+                "
+                class="border-border bg-muted/40 flex flex-wrap items-end justify-between gap-3 rounded-md border px-3 py-2.5"
+            >
+                <div class="text-sm">
+                    <div class="font-semibold">Saldo a favor del cliente</div>
+                    <div class="text-muted-foreground text-xs tabular-nums">
+                        Disponible {{ formatNumber(saldoCliente.disponible) }}
+                        <template v-if="saldoCliente.reservado > 0">
+                            ·
+                            {{ formatNumber(saldoCliente.reservado) }} reservado
+                            en pagos por aprobar
+                        </template>
+                    </div>
+                </div>
+                <div
+                    v-if="
+                        informar.tipoPago === 1 && saldoCliente.disponible > 0
+                    "
+                    class="flex items-end gap-2"
+                >
+                    <div>
+                        <label class="text-muted-foreground text-xs"
+                            >Aplicar a las cuotas</label
+                        >
+                        <el-input-number
+                            v-model="informar.saldoFavor"
+                            size="small"
+                            :min="0"
+                            :max="store.saldoAplicable"
+                            :disabled="store.saldoAplicable <= 0"
+                            controls-position="right"
+                        />
+                    </div>
+                    <el-button
+                        size="small"
+                        :disabled="store.saldoAplicable <= 0"
+                        @click="store.usarSaldoMaximo()"
+                    >
+                        Usar el máximo
+                    </el-button>
+                </div>
             </div>
 
             <!-- Métodos de pago -->
@@ -258,6 +313,10 @@ async function registrar() {
                     <div>
                         <b>Total pagos:</b> {{ formatNumber(store.totalPagos) }}
                     </div>
+                    <div v-if="store.saldoAplicado > 0">
+                        <b>Saldo a favor aplicado:</b>
+                        {{ formatNumber(store.saldoAplicado) }}
+                    </div>
                     <div
                         v-if="informar.tipoPago === 1"
                         :class="
@@ -266,7 +325,11 @@ async function registrar() {
                     >
                         <b
                             >{{
-                                diferencia >= 0 ? 'Saldo a favor' : 'Faltante'
+                                diferencia > 0
+                                    ? 'Excedente (queda como saldo a favor)'
+                                    : diferencia === 0
+                                      ? 'Diferencia'
+                                      : 'Faltante'
                             }}:</b
                         >
                         {{ formatNumber(Math.abs(diferencia)) }}

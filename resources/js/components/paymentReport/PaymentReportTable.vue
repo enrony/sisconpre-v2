@@ -59,7 +59,10 @@ const fields: ListField<InformePagoRow>[] = [
     {
         label: 'Monto',
         class: 'text-right font-semibold tabular-nums',
-        value: (r) => formatNumber(r.value_amount),
+        value: (r) =>
+            Number(r.saldo_favor_aplicado) > 0
+                ? `${formatNumber(r.value_amount)} + ${formatNumber(r.saldo_favor_aplicado)} saldo`
+                : formatNumber(r.value_amount),
     },
     { label: 'Cuotas', class: 'tabular-nums', value: (r) => r.number_cuotas },
 ];
@@ -142,6 +145,12 @@ const fields: ListField<InformePagoRow>[] = [
                     <template #default="{ row }">
                         <span class="font-semibold text-blue-600">
                             {{ formatNumber(row.value_amount) }}
+                        </span>
+                        <span
+                            v-if="Number(row.saldo_favor_aplicado) > 0"
+                            class="text-muted-foreground block text-xs"
+                        >
+                            + {{ formatNumber(row.saldo_favor_aplicado) }} saldo
                         </span>
                     </template>
                 </el-table-column>

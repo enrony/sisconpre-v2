@@ -39,6 +39,12 @@ Route::prefix('/prestamos')->middleware(['auth'])->group(function () {
         ->middleware('permission:prestamos.aprobar');
     Route::put('/{prestamo}/rechazar', [PrestamosController::class, 'rechazar'])
         ->middleware('permission:prestamos.aprobar');
+    Route::put('/{prestamo}/anular', [PrestamosController::class, 'anular'])
+        ->middleware('permission:prestamos.cambiar-estado');
+    Route::put('/{prestamo}/perdido', [PrestamosController::class, 'marcarPerdido'])
+        ->middleware('permission:prestamos.cambiar-estado');
+    Route::put('/{prestamo}/reactivar', [PrestamosController::class, 'reactivar'])
+        ->middleware('permission:prestamos.cambiar-estado');
 });
 
 // La ruta GET /clientes vive ahora en routes/clientes.php (gate `clientes.listar`).

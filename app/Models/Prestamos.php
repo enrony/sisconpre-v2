@@ -22,6 +22,15 @@ class Prestamos extends Model
 {
     use HasFactory;
 
+    /** `estatus` (catálogo `prestamos_estatus`): avance del cobro. "Pendiente" = en curso. */
+    public const ESTATUS_PENDIENTE = 1;
+
+    public const ESTATUS_PAGADO = 2;
+
+    public const ESTATUS_ANULADO = 3;
+
+    public const ESTATUS_PERDIDO = 4;
+
     /** Préstamo recién creado: no puede recibir un pago informado todavía. */
     public const APROBACION_PENDIENTE = 1;
 
@@ -163,6 +172,14 @@ class Prestamos extends Model
         return $this->belongsTo(PrestamoAprobacionEstatus::class, 'aprobacion_estatus_id');
     }
 
+    /**
+     * @return HasMany<PrestamoEstatusHistorial, $this>
+     */
+    public function estatusHistorial(): HasMany
+    {
+        return $this->hasMany(PrestamoEstatusHistorial::class, 'prestamo_id')->latest();
+    }
+
     /** Columnas por las que la grilla puede ordenar → columna real (evita inyección en `orderBy`). */
     private const ORDENABLES = [
         'id' => 'prestamos.id',
@@ -220,7 +237,7 @@ class Prestamos extends Model
             ->selectRaw("json_unquote(json_extract(prestamos.cliente, '$.documento')) as cliente_documento")
             ->with([
                 'prestamos_dias:id,prestamo_id,cuota,pagado,date,apply,dom,festivo,sigla',
-                'p_estatus:id,type_tag',
+                'p_estatus:id,description,type_tag',
                 'aprobacionEstatus:id,description,type_tag',
             ])
             ->when($request->filled(['fecha_registro1', 'fecha_registro2']), function ($query) use ($request) {

@@ -35,7 +35,11 @@ export interface PrestamoRow {
     tasa: string | number;
     utilidad: string | number;
     total: string | number;
-    p_estatus?: { id: number; type_tag?: { type?: string } };
+    p_estatus?: {
+        id: number;
+        description?: string;
+        type_tag?: { type?: string };
+    };
     aprobacion_estatus?: {
         id: number;
         description: string;
@@ -348,6 +352,22 @@ export const usePrestamosStore = defineStore('prestamos', {
             id: number,
         ): Promise<{ success: boolean; message: string }> {
             const { data } = await http.put(`/prestamos/${id}/aprobar`, {});
+            if (data.success) {
+                await this.fetchList(this.lista?.current_page ?? 1);
+            }
+
+            return data;
+        },
+
+        /** Anular / marcar perdido / reactivar (ciclo de vida del préstamo). */
+        async cambiarEstadoPrestamo(
+            id: number,
+            accion: 'anular' | 'perdido' | 'reactivar',
+            motivo: string | null,
+        ): Promise<{ success: boolean; message: string }> {
+            const { data } = await http.put(`/prestamos/${id}/${accion}`, {
+                motivo,
+            });
             if (data.success) {
                 await this.fetchList(this.lista?.current_page ?? 1);
             }

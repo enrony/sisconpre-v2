@@ -132,6 +132,12 @@ async function procesar(row: GestionReporteRow) {
                         <span class="font-semibold text-green-600">
                             {{ formatNumber(row.value_amount) }}
                         </span>
+                        <span
+                            v-if="Number(row.saldo_favor_aplicado) > 0"
+                            class="text-muted-foreground block text-xs"
+                        >
+                            + {{ formatNumber(row.saldo_favor_aplicado) }} saldo
+                        </span>
                     </template>
                 </el-table-column>
                 <el-table-column

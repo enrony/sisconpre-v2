@@ -7,6 +7,7 @@ use App\Http\Requests\UpdatePaymentReportRequest;
 use App\Models\PaymentReport;
 use App\Models\Prestamos;
 use App\Services\PaymentReportService;
+use App\Services\SaldoFavorService;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -124,6 +125,17 @@ class PaymentReportController extends Controller
         return ['id' => 1, 'desc' => 'Pendiente', 'color' => 'text-gray-400', 'finish_estatus' => false];
     }
 
+    /**
+     * Saldo a favor del cliente para "Informar un pago": total, reservado por
+     * informes en curso y disponible para aplicar a cuotas.
+     *
+     * @return array{saldo: float, reservado: float, disponible: float}
+     */
+    public function saldoFavor(int $cliente, SaldoFavorService $saldos): array
+    {
+        return $saldos->resumen($cliente);
+    }
+
     public function record($id)
     {
 
@@ -229,6 +241,9 @@ class PaymentReportController extends Controller
 
             // Bloquea informar pago sobre un préstamo que no está aprobado
             $this->PaymentReportService->verifiedPrestamosAprobados();
+
+            // Valida el saldo a favor aplicado contra lo disponible del cliente
+            $this->PaymentReportService->verifiedSaldoFavor();
 
             // Registra encabezado del pago reportado
             $this->PaymentReportService->createPaymentReport($request);

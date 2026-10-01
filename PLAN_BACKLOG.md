@@ -33,7 +33,7 @@ Estas 4 quedan como **próximas a abordar**, en el orden que se decida al arranc
 | ------------------------------------------------------------------------ | ----------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Alertar si día de inicio es domingo y no está marcado "incluir domingos" | ❌ Pendiente                        | Checkbox existe ([PrestamoFormModal.vue:235](resources/js/components/prestamos/PrestamoFormModal.vue)), no dispara aviso al generar                                                 |
 | Lista de préstamos no se actualiza al registrar uno nuevo                | 🟡 Parcial — el mecanismo ya existe | `store()` hace `fetchList(1)` en `onSuccess` ([prestamos.ts:565](resources/js/stores/prestamos.ts)). Si el bug se repite, es un caso puntual a reproducir, no ausencia de la lógica |
-| Informe rechazado permite seguir modificando cuando ya está procesado    | 🟡 Parcial → **ver §1.4**           | Frontend bloquea vía `finish_estatus`; backend no valida nada                                                                                                                       |
+| Informe rechazado permite seguir modificando cuando ya está procesado    | ✅ Hecho → **ver §1.4**             | Bloqueado también en backend (`verifiedCurrentStatus`)                                                                                                                              |
 
 ### 2.2 Guardar filtros aplicados (JSON por tipo: formulario/reporte)
 
@@ -68,19 +68,19 @@ Estas 4 quedan como **próximas a abordar**, en el orden que se decida al arranc
 
 ### 2.8 Flujo de informe de pago
 
-| Ítem                                                              | Estado                              | Evidencia                                                                                                                                                      |
-| ----------------------------------------------------------------- | ----------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Bloquear selección de cuota ya vinculada a informe pendiente      | ✅ Hecho → **ver §3.3**             | Bloqueado en UI y en backend                                                                                                                                   |
-| Leyenda "pendiente de confirmación" + n° comprobante              | ✅ Hecho → **ver §3.3**             | Tooltip en `InformarPagoModal.vue` con el nº de informe                                                                                                        |
-| Pago de cuotas con saldo a favor                                  | ✅ Hecho                            | Completo de punta a punta                                                                                                                                      |
-| Validar cliente seleccionado antes de habilitar "pagar"           | ✅ Hecho                            | `InformarPagoModal.vue` (`puedeRegistrar`)                                                                                                                     |
-| Botón general vs. botón por cliente                               | ✅ Hecho                            | `abrirInformar(clienteId?)` soporta ambos casos                                                                                                                |
-| Menú según permisos                                               | ✅ Hecho                            | `Menu.php` filtra por `$user->cannot($item->permission)`                                                                                                       |
-| Reajuste de informe de pago                                       | 🚫 Cerrado — ver §1.1               |                                                                                                                                                                |
-| Email en cada cambio de estado                                    | ❌ No existe                        | No hay ni un mailable para esto (ni siquiera al crear)                                                                                                         |
-| Aprobar → marcar cuotas pagadas + saldo a cartera + transaccional | 🟡 Parcial                          | Pasa por un endpoint genérico `change_estatus_report`, sin método `aprobar()` dedicado. Sí marca cuotas pagadas y sí registra en `customer_movement_histories` |
-| Rechazar → motivo + soporte + liberar cuotas                      | 🟡 Parcial — liberar ✅, soporte ❌ | La cuota ya se libera sola al rechazar (§3.3). Motivo se exige; **soporte sigue sin exigirse** (`soporte=0` en el seed de estados para Rechazado) — pendiente  |
-| KPI de informes pendientes clickeable con modal                   | ❌ Pendiente                        | El número ya está en el Dashboard (`kpis.informes_por_revisar`), sin `@click` ni modal                                                                         |
+| Ítem                                                              | Estado                                | Evidencia                                                                                                                                                     |
+| ----------------------------------------------------------------- | ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Bloquear selección de cuota ya vinculada a informe pendiente      | ✅ Hecho → **ver §3.3**               | Bloqueado en UI y en backend                                                                                                                                  |
+| Leyenda "pendiente de confirmación" + n° comprobante              | ✅ Hecho → **ver §3.3**               | Tooltip en `InformarPagoModal.vue` con el nº de informe                                                                                                       |
+| Pago de cuotas con saldo a favor                                  | ✅ Hecho (2026-10-01) → **ver §3.11** | Re-triage 2026-09-30: estaba mal marcado — el saldo solo se acumulaba, no había forma de usarlo                                                               |
+| Validar cliente seleccionado antes de habilitar "pagar"           | ✅ Hecho                              | `InformarPagoModal.vue` (`puedeRegistrar`)                                                                                                                    |
+| Botón general vs. botón por cliente                               | ✅ Hecho                              | `abrirInformar(clienteId?)` soporta ambos casos                                                                                                               |
+| Menú según permisos                                               | ✅ Hecho                              | `Menu.php` filtra por `$user->cannot($item->permission)`                                                                                                      |
+| Reajuste de informe de pago                                       | 🚫 Cerrado — ver §1.1                 |                                                                                                                                                               |
+| Email en cada cambio de estado                                    | ❌ No existe                          | No hay ni un mailable para esto (ni siquiera al crear)                                                                                                        |
+| Aprobar → marcar cuotas pagadas + saldo a cartera + transaccional | 🟡 Parcial                            | Marca cuotas, descuenta/acredita saldo y ahora cierra el préstamo saldado (§3.11). Falta registrar el pago de cuotas como transacción (depende de §2.7)       |
+| Rechazar → motivo + soporte + liberar cuotas                      | 🟡 Parcial — liberar ✅, soporte ❌   | La cuota ya se libera sola al rechazar (§3.3). Motivo se exige; **soporte sigue sin exigirse** (`soporte=0` en el seed de estados para Rechazado) — pendiente |
+| KPI de informes pendientes clickeable con modal                   | ❌ Pendiente                          | El número ya está en el Dashboard (`kpis.informes_por_revisar`), sin `@click` ni modal                                                                        |
 
 ---
 
@@ -373,6 +373,48 @@ código:
 
 **Tests:** `test_prestamo_nuevo_nace_pendiente_de_aprobacion`, `test_prestamos_aprobar_rechazar`,
 `test_no_se_puede_informar_pago_de_prestamo_no_aprobado`, `test_informar_pago_no_ofrece_prestamos_no_aprobados`.
+
+---
+
+### 3.11 Ciclo de vida del préstamo + pago de cuotas con saldo a favor (2026-10-01)
+
+Sale del re-triage del 2026-09-30 (lista de tareas SISCONPRE en JSON, contrastada contra el código y la BD):
+
+- **Hallazgo A:** nada pasaba un préstamo a "Pagado" al saldarse, ni había forma de anularlo o darlo por
+  perdido desde la app (el préstamo #42 tenía todas sus cuotas pagadas y seguía "Pendiente").
+- **Saldo a favor:** §2.8 lo daba por hecho, pero solo se acumulaba (4 movimientos, todos "Abono"): no se
+  podía usar ni se veía en ninguna pantalla. El cliente #1 tenía 336.000 que no podía usar.
+
+Reglas confirmadas con el usuario antes de implementar:
+
+- **Cierre automático:** al aprobar un informe, todo préstamo cuyas cuotas `apply` quedan todas pagadas pasa
+  a "Pagado" (`PrestamoEstadoService::cerrarSiSaldado()`). La migración corrigió el #42.
+- **Anular:** solo en curso, sin cuotas pagadas ni informes en curso (= se registró por error). Final.
+- **Perdido:** solo en curso y aprobado, sin informes en curso. **Reversible** ("Reactivar" → vuelve a
+  "Pendiente").
+- **Motivo obligatorio** al anular y al dar por perdido (opcional al reactivar). Cada cambio de estado queda en
+  `prestamos_estatus_historial` (anterior, nuevo, motivo, usuario, fecha).
+- **Permiso nuevo `prestamos.cambiar-estado`**: no está asignado a ningún rol; se otorga desde Roles y permisos.
+- Se sincronizan los flags legados `pagado`/`anulado`/`perdido`, porque `scopePrestamoActivo()` todavía los
+  consulta.
+- Al **aprobar** un informe se exige que sus préstamos sigan en curso y aprobados: no se aprueba un pago sobre
+  un préstamo anulado o perdido entre medio. Aprobar/rechazar el préstamo también se limita a préstamos en
+  curso. En la UI, las acciones de aprobación y de recargo se ocultan en préstamos finalizados.
+- **Saldo a favor dentro de "Informar un pago"** (sin método de pago nuevo): columna
+  `payment_reports.saldo_favor_aplicado`. Tope: lo disponible (saldo menos lo reservado por informes en curso)
+  y nunca más que el total de las cuotas elegidas. Pasa por la misma aprobación: al aprobar se descuenta con un
+  movimiento "Pago" (tipo 01, resta). Si el informe se rechaza, el saldo simplemente deja de estar reservado.
+  No suma a "monto recibido" en reportes porque no es dinero nuevo. El modal muestra el saldo disponible y lo
+  reservado, con un botón "Usar el máximo".
+- Validación agregada de paso: las cuotas informadas tienen que ser de préstamos **del mismo cliente** del
+  informe; antes el backend no lo verificaba, y con saldo a favor eso habría permitido gastar el saldo de un
+  cliente en cuotas de otro.
+
+**Tests:** `test_saldo_a_favor_y_cierre_automatico_del_prestamo`, `test_no_se_informan_cuotas_de_otro_cliente`,
+`test_anular_perdido_y_reactivar_prestamo`.
+
+**Sigue pendiente (no era parte de este pedido):** "Informar un pago" acepta un **faltante** (pagos menores
+que las cuotas) y aun así, al aprobarse, marca todas las cuotas como pagadas.
 
 ---
 

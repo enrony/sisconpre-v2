@@ -10,6 +10,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Testing\TestResponse;
 use Tests\TestCase;
 
 /**
@@ -286,6 +287,205 @@ class PanelSmokeTest extends TestCase
             $this->assertNotContains($prestamo->id, collect($despues)->pluck('id')->all());
         } finally {
             DB::table('prestamos')->where('id', $prestamo->id)->update(['aprobacion_estatus_id' => $prestamo->aprobacion_estatus_id]);
+        }
+    }
+
+    /**
+     * Préstamo aprobado y en curso, para tests del ciclo de vida / saldo a
+     * favor. Cuotas con `apply` = true (las que cuentan para el cobro).
+     *
+     * @param  list<float>  $cuotas
+     */
+    private function crearPrestamo(int $clienteId, array $cuotas, bool $aprobado = true): int
+    {
+        $cliente = DB::table('clientes')->where('id', $clienteId)->first();
+        $this->assertNotNull($cliente);
+
+        $this->actingAs($this->super())->put('/prestamos', [
+            'cliente_id' => $clienteId,
+            'clienteSelected' => (array) $cliente,
+            'country_id' => 'COL',
+            'tipo_prestamo_id' => 1,
+            'monto_prestamo' => array_sum($cuotas),
+            'cuota' => $cuotas[0],
+            'tasa' => 0,
+            'total' => array_sum($cuotas),
+            'utilidad' => 0,
+            'date_first_pay' => now()->addDays(1)->toDateString(),
+            'date_last_pay' => now()->addDays(count($cuotas))->toDateString(),
+            'list_pays' => array_map(fn (float $c, int $i) => [
+                'cuota' => $c, 'date' => now()->addDays($i + 1)->toDateString(), 'apply' => true,
+            ], $cuotas, array_keys($cuotas)),
+        ])->assertRedirect();
+
+        $id = (int) DB::table('prestamos')->orderByDesc('id')->value('id');
+
+        if ($aprobado) {
+            DB::table('prestamos')->where('id', $id)->update(['aprobacion_estatus_id' => Prestamos::APROBACION_APROBADO]);
+        }
+
+        return $id;
+    }
+
+    /** @param  list<array{0: int, 1: float}>  $cuotas  [id, monto] */
+    private function informarPago(int $clienteId, array $cuotas, float $efectivo, float $saldoFavor = 0): TestResponse
+    {
+        return $this->actingAs($this->super())->postJson('/payment_report', [
+            'data' => json_encode([
+                'cliente' => (array) DB::table('clientes')->where('id', $clienteId)->first(),
+                'tipoPago' => 1,
+                'cuotas' => array_map(fn ($c) => ['id' => $c[0], 'cuota' => $c[1]], $cuotas),
+                'saldoFavor' => $saldoFavor,
+                'dataPayments' => $efectivo > 0 ? [[
+                    'payment_method_id' => 1, 'valor_importe' => $efectivo,
+                    'bank_id' => null, 'franquicia_id' => null, 'referencia' => null, 'support_image' => [],
+                ]] : [],
+            ]),
+        ]);
+    }
+
+    private function aprobarInforme(int $informeId): TestResponse
+    {
+        return $this->actingAs($this->super())->postJson('/payment_report/change_estatus_report', [
+            'data' => json_encode([
+                'id' => $informeId, 'estatus_actual' => 1, 'estatus_selected' => 2, 'motivo' => null, 'support_image' => [],
+            ]),
+        ]);
+    }
+
+    private function borrarPrestamoConInformes(int $prestamoId): void
+    {
+        $cuotaIds = DB::table('prestamos_dias')->where('prestamo_id', $prestamoId)->pluck('id');
+        $informeIds = DB::table('selected_payment_reports')->whereIn('prestamos_dia_id', $cuotaIds)->pluck('payment_report_id');
+
+        DB::table('customer_movement_histories')->whereIn('payment_report_id', $informeIds)->delete();
+        DB::table('selected_payment_reports')->whereIn('payment_report_id', $informeIds)->delete();
+        DB::table('payment_reports_methods')->whereIn('payment_report_id', $informeIds)->delete();
+        DB::table('payment_reports_movements')->whereIn('payment_report_id', $informeIds)->delete();
+        DB::table('payment_reports')->whereIn('id', $informeIds)->delete();
+        DB::table('prestamos_estatus_historial')->where('prestamo_id', $prestamoId)->delete();
+        DB::table('prestamos_dias')->where('prestamo_id', $prestamoId)->delete();
+        DB::table('prestamos')->where('id', $prestamoId)->delete();
+    }
+
+    /**
+     * Saldo a favor de punta a punta: se reserva al informar, no se puede usar
+     * dos veces, se descuenta al aprobar (movimiento "Pago") — y al aprobarse
+     * el pago de la última cuota el préstamo pasa solo a "Pagado".
+     */
+    public function test_saldo_a_favor_y_cierre_automatico_del_prestamo(): void
+    {
+        $clienteId = 1;
+        $resumenOriginal = DB::table('summary_customer_movements')->where('cliente_id', $clienteId)->first();
+        $this->assertNotNull($resumenOriginal);
+        DB::table('summary_customer_movements')->where('cliente_id', $clienteId)->update(['balance' => 45000]);
+
+        $prestamoId = $this->crearPrestamo($clienteId, [50000, 50000]);
+        [$cuota1, $cuota2] = DB::table('prestamos_dias')->where('prestamo_id', $prestamoId)->orderBy('date')->pluck('id')->all();
+
+        try {
+            $reservadoAntes = (float) $this->actingAs($this->super())->getJson("/clientes/{$clienteId}/saldo-favor")->json('reservado');
+
+            // No se puede aplicar más saldo que el total de las cuotas.
+            $this->informarPago($clienteId, [[$cuota1, 50000]], 0, 60000)->assertJson(['success' => false]);
+
+            // 40.000 de saldo + 10.000 en efectivo cubren la cuota 1.
+            $this->informarPago($clienteId, [[$cuota1, 50000]], 10000, 40000)->assertJson(['success' => true]);
+            $informe1 = (int) DB::table('payment_reports')->orderByDesc('id')->value('id');
+            $this->assertSame(40000.0, (float) DB::table('payment_reports')->where('id', $informe1)->value('saldo_favor_aplicado'));
+            $this->assertSame(0.0, (float) DB::table('payment_reports')->where('id', $informe1)->value('importe'));
+
+            $saldo = $this->actingAs($this->super())->getJson("/clientes/{$clienteId}/saldo-favor")->json();
+            $this->assertSame($reservadoAntes + 40000, (float) $saldo['reservado']);
+
+            // Lo reservado no se puede volver a usar mientras el informe está en curso.
+            $res = $this->informarPago($clienteId, [[$cuota2, 50000]], 40000, max(10000, (float) $saldo['disponible'] + 1));
+            $res->assertJson(['success' => false]);
+            $this->assertStringContainsString('saldo a favor disponible', $res->json('message'));
+
+            // Al aprobar se descuenta el saldo y la cuota queda pagada; el préstamo sigue en curso.
+            $this->aprobarInforme($informe1)->assertJson(['success' => true]);
+            $this->assertSame(5000.0, (float) DB::table('summary_customer_movements')->where('cliente_id', $clienteId)->value('balance'));
+            $this->assertSame(40000.0, (float) DB::table('customer_movement_histories')
+                ->where('payment_report_id', $informe1)->where('type_movement_id', 1)->value('amount'));
+            $this->assertTrue((bool) DB::table('prestamos_dias')->where('id', $cuota1)->value('pagado'));
+            $this->assertSame(Prestamos::ESTATUS_PENDIENTE, (int) DB::table('prestamos')->where('id', $prestamoId)->value('estatus'));
+
+            // Pagar la última cuota cierra el préstamo como "Pagado", con auditoría.
+            $this->informarPago($clienteId, [[$cuota2, 50000]], 50000)->assertJson(['success' => true]);
+            $informe2 = (int) DB::table('payment_reports')->orderByDesc('id')->value('id');
+            $this->aprobarInforme($informe2)->assertJson(['success' => true]);
+
+            $prestamo = DB::table('prestamos')->where('id', $prestamoId)->first();
+            $this->assertSame(Prestamos::ESTATUS_PAGADO, (int) $prestamo->estatus);
+            $this->assertTrue((bool) $prestamo->pagado);
+            $this->assertTrue(DB::table('prestamos_estatus_historial')
+                ->where('prestamo_id', $prestamoId)->where('estatus_nuevo', Prestamos::ESTATUS_PAGADO)->exists());
+        } finally {
+            $this->borrarPrestamoConInformes($prestamoId);
+            DB::table('summary_customer_movements')->where('cliente_id', $clienteId)->update([
+                'balance' => $resumenOriginal->balance, 'debit' => $resumenOriginal->debit, 'credit' => $resumenOriginal->credit,
+            ]);
+        }
+    }
+
+    /** No se informan cuotas de un préstamo de otro cliente (protege el saldo a favor de cada cliente). */
+    public function test_no_se_informan_cuotas_de_otro_cliente(): void
+    {
+        $prestamoId = $this->crearPrestamo(1, [50000]);
+        $cuota = (int) DB::table('prestamos_dias')->where('prestamo_id', $prestamoId)->value('id');
+        $otroCliente = (int) DB::table('clientes')->where('id', '!=', 1)->value('id');
+
+        try {
+            $res = $this->informarPago($otroCliente, [[$cuota, 50000]], 50000);
+            $res->assertJson(['success' => false]);
+            $this->assertStringContainsString('no pertenece', $res->json('message'));
+        } finally {
+            $this->borrarPrestamoConInformes($prestamoId);
+        }
+    }
+
+    /** Anular / perdido / reactivar: permiso, motivo obligatorio y reglas por estado. */
+    public function test_anular_perdido_y_reactivar_prestamo(): void
+    {
+        $sinAprobar = $this->crearPrestamo(1, [50000], aprobado: false);
+        $conPago = $this->crearPrestamo(1, [50000, 50000]);
+
+        try {
+            $this->actingAs($this->cliente())->putJson("/prestamos/{$sinAprobar}/anular", ['motivo' => 'x'])->assertForbidden();
+            $this->actingAs($this->super())->putJson("/prestamos/{$sinAprobar}/anular")->assertUnprocessable();
+
+            // Perdido solo para préstamos aprobados.
+            $this->actingAs($this->super())->putJson("/prestamos/{$sinAprobar}/perdido", ['motivo' => 'Incobrable'])
+                ->assertJson(['success' => false]);
+
+            // Anular el que se registró por error.
+            $this->actingAs($this->super())->putJson("/prestamos/{$sinAprobar}/anular", ['motivo' => 'Registrado por error'])
+                ->assertJson(['success' => true]);
+            $anulado = DB::table('prestamos')->where('id', $sinAprobar)->first();
+            $this->assertSame(Prestamos::ESTATUS_ANULADO, (int) $anulado->estatus);
+            $this->assertTrue((bool) $anulado->anulado);
+            $this->assertSame('Registrado por error', DB::table('prestamos_estatus_historial')->where('prestamo_id', $sinAprobar)->value('motivo'));
+
+            // Anulado es final: no se reactiva.
+            $this->actingAs($this->super())->putJson("/prestamos/{$sinAprobar}/reactivar")->assertJson(['success' => false]);
+
+            // Con una cuota pagada ya no se puede anular, pero sí dar por perdido y reactivar.
+            DB::table('prestamos_dias')->where('prestamo_id', $conPago)->orderBy('date')->limit(1)->update(['pagado' => true]);
+            $this->actingAs($this->super())->putJson("/prestamos/{$conPago}/anular", ['motivo' => 'x'])->assertJson(['success' => false]);
+
+            $this->actingAs($this->super())->putJson("/prestamos/{$conPago}/perdido", ['motivo' => 'Cliente inubicable'])
+                ->assertJson(['success' => true]);
+            $this->assertSame(Prestamos::ESTATUS_PERDIDO, (int) DB::table('prestamos')->where('id', $conPago)->value('estatus'));
+
+            $this->actingAs($this->super())->putJson("/prestamos/{$conPago}/reactivar", ['motivo' => 'Volvió a pagar'])
+                ->assertJson(['success' => true]);
+            $reactivado = DB::table('prestamos')->where('id', $conPago)->first();
+            $this->assertSame(Prestamos::ESTATUS_PENDIENTE, (int) $reactivado->estatus);
+            $this->assertFalse((bool) $reactivado->perdido);
+        } finally {
+            $this->borrarPrestamoConInformes($sinAprobar);
+            $this->borrarPrestamoConInformes($conPago);
         }
     }
 
