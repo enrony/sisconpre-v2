@@ -63,6 +63,13 @@ class DashboardController extends Controller
                 'nombre' => $s->solicitante?->name,
                 'email' => $s->solicitante?->email,
                 'fecha' => $s->created_at?->format('d/m/Y H:i'),
+                'registro' => $s->origen === GrupoTrabajoSolicitud::ORIGEN_REGISTRO,
+            ])->values() : [],
+            // Las suyas que esperan aprobación (p. ej. recién registrado, todavía sin grupo).
+            'misSolicitudes' => $user ? $solicitudes->enviadas($user)->map(fn (GrupoTrabajoSolicitud $s): array => [
+                'id' => $s->id,
+                'grupo' => $s->grupo?->nombre,
+                'fecha' => $s->created_at?->format('d/m/Y H:i'),
             ])->values() : [],
         ]);
     }

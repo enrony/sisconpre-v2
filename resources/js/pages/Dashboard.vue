@@ -8,11 +8,16 @@ import SerieMensualChart, {
     type MesSerie,
 } from '@/components/dashboard/SerieMensualChart.vue';
 import MisGruposCards from '@/components/grupos/MisGruposCards.vue';
+import MisSolicitudesPanel from '@/components/grupos/MisSolicitudesPanel.vue';
 import SolicitudesGrupoPanel from '@/components/grupos/SolicitudesGrupoPanel.vue';
 import { dashboard } from '@/routes';
 import { can } from '@/lib/can';
 import { formatNumber } from '@/lib/format';
-import type { SolicitudPorDecidir, TarjetaGrupo } from '@/types/grupos';
+import type {
+    MiSolicitud,
+    SolicitudPorDecidir,
+    TarjetaGrupo,
+} from '@/types/grupos';
 
 /** Mismos estados que cuenta el KPI (`DashboardController`): Pendiente y En revisión. */
 const urlInformesPorRevisar = '/payment_report?estados=1,4';
@@ -39,6 +44,7 @@ defineProps<{
     serieMensual: MesSerie[];
     solicitudesPorDecidir: SolicitudPorDecidir[];
     misGrupos: TarjetaGrupo[];
+    misSolicitudes: MiSolicitud[];
 }>();
 </script>
 
@@ -50,9 +56,18 @@ defineProps<{
     >
         <SolicitudesGrupoPanel :solicitudes="solicitudesPorDecidir" />
 
+        <MisSolicitudesPanel
+            :solicitudes="misSolicitudes"
+            :sin-grupo="!misGrupos.length"
+        />
+
         <MisGruposCards :grupos="misGrupos" />
 
-        <div class="grid auto-rows-min gap-4 md:grid-cols-3">
+        <!-- Sin grupo no hay cartera que mostrar: solo el aviso de arriba. -->
+        <div
+            v-if="misGrupos.length"
+            class="grid auto-rows-min gap-4 md:grid-cols-3"
+        >
             <div
                 class="border-sidebar-border/70 dark:border-sidebar-border rounded-xl border p-4"
             >
@@ -119,7 +134,7 @@ defineProps<{
             </component>
         </div>
 
-        <div class="grid flex-1 gap-4 md:grid-cols-2">
+        <div v-if="misGrupos.length" class="grid flex-1 gap-4 md:grid-cols-2">
             <div
                 class="border-sidebar-border/70 dark:border-sidebar-border rounded-xl border p-4"
             >

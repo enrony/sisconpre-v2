@@ -573,7 +573,7 @@ aviso por correo; **WhatsApp más adelante**.
 - Detalle corregido en la revisión visual: el ejemplo del campo de código era un código real (el del grupo
   General); se cambió por uno genérico.
 
-**Para decidir:** el **registro** de un usuario nuevo con código sigue entrando al grupo directo, sin aprobación.
+**Decidido (§3.18):** el **registro** de un usuario nuevo con código también pasa por la aprobación del dueño.
 
 **Test:** `test_solicitudes_para_unirse_a_un_grupo`.
 
@@ -594,6 +594,24 @@ azul ("Grupo actual"); las otras tarjetas tienen **"Cambiar a este grupo"**. El 
   importados del legado sin cronograma de cuotas.
 
 **Test:** `test_tarjetas_mis_grupos_del_dashboard`.
+
+### 3.18 El registro con código también lo aprueba el dueño (2026-10-01)
+
+Decisión del usuario: quien **se registra** con el código de un grupo no entra directo; queda una solicitud igual
+que al pedir unirse desde el selector (§3.16), con aviso por correo al dueño (WhatsApp más adelante).
+
+- `grupos_trabajos_solicitudes.origen`: `registro` (usuario nuevo) o `codigo` (usuario existente). El correo al
+  dueño y el panel del Dashboard lo distinguen ("Nuevo usuario · se registró con el código de…").
+- Hasta que lo aprueben, el usuario nuevo no ve datos de ningún grupo. En su Dashboard ve **"Su ingreso está
+  esperando aprobación"**, con el grupo y la fecha de la solicitud, y la opción de pedir otro grupo con un código.
+  Si se la rechazan, ve cómo pedir el ingreso a un grupo. Con grupos, sus solicitudes en espera aparecen como
+  aviso compacto arriba de sus tarjetas.
+- Al aprobarlo entra al grupo y ese pasa a ser su grupo activo. El rol lo sigue asignando un administrador
+  desde Usuarios.
+- Los aprobadores de un grupo sin dueño se buscan sin `User::role()`, para que una instalación sin el rol
+  `super-admin` no trabe el registro.
+
+**Test:** `test_el_registro_con_codigo_espera_la_aprobacion_del_dueno`.
 
 **Siguiente etapa:** campanita de notificaciones junto con los correos en cada cambio de estado; WhatsApp como
 canal adicional de las mismas notificaciones.

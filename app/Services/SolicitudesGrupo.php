@@ -39,15 +39,45 @@ class SolicitudesGrupo
             throw new DomainException("Ya tiene una solicitud pendiente para el grupo {$grupo->nombre}.");
         }
 
+        return $this->crear($user, $grupo, GrupoTrabajoSolicitud::ORIGEN_CODIGO);
+    }
+
+    /**
+     * Usuario nuevo que se registró con el código del grupo: entra recién
+     * cuando lo aprueba el dueño (el código ya lo validó el registro).
+     */
+    public function alRegistrarse(User $user, GruposTrabajo $grupo): GrupoTrabajoSolicitud
+    {
+        return $this->crear($user, $grupo, GrupoTrabajoSolicitud::ORIGEN_REGISTRO);
+    }
+
+    private function crear(User $user, GruposTrabajo $grupo, string $origen): GrupoTrabajoSolicitud
+    {
         $solicitud = GrupoTrabajoSolicitud::create([
             'idgrupo_trabajo' => $grupo->id,
             'user_id' => $user->id,
             'estatus' => GrupoTrabajoSolicitud::PENDIENTE,
+            'origen' => $origen,
         ]);
 
         $this->notificar($this->aprobadores($grupo), new SolicitudUnionGrupo($solicitud));
 
         return $solicitud;
+    }
+
+    /**
+     * Solicitudes del propio usuario que siguen esperando respuesta.
+     *
+     * @return Collection<int, GrupoTrabajoSolicitud>
+     */
+    public function enviadas(User $user): Collection
+    {
+        return GrupoTrabajoSolicitud::query()
+            ->with('grupo:id,nombre')
+            ->where('user_id', $user->id)
+            ->where('estatus', GrupoTrabajoSolicitud::PENDIENTE)
+            ->oldest()
+            ->get();
     }
 
     /**
@@ -61,7 +91,10 @@ class SolicitudesGrupo
             ? GruposTrabajoUser::find($grupo->grupos_trabajos_user_id)?->user
             : null;
 
-        return $dueno ? new Collection([$dueno]) : User::role('super-admin')->get();
+        // whereHas y no User::role(): si el rol no existe (instalación nueva) no debe trabar el registro.
+        return $dueno
+            ? new Collection([$dueno])
+            : User::whereHas('roles', fn ($q) => $q->where('name', 'super-admin'))->get();
     }
 
     public function puedeDecidir(User $user, GrupoTrabajoSolicitud $solicitud): bool

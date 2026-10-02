@@ -33,7 +33,7 @@ async function enviar() {
         });
         ElNotification.success(data.message);
         open.value = false;
-        router.reload({ only: ['gruposTrabajo'] });
+        router.reload({ only: ['gruposTrabajo', 'misSolicitudes'] });
     } catch (e: unknown) {
         const respuesta = (e as { response?: { data?: { message?: string } } })
             .response;

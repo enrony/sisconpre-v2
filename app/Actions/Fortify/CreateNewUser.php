@@ -6,8 +6,8 @@ use App\Concerns\PasswordValidationRules;
 use App\Concerns\ProfileValidationRules;
 use App\Models\Clientes;
 use App\Models\GruposTrabajo;
-use App\Models\GruposTrabajoUser;
 use App\Models\User;
+use App\Services\SolicitudesGrupo;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
@@ -22,8 +22,10 @@ class CreateNewUser implements CreatesNewUsers
      *
      * `codigo_grupo_trabajo` es obligatorio: identifica el grupo de trabajo
      * (`grupos_trabajos.code`, generado por `GruposTrabajoController` al crear
-     * el grupo) al que este usuario se une. Sin un código de un grupo activo
+     * el grupo) al que este usuario pide unirse. Sin un código de un grupo activo
      * no se crea la cuenta — el registro público no queda abierto a cualquiera.
+     * Con el código no entra directo: queda una solicitud que aprueba el dueño
+     * del grupo (`SolicitudesGrupo`); hasta entonces no ve datos de ningún grupo.
      * No se le asigna ningún rol acá a propósito: queda pendiente de que un
      * administrador se lo asigne desde Usuarios/Roles.
      *
@@ -55,12 +57,8 @@ class CreateNewUser implements CreatesNewUsers
             'password' => $input['password'],
         ]);
 
-        GruposTrabajoUser::create([
-            'iduser' => $user->id,
-            'idgrupo_trabajo' => $grupo->id,
-            'estatus' => 1,
-            'current_grupo' => 1,
-        ]);
+        // No entra directo al grupo: el dueño recibe un correo y aprueba su ingreso.
+        app(SolicitudesGrupo::class)->alRegistrarse($user, $grupo);
 
         // Si ya es cliente (ficha con su email), entra viendo solo su cartera.
         Clientes::vincularConUsuario($user);

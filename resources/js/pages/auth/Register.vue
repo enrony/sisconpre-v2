@@ -48,8 +48,8 @@ defineOptions({
                     class="uppercase placeholder:normal-case"
                 />
                 <p class="text-muted-foreground text-xs">
-                    Pedíselo a tu supervisor o a alguien de tu equipo — te une a
-                    su grupo de trabajo.
+                    Pedíselo a tu supervisor o a alguien de tu equipo. Entrás al
+                    grupo cuando su dueño apruebe tu ingreso.
                 </p>
                 <InputError :message="errors.codigo_grupo_trabajo" />
             </div>

@@ -25,11 +25,16 @@ class SolicitudUnionGrupo extends Notification
     {
         $grupo = $this->solicitud->grupo;
         $solicitante = $this->solicitud->solicitante;
+        $quien = "{$solicitante?->name} ({$solicitante?->email})";
 
         return (new MailMessage)
-            ->subject("Solicitud para unirse al grupo {$grupo?->nombre}")
+            ->subject($this->solicitud->origen === GrupoTrabajoSolicitud::ORIGEN_REGISTRO
+                ? "Nuevo usuario registrado en el grupo {$grupo?->nombre}"
+                : "Solicitud para unirse al grupo {$grupo?->nombre}")
             ->greeting('Hola '.($notifiable->name ?? ''))
-            ->line("{$solicitante?->name} ({$solicitante?->email}) pidió unirse a su grupo de trabajo **{$grupo?->nombre}**.")
+            ->line($this->solicitud->origen === GrupoTrabajoSolicitud::ORIGEN_REGISTRO
+                ? "{$quien} se registró con el código de su grupo de trabajo **{$grupo?->nombre}** y espera su aprobación."
+                : "{$quien} pidió unirse a su grupo de trabajo **{$grupo?->nombre}**.")
             ->line('Hasta que la apruebe, no verá ni podrá operar la información del grupo.')
             ->action('Revisar la solicitud', url('/dashboard'))
             ->salutation('GilenSoft');

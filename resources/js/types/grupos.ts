@@ -26,6 +26,15 @@ export interface SolicitudPorDecidir {
     nombre: string | null;
     email: string | null;
     fecha: string | null;
+    /** Usuario nuevo que se registró con el código del grupo. */
+    registro: boolean;
+}
+
+/** Solicitud del propio usuario que espera la aprobación del dueño del grupo. */
+export interface MiSolicitud {
+    id: number;
+    grupo: string | null;
+    fecha: string | null;
 }
 
 interface Importe {

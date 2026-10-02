@@ -34,7 +34,9 @@ class SolicitudUnionGrupoResuelta extends Notification
         return $aprobada
             ? $mensaje
                 ->line("Su solicitud para unirse al grupo de trabajo **{$grupo}** fue aprobada.")
-                ->line('Puede elegirlo en el selector de grupo, arriba a la derecha.')
+                ->line($this->solicitud->origen === GrupoTrabajoSolicitud::ORIGEN_REGISTRO
+                    ? 'Ya puede ingresar a su cuenta y ver la información del grupo.'
+                    : 'Puede elegirlo en el selector de grupo, arriba a la derecha.')
                 ->action('Entrar', url('/dashboard'))
             : $mensaje
                 ->line("Su solicitud para unirse al grupo de trabajo **{$grupo}** no fue aprobada.")

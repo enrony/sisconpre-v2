@@ -88,7 +88,16 @@ async function decidir(s: SolicitudPorDecidir, aprobar: boolean) {
                         >
                     </p>
                     <p class="text-muted-foreground text-xs">
-                        Quiere unirse a
+                        <span
+                            v-if="s.registro"
+                            class="text-foreground bg-muted mr-1.5 rounded px-1.5 py-px font-medium"
+                            >Nuevo usuario</span
+                        >
+                        {{
+                            s.registro
+                                ? 'Se registró con el código de'
+                                : 'Quiere unirse a'
+                        }}
                         <b class="font-medium">{{ s.grupo }}</b> · {{ s.fecha }}
                     </p>
                 </div>
