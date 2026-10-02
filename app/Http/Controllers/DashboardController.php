@@ -6,6 +6,7 @@ use App\Models\GrupoTrabajoSolicitud;
 use App\Models\PaymentReport;
 use App\Models\Prestamos;
 use App\Services\AlcanceCartera;
+use App\Services\ResumenGrupos;
 use App\Services\SolicitudesGrupo;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\Request;
@@ -44,12 +45,14 @@ class DashboardController extends Controller
 
     public function __construct(private AlcanceCartera $alcance) {}
 
-    public function index(Request $request, SolicitudesGrupo $solicitudes): Response
+    public function index(Request $request, SolicitudesGrupo $solicitudes, ResumenGrupos $resumen): Response
     {
         $paisActivo = static::obtenerPaisActivo();
         $user = $request->user();
 
         return Inertia::render('Dashboard', [
+            // Una tarjeta por cada grupo del usuario, no solo el activo.
+            'misGrupos' => $user ? $resumen->para($user) : [],
             'kpis' => $this->kpis($paisActivo),
             'carteraPorEstado' => $this->carteraPorEstado($paisActivo),
             'serieMensual' => $this->serieMensual($paisActivo),

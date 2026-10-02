@@ -577,13 +577,32 @@ aviso por correo; **WhatsApp más adelante**.
 
 **Test:** `test_solicitudes_para_unirse_a_un_grupo`.
 
+### 3.17 "Mis grupos" en el Dashboard (2026-10-01)
+
+Entrega 3 de 3. Una tarjeta por cada grupo del usuario, no solo el activo, para ver cómo está cada uno sin
+cambiar de grupo. Cada tarjeta lleva la bandera, el grupo, la ciudad y el país. El grupo activo va resaltado en
+azul ("Grupo actual"); las otras tarjetas tienen **"Cambiar a este grupo"**. El super-usuario en
+"Todos los grupos" no tiene ninguna tarjeta resaltada.
+
+- **Personal:** cartera activa (monto y préstamos en curso), a cobrar hoy, vencido, pagos por revisar y préstamos
+  por aprobar del grupo.
+- **Cliente:** solo lo suyo en ese grupo: saldo pendiente, préstamos activos, próxima cuota (monto y
+  vencimiento), cuotas vencidas y pagos en revisión.
+- Se calcula en el momento (`App\Services\ResumenGrupos`), con el mismo criterio que el resto: lo registrado por
+  los miembros del grupo, en el país del grupo.
+- Los préstamos activos del cliente se cuentan desde `prestamos` y no desde las cuotas, porque hay préstamos
+  importados del legado sin cronograma de cuotas.
+
+**Test:** `test_tarjetas_mis_grupos_del_dashboard`.
+
+**Siguiente etapa:** campanita de notificaciones junto con los correos en cada cambio de estado; WhatsApp como
+canal adicional de las mismas notificaciones.
+
 ---
 
 ## 4. No priorizado (queda en el backlog, sin fecha)
 
 - Guardar filtros aplicados (JSON por tipo).
-- Listado de cuotas a pagar por rango de fechas.
-- Email en cada cambio de estado del informe de pago.
-- Exigir soporte/comprobante al rechazar un pago.
+- Email en cada cambio de estado del informe de pago (junto con la campanita de notificaciones, §3.17).
 - Método `aprobar()`/`rechazar()` dedicados en vez del genérico `change_estatus_report` (refactor, no bloquea nada funcional).
 - Decisión de arquitectura sobre tabla de transacciones centralizada (§2.7).

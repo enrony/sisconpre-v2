@@ -335,6 +335,45 @@ class PanelSmokeTest extends TestCase
     }
 
     /**
+     * "Mis grupos" (Dashboard): una tarjeta por cada grupo del usuario, con la
+     * cartera de ese grupo aunque no sea el activo; el cliente ve solo lo suyo.
+     */
+    public function test_tarjetas_mis_grupos_del_dashboard(): void
+    {
+        $prestamista = $this->prestamista(); // grupo 1 activo
+        DB::table('grupos_trabajos_users')->insert([
+            'iduser' => $prestamista->id, 'idgrupo_trabajo' => 2, 'estatus' => 1, 'current_grupo' => 0,
+            'created_at' => now(), 'updated_at' => now(),
+        ]);
+        $enCurso = fn (int $grupo, ?int $cliente = null) => DB::table('prestamos')
+            ->whereIn('grupos_trabajos_user_id', DB::table('grupos_trabajos_users')->where('idgrupo_trabajo', $grupo)->pluck('id'))
+            ->where('country_id', DB::table('grupos_trabajos as g')->join('cities as c', 'c.id', '=', 'g.city_id')->where('g.id', $grupo)->value('c.country_id'))
+            ->where('estatus', Prestamos::ESTATUS_PENDIENTE)
+            ->when($cliente, fn ($q, $c) => $q->where('cliente_id', $c)->where('aprobacion_estatus_id', Prestamos::APROBACION_APROBADO))
+            ->count();
+
+        $tarjetas = [];
+        $this->actingAs($prestamista)->get('/dashboard')->assertInertia(function ($page) use (&$tarjetas) {
+            $tarjetas = collect($page->toArray()['props']['misGrupos'])->keyBy('grupo_id');
+        });
+        $this->assertCount(2, $tarjetas);
+        $this->assertTrue($tarjetas[1]['activo']);
+        $this->assertFalse($tarjetas[2]['activo']);
+        $this->assertSame('personal', $tarjetas[2]['tipo']);
+        $this->assertSame($enCurso(1), $tarjetas[1]['datos']['cartera_activa']['cantidad']);
+        $this->assertSame($enCurso(2), $tarjetas[2]['datos']['cartera_activa']['cantidad']);
+
+        $cliente = $this->cliente();
+        $clienteId = (int) DB::table('clientes')->where('user_id', $cliente->id)->value('id');
+        $this->actingAs($cliente)->get('/dashboard')->assertInertia(function ($page) use (&$tarjetas) {
+            $tarjetas = $page->toArray()['props']['misGrupos'];
+        });
+        $this->assertSame('cliente', $tarjetas[0]['tipo']);
+        $this->assertSame($enCurso($tarjetas[0]['grupo_id'], $clienteId), $tarjetas[0]['datos']['prestamos_activos']);
+        $this->assertArrayNotHasKey('cartera_activa', $tarjetas[0]['datos']);
+    }
+
+    /**
      * Unirse a otro grupo: queda una solicitud que resuelve el dueño del grupo
      * (o un super-usuario si no tiene dueño), con aviso por correo en cada paso.
      */

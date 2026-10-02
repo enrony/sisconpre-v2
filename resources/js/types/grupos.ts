@@ -27,3 +27,33 @@ export interface SolicitudPorDecidir {
     email: string | null;
     fecha: string | null;
 }
+
+interface Importe {
+    cantidad: number;
+    monto: number;
+}
+
+/** Resumen de un grupo para el personal (cartera del grupo). */
+export interface DatosGrupoPersonal {
+    cartera_activa: Importe;
+    cobrar_hoy: Importe;
+    vencido: Importe;
+    pagos_por_revisar: number;
+    prestamos_por_aprobar: number;
+}
+
+/** Resumen de un grupo para el cliente (solo lo suyo). */
+export interface DatosGrupoCliente {
+    prestamos_activos: number;
+    saldo_pendiente: number;
+    proxima_cuota: { fecha: string; monto: number } | null;
+    cuotas_vencidas: number;
+    pagos_en_revision: number;
+}
+
+/** Tarjeta "Mis grupos" del Dashboard. */
+export type TarjetaGrupo = GrupoOpcion &
+    (
+        | { tipo: 'personal'; datos: DatosGrupoPersonal }
+        | { tipo: 'cliente'; datos: DatosGrupoCliente }
+    );
