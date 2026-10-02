@@ -282,6 +282,55 @@ class PanelSmokeTest extends TestCase
         }
     }
 
+    /** El grupo activo filtra lo que se ve; solo se activan grupos propios; "Todos" es solo del super-usuario. */
+    public function test_cambiar_de_grupo_activo(): void
+    {
+        $prestamista = $this->prestamista(); // miembro activo del grupo 1
+        $gtuGrupo1 = (int) DB::table('grupos_trabajos_users')->where('iduser', $prestamista->id)->value('id');
+        $gtuGrupo2 = DB::table('grupos_trabajos_users')->insertGetId([
+            'iduser' => $prestamista->id, 'idgrupo_trabajo' => 2, 'estatus' => 1, 'current_grupo' => 0,
+            'created_at' => now(), 'updated_at' => now(),
+        ]);
+        $totalGrupo = fn (int $grupo) => DB::table('prestamos')
+            ->whereIn('grupos_trabajos_user_id', DB::table('grupos_trabajos_users')->where('idgrupo_trabajo', $grupo)->pluck('id'))
+            ->where('country_id', DB::table('grupos_trabajos as g')->join('cities as c', 'c.id', '=', 'g.city_id')->where('g.id', $grupo)->value('c.country_id'))
+            ->count();
+
+        $this->assertSame($totalGrupo(1), $this->actingAs($prestamista)->postJson('/prestamos/records')->json('lista.total'));
+
+        $this->actingAs($prestamista)->putJson('/grupo-activo', ['gtu_id' => $gtuGrupo2])->assertOk();
+        $this->assertSame($totalGrupo(2), $this->actingAs($prestamista)->postJson('/prestamos/records')->json('lista.total'));
+        $this->assertSame(1, (int) DB::table('grupos_trabajos_users')->where('id', $gtuGrupo2)->value('current_grupo'));
+        $this->assertSame(0, (int) DB::table('grupos_trabajos_users')->where('id', $gtuGrupo1)->value('current_grupo'));
+
+        // Una membresía ajena o "Todos los grupos" no corresponden a un prestamista.
+        $this->actingAs($prestamista)->putJson('/grupo-activo', ['gtu_id' => 1])->assertStatus(422);
+        $this->actingAs($prestamista)->putJson('/grupo-activo', ['gtu_id' => null])->assertStatus(422);
+
+        // Super-usuario (otra sesión): por defecto ve todo; con su grupo elegido, solo ese grupo.
+        $this->flushSession();
+        $super = $this->super();
+        $activoOriginal = DB::table('grupos_trabajos_users')->where('iduser', $super->id)->pluck('current_grupo', 'id');
+
+        try {
+            $todos = DB::table('prestamos')->count();
+            $this->assertSame($todos, $this->actingAs($super)->postJson('/prestamos/records')->json('lista.total'));
+
+            // Elegir el grupo que ya era el activo no puede dejarlo sin grupo.
+            $this->actingAs($super)->putJson('/grupo-activo', ['gtu_id' => 1])->assertOk();
+            $this->assertSame(1, (int) DB::table('grupos_trabajos_users')->where('id', 1)->value('current_grupo'));
+            $this->assertSame($totalGrupo(1), $this->actingAs($super)->postJson('/prestamos/records')->json('lista.total'));
+
+            $this->actingAs($super)->putJson('/grupo-activo', ['gtu_id' => null])->assertOk();
+            $this->assertSame($todos, $this->actingAs($super)->postJson('/prestamos/records')->json('lista.total'));
+        } finally {
+            foreach ($activoOriginal as $id => $activo) {
+                DB::table('grupos_trabajos_users')->where('id', $id)->update(['current_grupo' => $activo]);
+            }
+            $this->flushSession();
+        }
+    }
+
     /** Vincular / desvincular a mano la ficha de cliente de un usuario (pantalla Usuarios). */
     public function test_vincular_ficha_de_cliente_desde_usuarios(): void
     {

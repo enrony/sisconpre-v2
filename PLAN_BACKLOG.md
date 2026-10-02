@@ -519,8 +519,38 @@ Se apoya en el alcance de §3.13.
 
 **Tests:** `test_cuotas_pendientes_filtros_y_en_revision`, `test_cuotas_pendientes_cliente_ve_solo_las_suyas`.
 
-**Para decidir:** en Préstamos, Informes de pago y el Dashboard, el cliente todavía ve sus datos filtrados por
-el país de su grupo (heredado del criterio de país del personal). En esta pantalla no se aplica.
+**Resuelto en §3.15:** el usuario definió que todo (también para el cliente) se filtra por el grupo activo y su
+país, así que se quitó la excepción de país de esta pantalla.
+
+### 3.15 Grupo de trabajo activo + selector con bandera (2026-10-01)
+
+Pedido del usuario: tanto el cliente como el prestamista pueden pertenecer a varios grupos y alternar entre
+ellos; **toda** la información se filtra por el grupo seleccionado, que se muestra siempre (con la bandera de su
+país). Es la entrega 1 de 3 (2: solicitudes para unirse con aprobación del dueño y correo; 3: tarjetas "Mis
+grupos" en el Dashboard).
+
+- **`App\Services\GrupoActivo`:** el grupo activo es la membresía con `current_grupo = 1` (la columna ya existía,
+  pero no había forma de cambiarla). El **super-usuario** tiene además "Todos los grupos": es su estado por
+  defecto, como antes del selector, y se guarda en la sesión porque no corresponde a ninguna membresía.
+- **`AlcanceCartera`** ahora acota al **grupo activo**: el personal ve lo de ese grupo, el cliente lo suyo
+  dentro de ese grupo, y el super-usuario todo o el grupo que elija. `obtenerPaisActivo()` sale del mismo grupo
+  (también para el super-usuario cuando eligió uno), así que el país queda alineado en todas las pantallas.
+- **Selector** en el encabezado (`GrupoSwitcher`): bandera, nombre y ciudad del grupo activo; el menú lista los
+  grupos con su ciudad y país. Al cambiar se recarga la página, porque los listados viven en stores que no se
+  enteran del cambio. `PUT /grupo-activo` solo activa membresías propias; "Todos" solo para el super-usuario.
+- **Banderas en SVG** (`BanderaPais`), no emoji: en Windows los emoji de bandera se ven como letras. Están
+  dibujadas CO, VE y AR (los países activos); otro país cae al código en un chip.
+- **Bugs encontrados por los tests y corregidos:**
+    - Al elegir el grupo que ya era el activo, el usuario quedaba **sin grupo**: el modelo leído antes del
+      update masivo "no veía cambios" y no guardaba. Ahora las dos escrituras van por query.
+    - La memoria de `AlcanceCartera` sobrevivía entre requests (controlador cacheado en la ruta) y no se
+      enteraba del cambio de grupo; además `spl_object_id()` recicla ids. Ahora vale por request, con una marca
+      única guardada en el propio request.
+    - Tests que se cortaron a mitad de camino durante la corrección dejaron datos de prueba en la BD local
+      (4 informes, un movimiento "QA finalizado" en el informe #27); se limpiaron, y el test nuevo restaura el
+      grupo activo del super-usuario en un `finally`.
+
+**Test:** `test_cambiar_de_grupo_activo`.
 
 ---
 

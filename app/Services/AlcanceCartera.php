@@ -12,16 +12,18 @@ use Illuminate\Database\Query\Builder as QueryBuilder;
 
 /**
  * Qué parte de la cartera (clientes, préstamos, cuotas, informes de pago) ve
- * el usuario autenticado. Única regla para todas las pantallas:
+ * el usuario autenticado. Única regla para todas las pantallas, siempre
+ * dentro del **grupo de trabajo activo** (`GrupoActivo`, el selector del
+ * encabezado):
  *
- * - **todo**: super-usuario.
- * - **grupos**: personal con `cartera.ver-grupo` → lo registrado por cualquier
- *   miembro de los grupos de trabajo a los que pertenece.
+ * - **todo**: super-usuario con "Todos los grupos".
+ * - **grupos**: personal con `cartera.ver-grupo` (o super-usuario con un grupo
+ *   elegido) → lo registrado por cualquier miembro del grupo activo.
  * - **cliente**: usuario vinculado a una ficha de cliente (`clientes.user_id`)
- *   → solo lo suyo.
+ *   → solo lo suyo, del grupo activo.
  * - **nada**: cualquier otro usuario.
  *
- * Se suma al filtro por país activo que ya aplica cada pantalla.
+ * Se suma al filtro por país activo (el del grupo activo) que aplica cada pantalla.
  */
 class AlcanceCartera
 {
@@ -43,11 +45,13 @@ class AlcanceCartera
     private bool $clienteResuelto = false;
 
     /**
-     * Usuario para el que vale lo memorizado. El contenedor puede reutilizar
-     * esta instancia entre requests (p. ej. el controlador que la recibe queda
-     * cacheado en la ruta): si cambió el usuario, se recalcula todo.
+     * Usuario y request para los que vale lo memorizado. El contenedor puede
+     * reutilizar esta instancia entre requests (p. ej. el controlador que la
+     * recibe queda cacheado en la ruta), y entre un request y otro el usuario
+     * puede haber cambiado de grupo activo: lo memorizado vale solo dentro del
+     * mismo request.
      */
-    private int|string|null $memoriaDe = null;
+    private ?string $memoriaDe = null;
 
     public function tipo(): string
     {
@@ -58,7 +62,12 @@ class AlcanceCartera
 
     private function sincronizarUsuario(): void
     {
-        $actual = auth()->id();
+        // Marca única por request (spl_object_id() recicla ids de objetos liberados).
+        $atributos = request()->attributes;
+        if (! $atributos->has('alcance_cartera.request')) {
+            $atributos->set('alcance_cartera.request', bin2hex(random_bytes(8)));
+        }
+        $actual = auth()->id().'|'.$atributos->get('alcance_cartera.request');
 
         if ($actual !== $this->memoriaDe) {
             $this->memoriaDe = $actual;
@@ -90,8 +99,8 @@ class AlcanceCartera
     }
 
     /**
-     * Miembros (`grupos_trabajos_users.id`) de los grupos a los que pertenece el
-     * usuario: lo que registró cualquiera de ellos es cartera del grupo.
+     * Miembros (`grupos_trabajos_users.id`) del grupo activo del usuario: lo que
+     * registró cualquiera de ellos es cartera del grupo.
      *
      * @return list<int>
      */
@@ -102,6 +111,7 @@ class AlcanceCartera
         if ($this->gtuIds === null) {
             $grupos = GruposTrabajoUser::where('iduser', $this->usuario()?->id)
                 ->where('estatus', 1)
+                ->where('current_grupo', 1)
                 ->pluck('idgrupo_trabajo');
 
             $this->gtuIds = array_values(GruposTrabajoUser::whereIn('idgrupo_trabajo', $grupos)
@@ -124,7 +134,8 @@ class AlcanceCartera
         match ($this->tipo()) {
             self::TODO => null,
             self::GRUPOS => $query->whereIn("{$tabla}.grupos_trabajos_user_id", $this->gtuIds()),
-            self::CLIENTE => $query->where("{$tabla}.cliente_id", $this->clienteId()),
+            self::CLIENTE => $query->where("{$tabla}.cliente_id", $this->clienteId())
+                ->whereIn("{$tabla}.grupos_trabajos_user_id", $this->gtuIds()),
             default => $query->whereRaw('1 = 0'),
         };
 
@@ -142,7 +153,8 @@ class AlcanceCartera
         match ($this->tipo()) {
             self::TODO => null,
             self::GRUPOS => $query->whereIn("{$tabla}.grupos_trabajos_user_id", $this->gtuIds()),
-            self::CLIENTE => $query->where("{$tabla}.cliente_id", $this->clienteId()),
+            self::CLIENTE => $query->where("{$tabla}.cliente_id", $this->clienteId())
+                ->whereIn("{$tabla}.grupos_trabajos_user_id", $this->gtuIds()),
             default => $query->whereRaw('1 = 0'),
         };
 
@@ -213,8 +225,8 @@ class AlcanceCartera
 
         return match (true) {
             $usuario === null => self::NADA,
-            // Mismo criterio que Controller::isSuperUsuario(), sin volver a buscar el usuario.
-            $usuario->hasRole('super-admin') => self::TODO,
+            GrupoActivo::verTodos($usuario) => self::TODO,
+            GrupoActivo::esSuperUsuario($usuario) => self::GRUPOS,
             $usuario->can('cartera.ver-grupo') => self::GRUPOS,
             $this->clienteId() !== null => self::CLIENTE,
             default => self::NADA,

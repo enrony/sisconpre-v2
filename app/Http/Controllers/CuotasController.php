@@ -112,8 +112,8 @@ class CuotasController extends Controller
             ->where('d.pagado', false)
             ->where('prestamos.estatus', Prestamos::ESTATUS_PENDIENTE)
             ->where('prestamos.aprobacion_estatus_id', Prestamos::APROBACION_APROBADO)
-            // El personal opera en su país activo; el cliente ve todas sus cuotas.
-            ->when(! $esCliente ? static::obtenerPaisActivo() : null, fn (Builder $q, string $pais) => $q->where('prestamos.country_id', $pais))
+            // País del grupo activo, igual para el personal y para el cliente.
+            ->when(static::obtenerPaisActivo(), fn (Builder $q, string $pais) => $q->where('prestamos.country_id', $pais))
             ->when(! $esCliente && $request->filled('clientes'), fn (Builder $q) => $q->whereIn(
                 'prestamos.cliente_id',
                 array_values(array_filter(explode(',', $request->string('clientes')->toString()))),

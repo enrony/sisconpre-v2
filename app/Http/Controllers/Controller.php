@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Traits\generalsTrait;
 use App\Models\GruposTrabajoUser;
+use App\Services\GrupoActivo;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Foundation\Validation\ValidatesRequests;
 
@@ -31,19 +32,20 @@ abstract class Controller
      * pasó a significar "en qué países puede este usuario crear un grupo de trabajo
      * nuevo", no "en qué país opera").
      *
-     * `null` = sin restricción de país: superusuario, usuario sin grupo de trabajo
-     * activo todavía, o grupo sin ciudad asignada (huecos de datos que hay que
-     * cerrar aparte, no algo que este método deba inventar).
+     * `null` = sin restricción de país: superusuario mirando "Todos los grupos",
+     * usuario sin grupo de trabajo activo todavía, o grupo sin ciudad asignada
+     * (huecos de datos que hay que cerrar aparte, no algo que este método deba inventar).
      */
     public static function obtenerPaisActivo(): ?string
     {
-        $userId = auth()->user()?->id;
+        $user = auth()->user();
+        $userId = $user?->id;
 
         if ($userId === null) {
             return null;
         }
 
-        if (static::isSuperUsuario($userId)) {
+        if (GrupoActivo::verTodos($user)) {
             return null;
         }
 

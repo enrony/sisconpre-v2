@@ -1,4 +1,5 @@
 import type { Auth } from '@/types/auth';
+import type { GruposTrabajoShared } from '@/types/grupos';
 import type { MenuNode } from '@/types/navigation';
 
 // Extend ImportMeta interface for Vite...
@@ -21,6 +22,7 @@ declare module '@inertiajs/core' {
             auth: Auth;
             menu: MenuNode[];
             sidebarOpen: boolean;
+            gruposTrabajo: GruposTrabajoShared | null;
             [key: string]: unknown;
         };
     }

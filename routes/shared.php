@@ -3,6 +3,7 @@
 use App\Http\Controllers\BankController;
 use App\Http\Controllers\ClientesController;
 use App\Http\Controllers\FranquiciaController;
+use App\Http\Controllers\GrupoActivoController;
 use App\Http\Controllers\PaymentMethodController;
 use App\Http\Controllers\PaymentReportController;
 use App\Http\Controllers\PrestamosController;
@@ -24,6 +25,8 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::middleware(['web', 'auth', 'verified'])->group(function () {
+    Route::put('/grupo-activo', [GrupoActivoController::class, 'cambiar']);
+
     Route::get('/banks/tables/{country_id?}', [BankController::class, 'tables']);
     Route::get('/franquicias/tables', [FranquiciaController::class, 'tables']);
     Route::get('/payment_methods/tables', [PaymentMethodController::class, 'tables']);

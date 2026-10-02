@@ -3,6 +3,7 @@
 namespace App\Http\Middleware;
 
 use App\Http\Controllers\Controller;
+use App\Services\GrupoActivo;
 use App\Support\Menu;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
@@ -49,6 +50,12 @@ class HandleInertiaRequests extends Middleware
             ],
             'menu' => fn () => Menu::forUser($user),
             'paisActivo' => fn () => $user ? Controller::obtenerPaisActivo() : null,
+            // Selector de grupo de trabajo del encabezado.
+            'gruposTrabajo' => fn () => $user ? [
+                'opciones' => GrupoActivo::opciones($user),
+                'todos' => GrupoActivo::verTodos($user),
+                'puedeVerTodos' => GrupoActivo::esSuperUsuario($user),
+            ] : null,
             'flash' => [
                 // Los controladores portados usan session()->flash('flash.message'|'flash.type').
                 'toast' => fn () => $request->session()->get('flash.message')
