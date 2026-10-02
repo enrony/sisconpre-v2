@@ -15,4 +15,15 @@ export interface GruposTrabajoShared {
     /** Super-usuario mirando "Todos los grupos". */
     todos: boolean;
     puedeVerTodos: boolean;
+    /** Nombres de los grupos a los que pidió unirse y todavía no le respondieron. */
+    solicitudesEnviadas: string[];
+}
+
+/** Solicitud para unirse a un grupo del que el usuario es dueño (Dashboard). */
+export interface SolicitudPorDecidir {
+    id: number;
+    grupo: string | null;
+    nombre: string | null;
+    email: string | null;
+    fecha: string | null;
 }

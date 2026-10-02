@@ -3,6 +3,7 @@
 namespace App\Http\Middleware;
 
 use App\Http\Controllers\Controller;
+use App\Models\GrupoTrabajoSolicitud;
 use App\Services\GrupoActivo;
 use App\Support\Menu;
 use Illuminate\Http\Request;
@@ -55,6 +56,13 @@ class HandleInertiaRequests extends Middleware
                 'opciones' => GrupoActivo::opciones($user),
                 'todos' => GrupoActivo::verTodos($user),
                 'puedeVerTodos' => GrupoActivo::esSuperUsuario($user),
+                // Grupos a los que pidió unirse y todavía no le respondieron.
+                'solicitudesEnviadas' => GrupoTrabajoSolicitud::query()
+                    ->join('grupos_trabajos', 'grupos_trabajos.id', '=', 'grupos_trabajos_solicitudes.idgrupo_trabajo')
+                    ->where('grupos_trabajos_solicitudes.user_id', $user->id)
+                    ->where('grupos_trabajos_solicitudes.estatus', GrupoTrabajoSolicitud::PENDIENTE)
+                    ->pluck('grupos_trabajos.nombre')
+                    ->all(),
             ] : null,
             'flash' => [
                 // Los controladores portados usan session()->flash('flash.message'|'flash.type').

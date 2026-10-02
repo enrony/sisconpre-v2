@@ -7,9 +7,11 @@ import CarteraPorEstadoChart, {
 import SerieMensualChart, {
     type MesSerie,
 } from '@/components/dashboard/SerieMensualChart.vue';
+import SolicitudesGrupoPanel from '@/components/grupos/SolicitudesGrupoPanel.vue';
 import { dashboard } from '@/routes';
 import { can } from '@/lib/can';
 import { formatNumber } from '@/lib/format';
+import type { SolicitudPorDecidir } from '@/types/grupos';
 
 /** Mismos estados que cuenta el KPI (`DashboardController`): Pendiente y En revisión. */
 const urlInformesPorRevisar = '/payment_report?estados=1,4';
@@ -34,6 +36,7 @@ defineProps<{
     };
     carteraPorEstado: EstadoCartera[];
     serieMensual: MesSerie[];
+    solicitudesPorDecidir: SolicitudPorDecidir[];
 }>();
 </script>
 
@@ -43,6 +46,8 @@ defineProps<{
     <div
         class="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4"
     >
+        <SolicitudesGrupoPanel :solicitudes="solicitudesPorDecidir" />
+
         <div class="grid auto-rows-min gap-4 md:grid-cols-3">
             <div
                 class="border-sidebar-border/70 dark:border-sidebar-border rounded-xl border p-4"

@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { usePage } from '@inertiajs/vue3';
-import { Check, ChevronsUpDown, Globe } from '@lucide/vue';
+import { Check, ChevronsUpDown, Clock, Globe, Plus } from '@lucide/vue';
 import { computed, ref } from 'vue';
 import BanderaPais from '@/components/grupos/BanderaPais.vue';
+import UnirseGrupoDialog from '@/components/grupos/UnirseGrupoDialog.vue';
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -27,9 +28,12 @@ const activo = computed<GrupoOpcion | null>(() =>
     grupos.value?.todos ? null : (opciones.value.find((o) => o.activo) ?? null),
 );
 const verTodos = computed(() => Boolean(grupos.value?.todos));
-const hayAlternativas = computed(
-    () => opciones.value.length > 1 || Boolean(grupos.value?.puedeVerTodos),
+const etiqueta = computed(() =>
+    verTodos.value ? 'Todos los grupos' : (activo.value?.nombre ?? 'Sin grupo'),
 );
+const enviadas = computed(() => grupos.value?.solicitudesEnviadas ?? []);
+
+const unirseOpen = ref(false);
 
 const cambiando = ref(false);
 
@@ -50,12 +54,12 @@ async function elegir(gtuId: number | null) {
 </script>
 
 <template>
-    <DropdownMenu v-if="grupos && (opciones.length || grupos.puedeVerTodos)">
-        <DropdownMenuTrigger as-child :disabled="!hayAlternativas">
+    <DropdownMenu v-if="grupos">
+        <DropdownMenuTrigger as-child>
             <button
                 type="button"
-                class="border-border hover:bg-accent focus-visible:ring-ring/50 flex h-9 max-w-[16rem] items-center gap-2 rounded-md border px-2.5 text-sm transition-colors outline-none focus-visible:ring-[3px] disabled:cursor-default disabled:hover:bg-transparent"
-                :aria-label="`Grupo de trabajo: ${activo?.nombre ?? 'Todos los grupos'}`"
+                class="border-border hover:bg-accent focus-visible:ring-ring/50 flex h-9 max-w-[16rem] items-center gap-2 rounded-md border px-2.5 text-sm transition-colors outline-none focus-visible:ring-[3px]"
+                :aria-label="`Grupo de trabajo: ${etiqueta}`"
             >
                 <Globe
                     v-if="verTodos"
@@ -63,20 +67,17 @@ async function elegir(gtuId: number | null) {
                     aria-hidden="true"
                 />
                 <BanderaPais
-                    v-else
-                    :codigo="activo?.pais_codigo ?? null"
-                    :titulo="activo?.pais"
+                    v-else-if="activo"
+                    :codigo="activo.pais_codigo"
+                    :titulo="activo.pais"
                 />
-                <span class="truncate font-medium">{{
-                    activo?.nombre ?? 'Todos los grupos'
-                }}</span>
+                <span class="truncate font-medium">{{ etiqueta }}</span>
                 <span
                     v-if="activo?.ciudad"
                     class="text-muted-foreground hidden truncate sm:inline"
                     >· {{ activo.ciudad }}</span
                 >
                 <ChevronsUpDown
-                    v-if="hayAlternativas"
                     class="text-muted-foreground size-3.5 shrink-0"
                     aria-hidden="true"
                 />
@@ -127,6 +128,29 @@ async function elegir(gtuId: number | null) {
                     aria-hidden="true"
                 />
             </DropdownMenuItem>
+            <DropdownMenuItem
+                v-for="nombre in enviadas"
+                :key="`solicitud-${nombre}`"
+                disabled
+                class="gap-2"
+            >
+                <Clock
+                    class="text-muted-foreground size-4"
+                    aria-hidden="true"
+                />
+                <span class="min-w-0 flex-1">
+                    <span class="block truncate">{{ nombre }}</span>
+                    <span class="text-muted-foreground block text-xs"
+                        >Esperando aprobación</span
+                    >
+                </span>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem class="gap-2" @select="unirseOpen = true">
+                <Plus class="text-muted-foreground size-4" aria-hidden="true" />
+                <span>Unirme a otro grupo con un código</span>
+            </DropdownMenuItem>
         </DropdownMenuContent>
     </DropdownMenu>
+    <UnirseGrupoDialog v-model:open="unirseOpen" />
 </template>

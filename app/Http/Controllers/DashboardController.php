@@ -2,10 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\GrupoTrabajoSolicitud;
 use App\Models\PaymentReport;
 use App\Models\Prestamos;
 use App\Services\AlcanceCartera;
+use App\Services\SolicitudesGrupo;
 use Carbon\CarbonImmutable;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -41,14 +44,23 @@ class DashboardController extends Controller
 
     public function __construct(private AlcanceCartera $alcance) {}
 
-    public function index(): Response
+    public function index(Request $request, SolicitudesGrupo $solicitudes): Response
     {
         $paisActivo = static::obtenerPaisActivo();
+        $user = $request->user();
 
         return Inertia::render('Dashboard', [
             'kpis' => $this->kpis($paisActivo),
             'carteraPorEstado' => $this->carteraPorEstado($paisActivo),
             'serieMensual' => $this->serieMensual($paisActivo),
+            // Solicitudes para unirse a los grupos de los que es dueño.
+            'solicitudesPorDecidir' => $user ? $solicitudes->porDecidir($user)->map(fn (GrupoTrabajoSolicitud $s): array => [
+                'id' => $s->id,
+                'grupo' => $s->grupo?->nombre,
+                'nombre' => $s->solicitante?->name,
+                'email' => $s->solicitante?->email,
+                'fecha' => $s->created_at?->format('d/m/Y H:i'),
+            ])->values() : [],
         ]);
     }
 

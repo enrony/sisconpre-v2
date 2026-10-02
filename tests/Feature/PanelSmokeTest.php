@@ -7,9 +7,12 @@ use App\Http\Controllers\ReporteInformesPagoController;
 use App\Http\Controllers\ReportePrestamosController;
 use App\Models\Prestamos;
 use App\Models\User;
+use App\Notifications\SolicitudUnionGrupo;
+use App\Notifications\SolicitudUnionGrupoResuelta;
 use App\Services\AlcanceCartera;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Testing\TestResponse;
 use Tests\TestCase;
@@ -328,6 +331,56 @@ class PanelSmokeTest extends TestCase
                 DB::table('grupos_trabajos_users')->where('id', $id)->update(['current_grupo' => $activo]);
             }
             $this->flushSession();
+        }
+    }
+
+    /**
+     * Unirse a otro grupo: queda una solicitud que resuelve el dueño del grupo
+     * (o un super-usuario si no tiene dueño), con aviso por correo en cada paso.
+     */
+    public function test_solicitudes_para_unirse_a_un_grupo(): void
+    {
+        Notification::fake();
+        $prestamista = $this->prestamista(); // miembro del grupo 1
+        $cliente = $this->cliente();
+        $super = $this->super();
+        $duenoOriginalGrupo3 = DB::table('grupos_trabajos')->where('id', 3)->value('grupos_trabajos_user_id');
+        $codigo = fn (int $grupo) => (string) DB::table('grupos_trabajos')->where('id', $grupo)->value('code');
+
+        try {
+            $this->actingAs($prestamista)->postJson('/grupos/solicitudes', ['codigo' => 'NOEXISTE'])->assertStatus(422);
+            $this->actingAs($prestamista)->postJson('/grupos/solicitudes', ['codigo' => $codigo(1)])
+                ->assertStatus(422)->assertJsonFragment(['message' => 'Ya forma parte del grupo General.']);
+
+            // Grupo 2 no tiene dueño: avisa a los super-usuarios. El código no distingue mayúsculas.
+            $this->actingAs($prestamista)->postJson('/grupos/solicitudes', ['codigo' => strtolower($codigo(2))])->assertOk();
+            $solicitud = DB::table('grupos_trabajos_solicitudes')->where('user_id', $prestamista->id)->first();
+            $this->assertSame('pendiente', $solicitud->estatus);
+            Notification::assertSentTo($super, SolicitudUnionGrupo::class);
+            $this->actingAs($prestamista)->postJson('/grupos/solicitudes', ['codigo' => $codigo(2)])->assertStatus(422);
+
+            // Solo quien decide puede resolverla.
+            $this->actingAs($cliente)->putJson("/grupos/solicitudes/{$solicitud->id}/aprobar")->assertForbidden();
+            $this->actingAs($super)->putJson("/grupos/solicitudes/{$solicitud->id}/aprobar")->assertOk();
+            $membresia = DB::table('grupos_trabajos_users')->where('iduser', $prestamista->id)->where('idgrupo_trabajo', 2)->first();
+            $this->assertSame(1, (int) $membresia->estatus);
+            $this->assertSame(0, (int) $membresia->current_grupo); // ya tenía un grupo activo
+            Notification::assertSentTo($prestamista, SolicitudUnionGrupoResuelta::class);
+            $this->actingAs($super)->putJson("/grupos/solicitudes/{$solicitud->id}/aprobar")->assertStatus(422);
+
+            // Grupo con dueño (no super-usuario): solo él la resuelve; al rechazar no hay membresía.
+            DB::table('grupos_trabajos')->where('id', 3)->update([
+                'grupos_trabajos_user_id' => DB::table('grupos_trabajos_users')->where('iduser', $prestamista->id)->where('idgrupo_trabajo', 1)->value('id'),
+            ]);
+            $this->actingAs($cliente)->postJson('/grupos/solicitudes', ['codigo' => $codigo(3)])->assertOk();
+            Notification::assertSentTo($prestamista, SolicitudUnionGrupo::class);
+            $otra = (int) DB::table('grupos_trabajos_solicitudes')->where('user_id', $cliente->id)->value('id');
+            $this->actingAs($prestamista)->putJson("/grupos/solicitudes/{$otra}/rechazar")->assertOk();
+            $this->assertSame('rechazada', DB::table('grupos_trabajos_solicitudes')->where('id', $otra)->value('estatus'));
+            $this->assertFalse(DB::table('grupos_trabajos_users')->where('iduser', $cliente->id)->where('idgrupo_trabajo', 3)->exists());
+        } finally {
+            DB::table('grupos_trabajos')->where('id', 3)->update(['grupos_trabajos_user_id' => $duenoOriginalGrupo3]);
+            DB::table('grupos_trabajos_solicitudes')->whereIn('user_id', [$prestamista->id, $cliente->id])->delete();
         }
     }
 

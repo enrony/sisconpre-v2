@@ -552,6 +552,31 @@ grupos" en el Dashboard).
 
 **Test:** `test_cambiar_de_grupo_activo`.
 
+### 3.16 Unirse a otro grupo con aprobación del dueño + aviso por correo (2026-10-01)
+
+Entrega 2 de 3. Decisión del usuario: sumarse a otro grupo **requiere que lo apruebe el dueño del grupo**, con
+aviso por correo; **WhatsApp más adelante**.
+
+- **"Unirme a otro grupo con un código"** en el selector del encabezado: se ingresa el mismo código que se usa
+  al registrarse y queda una **solicitud** (`grupos_trabajos_solicitudes`: pendiente / aprobada / rechazada,
+  quién decidió y cuándo). No se puede pedir un grupo del que ya es miembro, ni repetir una solicitud
+  pendiente. El código no distingue mayúsculas. Las solicitudes enviadas aparecen en el selector como
+  "Esperando aprobación".
+- **Quién decide:** el dueño del grupo (`grupos_trabajos.grupos_trabajos_user_id`); si el grupo no tiene dueño
+  (hoy "Yulio" y "Prueba"), los super-usuarios. Lo resuelven desde el **Dashboard** (panel "Solicitudes para
+  unirse a sus grupos", solo visible si hay alguna). Al aprobar se crea la membresía, o se reactiva si ya existía
+  inactiva. Si el solicitante no tenía grupo activo, este pasa a serlo.
+- **Correos** con Laravel Notifications (`SolicitudUnionGrupo` al dueño, `SolicitudUnionGrupoResuelta` al
+  solicitante), canal `mail`. **Para WhatsApp alcanza con sumar el canal en `via()`**. Si el correo falla no
+  traba la solicitud: queda registrado en el log. Se agregó `lang/es.json` porque la plantilla de correo de
+  Laravel salía con textos en inglés.
+- Detalle corregido en la revisión visual: el ejemplo del campo de código era un código real (el del grupo
+  General); se cambió por uno genérico.
+
+**Para decidir:** el **registro** de un usuario nuevo con código sigue entrando al grupo directo, sin aprobación.
+
+**Test:** `test_solicitudes_para_unirse_a_un_grupo`.
+
 ---
 
 ## 4. No priorizado (queda en el backlog, sin fecha)
